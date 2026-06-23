@@ -37,7 +37,8 @@ class Command(BaseCommand):
                     "temperature_2m,"
                     "relative_humidity_2m,"
                     "surface_pressure,"
-                    "wind_speed_10m"
+                    "wind_speed_10m,"
+                    "precipitation"
                 )
 
                 response = requests.get(
@@ -55,6 +56,10 @@ class Command(BaseCommand):
                 umidade = atual.get("relative_humidity_2m")
                 pressao = atual.get("surface_pressure")
                 vento = atual.get("wind_speed_10m")
+                precipitacao = atual.get(
+                    "precipitation",
+                    0
+                )
 
                 if None in (
                     temperatura,
@@ -71,7 +76,8 @@ class Command(BaseCommand):
                     temperatura=temperatura,
                     umidade=umidade,
                     pressao=pressao,
-                    velocidade_vento=vento
+                    velocidade_vento=vento,
+                    precipitacao=precipitacao
                 )
 
                 total += 1

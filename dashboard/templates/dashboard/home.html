@@ -1,20 +1,393 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
+
 <head>
-    <meta charset="UTF-8">
-    <title>AgroClima Café</title>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>AgroClima Café</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+    body{
+        background:#0f172a;
+        color:white;
+    }
+
+    .navbar{
+        background:#0b1120;
+    }
+
+    .titulo{
+        font-weight:bold;
+        color:#4ade80;
+    }
+
+    .subtitulo{
+        color:#cbd5e1;
+        margin-bottom:30px;
+    }
+
+    .card-dashboard{
+        border:none;
+        border-radius:20px;
+        color:white;
+        transition:.3s;
+        box-shadow:0 4px 15px rgba(0,0,0,.2);
+    }
+
+    .card-dashboard:hover{
+        transform:translateY(-5px);
+    }
+
+    .card-temperatura{
+        background:#16a34a;
+    }
+
+    .card-clima{
+        background:#0891b2;
+    }
+
+    .card-geada{
+        background:#dc2626;
+    }
+
+    .card-municipios{
+        background:#2563eb;
+    }
+
+    .numero{
+        font-size:42px;
+        font-weight:bold;
+    }
+
+    .icone{
+        font-size:50px;
+        opacity:.8;
+    }
+
+    .grafico-card{
+        background:#1e293b;
+        border:none;
+        border-radius:20px;
+        color:white;
+    }
+
+    h5{
+        margin-top:10px;
+    }
+
+</style>
+
 </head>
+
 <body>
 
-<h1>Dashboard AgroClima Café</h1>
+<nav class="navbar navbar-dark mb-4">
 
-<p>Total Municípios: {{ total_municipios }}</p>
+<div class="container-fluid">
 
-<p>Total Coletas Climáticas: {{ total_climas }}</p>
+    <span class="navbar-brand mb-0 h1">
+        ☕ AgroClima Café
+    </span>
 
-<p>Total Alertas Geada: {{ total_geadas }}</p>
+</div>
 
-<p>Temperatura Média: {{ temperatura_media }} °C</p>
+</nav>
+
+<div class="container">
+
+<h1 class="titulo">
+    Dashboard Principal
+</h1>
+
+<p class="subtitulo">
+    Monitoramento Climático para Cafeicultura
+</p>
+
+<div class="row g-4">
+
+    <div class="col-md-3">
+
+        <div class="card card-dashboard card-temperatura">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-thermometer-low icone"></i>
+
+                <h5>Temperatura Mínima Média</h5>
+
+                <div class="numero">
+                    {{ temperatura_minima }}°C
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card card-dashboard card-clima">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-cloud-rain-fill icone"></i>
+
+                <h5>Precipitação Acumulada</h5>
+
+                <div class="numero">
+                    {{ precipitacao_acumulada }} mm
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card card-dashboard card-geada">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-snow icone"></i>
+
+                <h5>Ocorrências de Geadas</h5>
+
+                <div class="numero">
+                    {{ ocorrencias_geada }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="card card-dashboard card-municipios">
+
+            <div class="card-body text-center">
+
+                <i class="bi bi-calendar-event icone"></i>
+
+                <h5>Dias com Temp ≤ 0°C</h5>
+
+                <div class="numero">
+                    {{ dias_temperatura_zero }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row mt-5">
+
+    <div class="col-lg-6">
+
+        <div class="card grafico-card">
+
+            <div class="card-body">
+
+                <h4>
+                    🌡️ Temperaturas por Município
+                </h4>
+
+                <canvas id="graficoTemperatura"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-6">
+
+        <div class="card grafico-card">
+
+            <div class="card-body">
+
+                <h4>
+                    🌧️ Precipitação por Município
+                </h4>
+
+                <canvas id="graficoPrecipitacao"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+<script>
+
+const ctxTemperatura =
+document.getElementById(
+'graficoTemperatura'
+);
+
+new Chart(ctxTemperatura, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: {{ municipios|safe }},
+
+        datasets: [{
+
+            label: 'Temperatura °C',
+
+            data: {{ temperaturas|safe }},
+
+            backgroundColor:
+                'rgba(59,130,246,0.7)'
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                labels: {
+
+                    color: 'white'
+
+                }
+
+            }
+
+        },
+
+        scales: {
+
+            x: {
+
+                ticks: {
+
+                    color: 'white'
+
+                }
+
+            },
+
+            y: {
+
+                ticks: {
+
+                    color: 'white'
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+
+const ctxPrecipitacao =
+document.getElementById(
+'graficoPrecipitacao'
+);
+
+new Chart(ctxPrecipitacao, {
+
+    type: 'bar',
+
+    data: {
+
+        labels: {{ municipios|safe }},
+
+        datasets: [{
+
+            label: 'Precipitação (mm)',
+
+            data: {{ precipitacoes|safe }},
+
+            backgroundColor:
+                'rgba(34,197,94,0.7)'
+
+        }]
+
+    },
+
+    options: {
+
+        responsive: true,
+
+        plugins: {
+
+            legend: {
+
+                labels: {
+
+                    color: 'white'
+
+                }
+
+            }
+
+        },
+
+        scales: {
+
+            x: {
+
+                ticks: {
+
+                    color: 'white'
+
+                }
+
+            },
+
+            y: {
+
+                ticks: {
+
+                    color: 'white'
+
+                }
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
 
 </body>
+
 </html>

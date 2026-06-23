@@ -9,6 +9,9 @@ class ClimaAdmin(admin.ModelAdmin):
         'municipio',
         'temperatura',
         'umidade',
+        'pressao',
+        'velocidade_vento',
+        'precipitacao',
         'data_coleta'
     )
 
@@ -20,3 +23,9 @@ class ClimaAdmin(admin.ModelAdmin):
         'municipio',
         'data_coleta'
     )
+
+    ordering = (
+        '-data_coleta',
+    )
+
+    list_per_page = 20

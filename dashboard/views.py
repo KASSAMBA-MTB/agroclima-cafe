@@ -1,38 +1,70 @@
 from django.shortcuts import render
+from django.db.models import Avg, Sum
 
 from municipios.models import Municipio
 from clima.models import Clima
 from geadas.models import Geada
 
-from django.db.models import Avg
-
 
 def dashboard_home(request):
 
-    total_municipios = Municipio.objects.count()
+    temperatura_minima = Clima.objects.aggregate(
+        media=Avg('temperatura')
+    )['media']
 
-    total_climas = Clima.objects.count()
+    precipitacao_acumulada = Clima.objects.aggregate(
+        total=Sum('precipitacao')
+    )['total']
 
-    total_geadas = Geada.objects.count()
+    ocorrencias_geada = Geada.objects.count()
 
-    temperatura_media = (
-        Clima.objects.aggregate(
-            media=Avg('temperatura')
-        )['media']
-    )
+    dias_temperatura_zero = Clima.objects.filter(
+        temperatura__lte=0
+    ).count()
+
+    municipios = []
+    temperaturas = []
+    precipitacoes = []
+
+    for municipio in Municipio.objects.all():
+
+        ultimo_clima = (
+            Clima.objects
+            .filter(municipio=municipio)
+            .order_by('-data_coleta')
+            .first()
+        )
+
+        if ultimo_clima:
+
+            municipios.append(municipio.nome)
+
+            temperaturas.append(
+                float(ultimo_clima.temperatura)
+            )
+
+            precipitacoes.append(
+                float(ultimo_clima.precipitacao)
+            )
 
     context = {
+        'temperatura_minima': round(
+            float(temperatura_minima), 1
+        ) if temperatura_minima else 0,
 
-        'total_municipios': total_municipios,
+        'precipitacao_acumulada': round(
+            float(precipitacao_acumulada), 1
+        ) if precipitacao_acumulada else 0,
 
-        'total_climas': total_climas,
+        'ocorrencias_geada': ocorrencias_geada,
 
-        'total_geadas': total_geadas,
+        'dias_temperatura_zero': dias_temperatura_zero,
 
-        'temperatura_media': round(
-            temperatura_media,
-            2
-        ) if temperatura_media else 0
+        'municipios': municipios,
+
+        'temperaturas': temperaturas,
+
+        'precipitacoes': precipitacoes,
     }
 
     return render(
