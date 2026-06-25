@@ -26,6 +26,8 @@ def dashboard_home(request):
     temperaturas = []
     precipitacoes = []
 
+    ranking = []
+
     for municipio in Municipio.objects.all():
 
         ultimo_clima = (
@@ -35,9 +37,18 @@ def dashboard_home(request):
             .first()
         )
 
+        ultima_geada = (
+            Geada.objects
+            .filter(municipio=municipio)
+            .order_by('-criado_em')
+            .first()
+        )
+
         if ultimo_clima:
 
-            municipios.append(municipio.nome)
+            municipios.append(
+                municipio.nome
+            )
 
             temperaturas.append(
                 float(ultimo_clima.temperatura)
@@ -47,24 +58,59 @@ def dashboard_home(request):
                 float(ultimo_clima.precipitacao)
             )
 
+            ranking.append({
+
+                'municipio':
+                    municipio.nome,
+
+                'temperatura':
+                    ultimo_clima.temperatura,
+
+                'umidade':
+                    ultimo_clima.umidade,
+
+                'precipitacao':
+                    ultimo_clima.precipitacao,
+
+                'alerta':
+                    (
+                        ultima_geada.nivel_alerta
+                        if ultima_geada
+                        else 'SEM DADOS'
+                    )
+            })
+
     context = {
-        'temperatura_minima': round(
-            float(temperatura_minima), 1
-        ) if temperatura_minima else 0,
 
-        'precipitacao_acumulada': round(
-            float(precipitacao_acumulada), 1
-        ) if precipitacao_acumulada else 0,
+        'temperatura_minima':
+            round(
+                float(temperatura_minima),
+                1
+            ) if temperatura_minima else 0,
 
-        'ocorrencias_geada': ocorrencias_geada,
+        'precipitacao_acumulada':
+            round(
+                float(precipitacao_acumulada),
+                1
+            ) if precipitacao_acumulada else 0,
 
-        'dias_temperatura_zero': dias_temperatura_zero,
+        'ocorrencias_geada':
+            ocorrencias_geada,
 
-        'municipios': municipios,
+        'dias_temperatura_zero':
+            dias_temperatura_zero,
 
-        'temperaturas': temperaturas,
+        'municipios':
+            municipios,
 
-        'precipitacoes': precipitacoes,
+        'temperaturas':
+            temperaturas,
+
+        'precipitacoes':
+            precipitacoes,
+
+        'ranking':
+            ranking,
     }
 
     return render(
