@@ -1,0 +1,121 @@
+/* =====================================================
+   AgroClima Café
+   Dashboard V3
+   theme.css
+===================================================== */
+
+*{
+
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+
+}
+
+body{
+
+    font-family:'Inter',sans-serif;
+
+    background:var(--coffee-background);
+
+    color:var(--text-primary);
+
+    overflow-x:hidden;
+
+}
+
+h1,h2,h3,h4,h5,h6{
+
+    font-family:'Poppins',sans-serif;
+
+    color:var(--coffee-primary);
+
+    font-weight:600;
+
+}
+
+a{
+
+    text-decoration:none;
+
+    color:inherit;
+
+}
+
+ul{
+
+    list-style:none;
+
+}
+
+img{
+
+    max-width:100%;
+
+    display:block;
+
+}
+
+button{
+
+    cursor:pointer;
+
+    border:none;
+
+    transition:var(--transition-normal);
+
+}
+
+.card-default{
+
+    background:white;
+
+    border-radius:var(--radius-md);
+
+    box-shadow:var(--shadow-md);
+
+    padding:24px;
+
+    border:1px solid var(--coffee-border);
+
+}
+
+.section-title{
+
+    font-size:22px;
+
+    margin-bottom:18px;
+
+    color:var(--coffee-primary);
+
+}
+
+.badge-success{
+
+    background:var(--success);
+
+    color:white;
+
+}
+
+.badge-warning{
+
+    background:var(--warning);
+
+}
+
+.badge-danger{
+
+    background:var(--danger);
+
+    color:white;
+
+}
+
+.badge-frost{
+
+    background:var(--frost);
+
+    color:white;
+
+}

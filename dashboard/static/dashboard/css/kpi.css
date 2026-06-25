@@ -1,0 +1,127 @@
+/* ======================================================
+   KPI Cards
+====================================================== */
+
+.kpi-card{
+
+    background:var(--coffee-surface);
+
+    border-radius:var(--radius-md);
+
+    padding:24px;
+
+    border:1px solid var(--coffee-border);
+
+    box-shadow:var(--shadow-sm);
+
+    transition:all .30s ease;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.kpi-card:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:var(--shadow-lg);
+
+}
+
+.kpi-card__header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.kpi-card__icon{
+
+    width:58px;
+
+    height:58px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:24px;
+
+}
+
+.kpi-card__icon--temperature{
+
+    background:#FFE7CC;
+
+    color:#D97706;
+
+}
+
+.kpi-card__label{
+
+    font-size:15px;
+
+    color:var(--text-secondary);
+
+}
+
+.kpi-card__value{
+
+    font-size:34px;
+
+    margin:4px 0;
+
+}
+
+.kpi-card__description{
+
+    font-size:14px;
+
+    color:var(--text-light);
+
+}
+
+.kpi-card__footer{
+
+    border-top:1px solid var(--coffee-border);
+
+    padding-top:12px;
+
+}
+
+.kpi-card__footer small{
+
+    color:var(--text-secondary);
+
+}
+
+.trend-up{
+
+    color:var(--success);
+
+    font-weight:600;
+
+}
+
+.trend-down{
+
+    color:var(--danger);
+
+}
+
+.trend-stable{
+
+    color:var(--warning);
+
+}

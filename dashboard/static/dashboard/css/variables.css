@@ -1,0 +1,107 @@
+/* =====================================================
+   AgroClima Café
+   Dashboard V3
+   AgroClima Design System (ADS)
+   variables.css
+===================================================== */
+
+:root {
+
+    /* ==========================================
+       IDENTIDADE VISUAL
+    ========================================== */
+
+    --coffee-primary: #1B140D;
+    --coffee-secondary: #4F3019;
+    --coffee-light: #6B4A2F;
+
+    --coffee-gold: #B88746;
+    --coffee-gold-light: #D7AE69;
+
+    --coffee-background: #F7F5F2;
+    --coffee-surface: #FFFFFF;
+
+    --coffee-border: #DDD7D1;
+
+    /* ==========================================
+       CORES ANALÍTICAS
+    ========================================== */
+
+    --success: #3E8E41;
+    --success-light: #7AC77A;
+
+    --info: #1976D2;
+    --info-light: #64B5F6;
+
+    --warning: #F9A825;
+
+    --danger: #C62828;
+
+    --frost: #4FC3F7;
+    --frost-dark: #1976D2;
+
+    --hail: #90A4AE;
+
+    /* ==========================================
+       TEXTOS
+    ========================================== */
+
+    --text-primary: #222222;
+    --text-secondary: #666666;
+    --text-light: #888888;
+
+    --text-white: #FFFFFF;
+
+    /* ==========================================
+       SOMBRAS
+    ========================================== */
+
+    --shadow-sm:
+        0 2px 8px rgba(0,0,0,.05);
+
+    --shadow-md:
+        0 5px 15px rgba(0,0,0,.10);
+
+    --shadow-lg:
+        0 15px 35px rgba(0,0,0,.15);
+
+    /* ==========================================
+       BORDAS
+    ========================================== */
+
+    --radius-xs:4px;
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:18px;
+    --radius-xl:24px;
+
+    /* ==========================================
+       ESPAÇAMENTOS
+    ========================================== */
+
+    --space-xs:4px;
+    --space-sm:8px;
+    --space-md:16px;
+    --space-lg:24px;
+    --space-xl:32px;
+
+    /* ==========================================
+       SIDEBAR
+    ========================================== */
+
+    --sidebar-width:270px;
+
+    /* ==========================================
+       HEADER
+    ========================================== */
+
+    --header-height:75px;
+
+    /* ==========================================
+       TRANSIÇÕES
+    ========================================== */
+
+    --transition-fast:.20s;
+    --transition-normal:.35s;
+
+}

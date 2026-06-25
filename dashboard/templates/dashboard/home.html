@@ -1,336 +1,56 @@
-{% extends 'dashboard/base.html' %}
+{% extends "dashboard/base.html" %}
 
 {% block title %}
-Dashboard Climático
+Dashboard | AgroClima Café
 {% endblock %}
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="dashboard-container">
 
-    <!-- TÍTULO -->
+    <!-- ===================================================== -->
+    <!-- KPI EXECUTIVO                                         -->
+    <!-- ===================================================== -->
 
-    <div class="row mb-4">
+    <section class="dashboard-section">
 
-        <div class="col-md-8">
+        <div class="section-title">
 
-            <h2 class="fw-bold text-success">
+            <div>
 
-                Dashboard Climático
+                <h2>Painel Executivo</h2>
 
-            </h2>
-
-            <p class="text-light">
-
-                Plataforma Inteligente de Monitoramento para Cafeicultura
-
-            </p>
-
-        </div>
-
-        <div class="col-md-4 text-end">
-
-            <small class="text-secondary">
-
-                Última atualização
-
-            </small>
-
-            <br>
-
-            <strong class="text-white">
-
-                {{ ultima_atualizacao|default:"Agora" }}
-
-            </strong>
-
-        </div>
-
-    </div>
-
-    <!-- FILTROS -->
-
-    <div class="card shadow-sm mb-4">
-
-        <div class="card-body">
-
-            <div class="row">
-
-                <div class="col-md-4">
-
-                    <label class="form-label">
-
-                        Período
-
-                    </label>
-
-                    <select class="form-select">
-
-                        <option>Últimos 7 dias</option>
-
-                        <option>Últimos 30 dias</option>
-
-                        <option>Últimos 90 dias</option>
-
-                        <option>Último Ano</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-4">
-
-                    <label class="form-label">
-
-                        Município
-
-                    </label>
-
-                    <select class="form-select">
-
-                        <option>Todos os Municípios</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-4 d-flex align-items-end">
-
-                    <button class="btn btn-success w-100">
-
-                        <i class="bi bi-funnel-fill"></i>
-
-                        Aplicar Filtros
-
-                    </button>
-
-                </div>
+                <p>
+                    Monitoramento climático em tempo real da Mantiqueira Vulcânica.
+                </p>
 
             </div>
 
         </div>
 
-    </div>
+        <div class="kpi-grid">
 
-    <!-- CARDS -->
+            {% include "dashboard/components/kpi_card.html" with icon="bi-thermometer-half" title="Temperatura Média" value="17,4°C" variation="+0,8%" color="temperature" %}
 
-    <div class="row g-4 mb-4">
+            {% include "dashboard/components/kpi_card.html" with icon="bi-snow2" title="Ocorrências de Geadas" value="03" variation="-1" color="frost" %}
 
-        <div class="col-lg-3">
+            {% include "dashboard/components/kpi_card.html" with icon="bi-cloud-rain-heavy" title="Precipitação" value="14 mm" variation="+12%" color="rain" %}
 
-            <div class="card indicador-card indicador-verde">
+            {% include "dashboard/components/kpi_card.html" with icon="bi-cloud-hail" title="Granizo" value="0" variation="Estável" color="hail" %}
 
-                <div class="card-body">
+            {% include "dashboard/components/kpi_card.html" with icon="bi-geo-alt" title="Municípios Monitorados" value="24" variation="+2" color="city" %}
 
-                    <i class="bi bi-thermometer-half display-5"></i>
-
-                    <h6>
-
-                        Temperatura Mínima Média
-
-                    </h6>
-
-                    <h2>
-
-                        {{ temperatura_minima }} °C
-
-                    </h2>
-
-                </div>
-
-            </div>
+            {% include "dashboard/components/kpi_card.html" with icon="bi-cup-hot" title="Índice AgroClima" value="92%" variation="+3%" color="coffee" %}
 
         </div>
 
-        <div class="col-lg-3">
+    </section>
 
-            <div class="card indicador-card indicador-azul">
+    <!-- ===================================================== -->
+    <!-- EVOLUÇÃO CLIMÁTICA                                   -->
+    <!-- ===================================================== -->
 
-                <div class="card-body">
-
-                    <i class="bi bi-cloud-rain-heavy-fill display-5"></i>
-
-                    <h6>
-
-                        Precipitação Acumulada
-
-                    </h6>
-
-                    <h2>
-
-                        {{ precipitacao_acumulada }} mm
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-3">
-
-            <div class="card indicador-card indicador-vermelho">
-
-                <div class="card-body">
-
-                    <i class="bi bi-snow display-5"></i>
-
-                    <h6>
-
-                        Ocorrências de Geadas
-
-                    </h6>
-
-                    <h2>
-
-                        {{ ocorrencias_geada }}
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-3">
-
-            <div class="card indicador-card indicador-roxo">
-
-                <div class="card-body">
-
-                    <i class="bi bi-calendar-event display-5"></i>
-
-                    <h6>
-
-                        Dias ≤ 0°C
-
-                    </h6>
-
-                    <h2>
-
-                        {{ dias_temperatura_zero }}
-
-                    </h2>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- PRIMEIRA LINHA DE GRÁFICOS -->
-
-    <div class="row">
-
-        <div class="col-lg-6 mb-4">
-
-            <div class="card dashboard-card">
-
-                <div class="card-header">
-
-                    🌡 Temperatura por Município
-
-                </div>
-
-                <div class="card-body">
-
-                    <canvas id="graficoTemperatura"></canvas>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="col-lg-6 mb-4">
-
-            <div class="card dashboard-card">
-
-                <div class="card-header">
-
-                    🌧 Precipitação por Município
-
-                </div>
-
-                <div class="card-body">
-
-                    <canvas id="graficoPrecipitacao"></canvas>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- RANKING -->
-
-    <div class="card dashboard-card">
-
-        <div class="card-header">
-
-            🏆 Ranking Climático dos Municípios
-
-        </div>
-
-        <div class="card-body">
-
-            <div class="table-responsive">
-
-                <table class="table table-dark table-hover align-middle">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Município</th>
-
-                            <th>Temperatura</th>
-
-                            <th>Umidade</th>
-
-                            <th>Precipitação</th>
-
-                            <th>Alerta</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {% for item in ranking %}
-
-                        <tr>
-
-                            <td>{{ item.municipio }}</td>
-
-                            <td>{{ item.temperatura }} °C</td>
-
-                            <td>{{ item.umidade }} %</td>
-
-                            <td>{{ item.precipitacao }} mm</td>
-
-                            <td>{{ item.alerta }}</td>
-
-                        </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </div>
-
-    </div>
+    {% include "dashboard/components/chart_panel.html" %}
 
 </div>
 

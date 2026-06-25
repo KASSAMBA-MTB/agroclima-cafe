@@ -1,0 +1,165 @@
+/* =====================================================
+   AgroClima Café
+   Dashboard V3
+   layout.css
+===================================================== */
+
+.app-wrapper{
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar{
+
+    width:var(--sidebar-width);
+
+    background:var(--coffee-primary);
+
+    color:white;
+
+    position:fixed;
+
+    left:0;
+
+    top:0;
+
+    bottom:0;
+
+    overflow-y:auto;
+
+}
+
+/* ==========================================
+   CONTEÚDO
+========================================== */
+
+.main-content{
+
+    margin-left:var(--sidebar-width);
+
+    width:calc(100% - var(--sidebar-width));
+
+    min-height:100vh;
+
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.header{
+
+    height:var(--header-height);
+
+    background:white;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    padding:0 30px;
+
+    border-bottom:1px solid var(--coffee-border);
+
+    box-shadow:var(--shadow-sm);
+
+}
+
+/* ==========================================
+   ÁREA PRINCIPAL
+========================================== */
+
+.page-content{
+
+    padding:30px;
+
+}
+
+/* ==========================================
+   GRID DASHBOARD
+========================================== */
+
+.dashboard-grid{
+
+    display:grid;
+
+    gap:24px;
+
+}
+
+/* ==========================================
+   KPIs
+========================================== */
+
+.kpi-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(6,1fr);
+
+    gap:20px;
+
+}
+
+/* ==========================================
+   RESPONSIVIDADE
+========================================== */
+
+@media(max-width:1400px){
+
+.kpi-grid{
+
+grid-template-columns:repeat(3,1fr);
+
+}
+
+}
+
+@media(max-width:992px){
+
+.sidebar{
+
+transform:translateX(-100%);
+
+}
+
+.main-content{
+
+margin-left:0;
+
+width:100%;
+
+}
+
+.kpi-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+}
+
+@media(max-width:768px){
+
+.page-content{
+
+padding:18px;
+
+}
+
+.kpi-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
