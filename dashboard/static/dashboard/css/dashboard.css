@@ -1,12 +1,19 @@
-/* =====================================================
-   Dashboard V3
-===================================================== */
+/* ==========================================================
+   DASHBOARD V3
+   AgroClima Café
+========================================================== */
 
-/* ---------- HEADER ---------- */
+/* ==========================================================
+   HEADER
+========================================================== */
 
 .header-left h2{
 
     font-size:30px;
+
+    font-weight:700;
+
+    color:var(--coffee-primary);
 
     margin-bottom:4px;
 
@@ -15,6 +22,8 @@
 .header-left span{
 
     color:var(--text-secondary);
+
+    font-size:.95rem;
 
 }
 
@@ -50,11 +59,17 @@
 
     background:var(--coffee-primary);
 
-    color:white;
+    color:#FFF;
 
     padding:12px 22px;
 
+    border:none;
+
     border-radius:var(--radius-sm);
+
+    cursor:pointer;
+
+    transition:var(--transition-normal);
 
 }
 
@@ -82,13 +97,17 @@
 
     border-radius:50%;
 
+    object-fit:cover;
+
 }
 
-/* ---------- SIDEBAR ---------- */
+/* ==========================================================
+   SIDEBAR
+========================================================== */
 
 .logo-area{
 
-    padding:30px;
+    padding:32px 24px;
 
     text-align:center;
 
@@ -98,15 +117,17 @@
 
 .logo-area h2{
 
-    color:white;
+    color:#FFF;
 
     font-size:28px;
+
+    margin-bottom:6px;
 
 }
 
 .logo-area span{
 
-    color:#d8d8d8;
+    color:#D8D8D8;
 
     font-size:13px;
 
@@ -114,19 +135,23 @@
 
 .sidebar nav{
 
-    margin-top:25px;
+    margin-top:28px;
 
 }
 
 .sidebar nav ul{
 
+    margin:0;
+
     padding:0;
+
+    list-style:none;
 
 }
 
 .sidebar nav li{
 
-    margin-bottom:8px;
+    margin-bottom:6px;
 
 }
 
@@ -138,7 +163,9 @@
 
     gap:14px;
 
-    color:white;
+    color:#FFF;
+
+    text-decoration:none;
 
     padding:15px 28px;
 
@@ -170,7 +197,7 @@
 
     text-align:center;
 
-    color:#bdbdbd;
+    color:#C8C8C8;
 
     font-size:13px;
 
@@ -184,9 +211,9 @@
 
 }
 
-/* =====================================================
+/* ==========================================================
    HOME
-===================================================== */
+========================================================== */
 
 .dashboard-container{
 
@@ -194,7 +221,7 @@
 
     flex-direction:column;
 
-    gap:30px;
+    gap:32px;
 
 }
 
@@ -204,33 +231,43 @@
 
     flex-direction:column;
 
-    gap:18px;
+    gap:20px;
 
 }
 
-.section-header{
+.section-title{
 
     display:flex;
 
-    flex-direction:column;
+    justify-content:space-between;
 
-    gap:4px;
+    align-items:flex-end;
+
+    gap:20px;
 
 }
 
-.section-header h3{
+.section-title h2{
 
-    font-size:24px;
+    margin:0;
 
     color:var(--coffee-primary);
 
+    font-size:1.70rem;
+
+    font-weight:700;
+
 }
 
-.section-header span{
+.section-title p{
+
+    margin-top:8px;
 
     color:var(--text-secondary);
 
-    font-size:14px;
+    font-size:.95rem;
+
+    line-height:1.5;
 
 }
 
@@ -238,17 +275,153 @@
 
     display:grid;
 
-    grid-template-columns:1fr 2fr;
+    grid-template-columns:380px 1fr;
 
-    gap:24px;
+    gap:28px;
+
+    align-items:start;
 
 }
 
-@media(max-width:1100px){
+/* ==========================================================
+   PAINÉIS
+========================================================== */
+
+.dashboard-panel{
+
+    background:var(--surface-color);
+
+    border:1px solid var(--border-color);
+
+    border-radius:18px;
+
+    padding:28px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.06);
+
+    transition:.30s;
+
+}
+
+.dashboard-panel:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 14px 34px rgba(0,0,0,.10);
+
+}
+
+.panel-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:24px;
+
+}
+
+.panel-header h2{
+
+    margin:0;
+
+    font-size:1.35rem;
+
+    font-weight:700;
+
+    color:var(--coffee-primary);
+
+}
+
+.panel-header p{
+
+    margin-top:6px;
+
+    color:var(--text-secondary);
+
+    font-size:.90rem;
+
+}
+
+.panel-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+/* ==========================================================
+   BOTÕES
+========================================================== */
+
+.btn-panel{
+
+    background:#FFF;
+
+    border:1px solid var(--border-color);
+
+    border-radius:10px;
+
+    padding:10px 18px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-size:.90rem;
+
+    font-weight:500;
+
+}
+
+.btn-panel:hover{
+
+    background:var(--coffee-primary);
+
+    color:#FFF;
+
+}
+
+/* ==========================================================
+   RESPONSIVO
+========================================================== */
+
+@media(max-width:1200px){
 
 .dashboard-two-columns{
 
-grid-template-columns:1fr;
+    grid-template-columns:1fr;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.section-title{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+}
+
+.panel-header{
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:18px;
+
+}
+
+.panel-actions{
+
+    flex-wrap:wrap;
 
 }
 

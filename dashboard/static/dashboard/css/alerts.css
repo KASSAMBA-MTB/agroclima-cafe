@@ -1,0 +1,81 @@
+/* ==========================================================
+   EVENTOS RECENTES
+========================================================== */
+
+.timeline{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.timeline-item{
+
+    display:grid;
+
+    grid-template-columns:95px 1fr;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:18px;
+
+    background:white;
+
+    border-radius:14px;
+
+    border-left:5px solid var(--coffee-primary);
+
+    border:1px solid var(--border-color);
+
+    transition:.25s;
+
+}
+
+.timeline-item:hover{
+
+    transform:translateX(6px);
+
+    box-shadow:0 10px 24px rgba(0,0,0,.08);
+
+}
+
+.timeline-item .time{
+
+    font-weight:700;
+
+    color:var(--coffee-primary);
+
+    font-size:.95rem;
+
+}
+
+.timeline-item span:last-child{
+
+    color:var(--text-primary);
+
+    line-height:1.5;
+
+}
+
+@media(max-width:768px){
+
+.timeline-item{
+
+grid-template-columns:1fr;
+
+gap:8px;
+
+}
+
+.timeline-item .time{
+
+margin-bottom:6px;
+
+}
+
+}

@@ -5,11 +5,15 @@
         <div>
 
             <h2>
-                Ranking Climático
+
+                Ranking AgroClima
+
             </h2>
 
             <p>
-                Municípios com melhores condições para a cafeicultura.
+
+                Classificação dos municípios monitorados pelo Índice AgroClima (IAC).
+
             </p>
 
         </div>
@@ -18,95 +22,82 @@
 
     <div class="ranking-list">
 
+        {% for cidade in ranking %}
+
         <div class="ranking-item">
+
+            <!-- ============================= -->
+            <!-- POSIÇÃO                       -->
+            <!-- ============================= -->
 
             <div class="ranking-position">
 
-                🥇
+                {{ cidade.posicao }}º
 
             </div>
 
+            <!-- ============================= -->
+            <!-- MUNICÍPIO                     -->
+            <!-- ============================= -->
+
             <div class="ranking-city">
 
-                <strong>São Sebastião da Grama</strong>
+                <strong>
 
-                <span>Índice AgroClima: 97%</span>
+                    {{ cidade.municipio }}
+
+                </strong>
+
+                <span>
+
+                    {{ cidade.estado }}
+
+                </span>
+
+            </div>
+
+            <!-- ============================= -->
+            <!-- ÍNDICE AGROCLIMA              -->
+            <!-- ============================= -->
+
+            <div class="ranking-score">
+
+                <h4>
+
+                    {{ cidade.indice }}
+
+                </h4>
+
+                <small>
+
+                    IAC
+
+                </small>
+
+            </div>
+
+            <!-- ============================= -->
+            <!-- CLASSIFICAÇÃO                 -->
+            <!-- ============================= -->
+
+            <div class="ranking-classification">
+
+                <i class="bi {{ cidade.icone }}"
+                   style="color: {{ cidade.cor }};">
+
+                </i>
+
+                <span>
+
+                    {{ cidade.classificacao }}
+
+                </span>
 
             </div>
 
         </div>
 
-        <div class="ranking-item">
-
-            <div class="ranking-position">
-
-                🥈
-
-            </div>
-
-            <div class="ranking-city">
-
-                <strong>Divinolândia</strong>
-
-                <span>Índice AgroClima: 95%</span>
-
-            </div>
-
-        </div>
-
-        <div class="ranking-item">
-
-            <div class="ranking-position">
-
-                🥉
-
-            </div>
-
-            <div class="ranking-city">
-
-                <strong>Águas da Prata</strong>
-
-                <span>Índice AgroClima: 94%</span>
-
-            </div>
-
-        </div>
-
-        <div class="ranking-item">
-
-            <div class="ranking-position">
-
-                4°
-
-            </div>
-
-            <div class="ranking-city">
-
-                <strong>Caconde</strong>
-
-                <span>Índice AgroClima: 92%</span>
-
-            </div>
-
-        </div>
-
-        <div class="ranking-item">
-
-            <div class="ranking-position">
-
-                5°
-
-            </div>
-
-            <div class="ranking-city">
-
-                <strong>Espírito Santo do Pinhal</strong>
-
-                <span>Índice AgroClima: 91%</span>
-
-            </div>
-
-        </div>
+        {% endfor %}
 
     </div>
 

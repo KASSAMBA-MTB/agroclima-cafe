@@ -28,6 +28,10 @@
 
             {{ value }}
 
+            {% if unit %}
+                <small class="kpi-unit">{{ unit }}</small>
+            {% endif %}
+
         </h2>
 
     </div>
@@ -36,7 +40,9 @@
 
         <small>
 
-            Atualizado agora
+            <i class="bi bi-arrow-repeat"></i>
+
+            {{ ultima_atualizacao|date:"H:i" }}
 
         </small>
 

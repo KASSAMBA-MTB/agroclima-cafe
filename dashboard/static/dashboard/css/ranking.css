@@ -1,5 +1,5 @@
 /* ==========================================================
-   RANKING
+   RANKING AGROCLIMA
 ========================================================== */
 
 .ranking-list{
@@ -26,9 +26,9 @@
 
     background:#FFFFFF;
 
-    border:1px solid #ECECEC;
+    border:1px solid var(--border-color);
 
-    transition:.25s;
+    transition:.30s;
 
 }
 
@@ -38,13 +38,15 @@
 
     border-left:5px solid var(--coffee-primary);
 
+    box-shadow:0 10px 24px rgba(0,0,0,.08);
+
 }
 
 .ranking-position{
 
-    width:46px;
+    width:52px;
 
-    height:46px;
+    height:52px;
 
     display:flex;
 
@@ -54,11 +56,15 @@
 
     border-radius:50%;
 
-    background:#F7F7F7;
+    background:var(--coffee-primary);
 
-    font-size:1.15rem;
+    color:#FFF;
 
     font-weight:700;
+
+    font-size:1rem;
+
+    flex-shrink:0;
 
 }
 
@@ -83,5 +89,63 @@
     color:var(--text-secondary);
 
     font-size:.88rem;
+
+}
+
+/* ==========================================================
+   CLASSIFICAÇÃO DO IAC
+========================================================== */
+
+.ranking-score{
+
+    width:90px;
+
+    text-align:center;
+
+}
+
+.ranking-score h4{
+
+    margin:0;
+
+    font-size:1.25rem;
+
+    font-weight:700;
+
+    color:var(--coffee-primary);
+
+}
+
+.ranking-score small{
+
+    color:var(--text-secondary);
+
+}
+
+.ranking-classification{
+
+    width:170px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:flex-end;
+
+    gap:10px;
+
+}
+
+.ranking-classification i{
+
+    font-size:22px;
+
+}
+
+.ranking-classification span{
+
+    font-size:.90rem;
+
+    font-weight:600;
 
 }

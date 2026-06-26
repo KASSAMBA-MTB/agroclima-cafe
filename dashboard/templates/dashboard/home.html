@@ -30,17 +30,65 @@ Dashboard | AgroClima Café
 
         <div class="kpi-grid">
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-thermometer-half" title="Temperatura Média" value="17,4°C" variation="+0,8%" color="temperature" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-thermometer-half"
+                title="Temperatura Média"
+                value=temperatura_media
+                unit="°C"
+                variation="+0,8%"
+                color="temperature"
+            %}
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-snow2" title="Ocorrências de Geadas" value="03" variation="-1" color="frost" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-snow2"
+                title="Ocorrências de Geadas"
+                value=geadas
+                unit=""
+                variation="-1"
+                color="frost"
+            %}
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-cloud-rain-heavy" title="Precipitação" value="14 mm" variation="+12%" color="rain" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-cloud-rain-heavy"
+                title="Precipitação"
+                value=precipitacao
+                unit="mm"
+                variation="+12%"
+                color="rain"
+            %}
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-cloud-hail" title="Granizo" value="0" variation="Estável" color="hail" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-cloud-hail"
+                title="Granizo"
+                value=granizo
+                unit=""
+                variation="Estável"
+                color="hail"
+            %}
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-geo-alt" title="Municípios Monitorados" value="24" variation="+2" color="city" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-geo-alt"
+                title="Municípios Monitorados"
+                value=municipios
+                unit=""
+                variation="+2"
+                color="city"
+            %}
 
-            {% include "dashboard/components/kpi_card.html" with icon="bi-cup-hot" title="Índice AgroClima" value="92%" variation="+3%" color="coffee" %}
+            {% include "dashboard/components/kpi_card.html"
+                with
+                icon="bi-cup-hot"
+                title="Índice AgroClima"
+                value=indice_agroclima
+                unit="%"
+                variation="+3%"
+                color="coffee"
+            %}
 
         </div>
 

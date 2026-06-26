@@ -1,31 +1,79 @@
 from django.contrib import admin
-from .models import Clima
+
+from .models import (
+    WeatherStation,
+    WeatherObservation,
+    Forecast,
+    ClimateCache,
+)
 
 
-@admin.register(Clima)
-class ClimaAdmin(admin.ModelAdmin):
+@admin.register(WeatherStation)
+class WeatherStationAdmin(admin.ModelAdmin):
 
     list_display = (
-        'municipio',
-        'temperatura',
-        'umidade',
-        'pressao',
-        'velocidade_vento',
-        'precipitacao',
-        'data_coleta'
-    )
-
-    search_fields = (
-        'municipio__nome',
+        "nome",
+        "municipio",
+        "estado",
+        "altitude",
+        "ativa",
     )
 
     list_filter = (
-        'municipio',
-        'data_coleta'
+        "estado",
+        "ativa",
+    )
+
+    search_fields = (
+        "nome",
+        "municipio",
+    )
+
+
+@admin.register(WeatherObservation)
+class WeatherObservationAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "station",
+        "observation_time",
+        "temperatura",
+        "umidade",
+        "precipitacao",
+    )
+
+    list_filter = (
+        "station",
     )
 
     ordering = (
-        '-data_coleta',
+        "-observation_time",
     )
 
-    list_per_page = 20
+
+@admin.register(Forecast)
+class ForecastAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "station",
+        "forecast_date",
+        "temperatura_minima",
+        "temperatura_maxima",
+    )
+
+    ordering = (
+        "forecast_date",
+    )
+
+
+@admin.register(ClimateCache)
+class ClimateCacheAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "station",
+        "collected_at",
+        "expires_at",
+    )
+
+    ordering = (
+        "-collected_at",
+    )

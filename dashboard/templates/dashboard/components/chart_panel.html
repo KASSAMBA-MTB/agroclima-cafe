@@ -1,5 +1,9 @@
 <section class="dashboard-panel">
 
+    <!-- ===================================================== -->
+    <!-- CABEÇALHO                                             -->
+    <!-- ===================================================== -->
+
     <div class="panel-header">
 
         <div>
@@ -20,19 +24,19 @@
 
         <div class="panel-actions">
 
-            <button>
+            <button class="btn-panel">
 
                 Hoje
 
             </button>
 
-            <button>
+            <button class="btn-panel">
 
                 7 dias
 
             </button>
 
-            <button>
+            <button class="btn-panel">
 
                 30 dias
 
@@ -42,6 +46,10 @@
 
     </div>
 
+    <!-- ===================================================== -->
+    <!-- GRÁFICO                                               -->
+    <!-- ===================================================== -->
+
     <div class="chart-container">
 
         <canvas id="weatherChart"></canvas>
@@ -49,3 +57,13 @@
     </div>
 
 </section>
+
+<!-- ===================================================== -->
+<!-- DADOS RECEBIDOS DO DASHBOARDSERVICE                    -->
+<!-- ===================================================== -->
+
+{{ chart.dias|json_script:"chart-dias" }}
+
+{{ chart.temperatura|json_script:"chart-temperatura" }}
+
+{{ chart.precipitacao|json_script:"chart-precipitacao" }}
