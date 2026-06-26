@@ -9,7 +9,7 @@ Dashboard | AgroClima Café
 <div class="dashboard-container">
 
     <!-- ===================================================== -->
-    <!-- KPI EXECUTIVO                                         -->
+    <!-- PAINEL EXECUTIVO                                      -->
     <!-- ===================================================== -->
 
     <section class="dashboard-section">
@@ -50,7 +50,51 @@ Dashboard | AgroClima Café
     <!-- EVOLUÇÃO CLIMÁTICA                                   -->
     <!-- ===================================================== -->
 
-    {% include "dashboard/components/chart_panel.html" %}
+    <section class="dashboard-section">
+
+        {% include "dashboard/components/chart_panel.html" %}
+
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- RANKING + INSIGHTS                                   -->
+    <!-- ===================================================== -->
+
+    <section class="dashboard-two-columns">
+
+        <div>
+
+            {% include "dashboard/components/ranking_panel.html" %}
+
+        </div>
+
+        <div>
+
+            {% include "dashboard/components/insights_panel.html" %}
+
+        </div>
+
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- PAINEL GEOESPACIAL                                   -->
+    <!-- ===================================================== -->
+
+    <section class="dashboard-section">
+
+        {% include "dashboard/components/map_panel.html" %}
+
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- EVENTOS RECENTES                                     -->
+    <!-- ===================================================== -->
+
+    <section class="dashboard-section">
+
+        {% include "dashboard/components/alerts_panel.html" %}
+
+    </section>
 
 </div>
 

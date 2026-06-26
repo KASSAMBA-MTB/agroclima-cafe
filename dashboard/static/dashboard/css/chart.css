@@ -1,0 +1,107 @@
+/* ==========================================================
+   CHART PANEL
+========================================================== */
+
+.dashboard-panel{
+
+    background:var(--surface-color);
+
+    border:1px solid var(--border-color);
+
+    border-radius:18px;
+
+    padding:28px;
+
+    box-shadow:0 8px 30px rgba(0,0,0,.06);
+
+    transition:.30s;
+
+}
+
+.dashboard-panel:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 14px 40px rgba(0,0,0,.10);
+
+}
+
+.panel-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:24px;
+
+}
+
+.panel-header h2{
+
+    font-size:1.35rem;
+
+    font-weight:700;
+
+    color:var(--coffee-primary);
+
+    margin:0;
+
+}
+
+.panel-header p{
+
+    margin:4px 0 0;
+
+    color:var(--text-secondary);
+
+    font-size:.90rem;
+
+}
+
+.panel-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.panel-actions button{
+
+    background:#F5F5F5;
+
+    border:none;
+
+    padding:8px 16px;
+
+    border-radius:10px;
+
+    transition:.25s;
+
+    cursor:pointer;
+
+}
+
+.panel-actions button:hover{
+
+    background:var(--coffee-primary);
+
+    color:white;
+
+}
+
+.chart-container{
+
+    width:100%;
+
+    height:420px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}

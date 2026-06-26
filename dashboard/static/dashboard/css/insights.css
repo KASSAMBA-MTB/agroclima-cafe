@@ -1,0 +1,77 @@
+/* ==========================================================
+   INSIGHTS
+========================================================== */
+
+.insights-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.insight{
+
+    display:flex;
+
+    align-items:flex-start;
+
+    gap:14px;
+
+    padding:18px;
+
+    border-radius:14px;
+
+    font-size:.94rem;
+
+    transition:.25s;
+
+}
+
+.insight i{
+
+    font-size:1.25rem;
+
+    margin-top:2px;
+
+}
+
+.insight:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.success{
+
+    background:#E8F8EE;
+
+    color:#1F7A42;
+
+}
+
+.warning{
+
+    background:#FFF6DD;
+
+    color:#9A6700;
+
+}
+
+.info{
+
+    background:#EAF4FF;
+
+    color:#0C63E4;
+
+}
+
+.primary{
+
+    background:#F0E8FF;
+
+    color:#6F42C1;
+
+}

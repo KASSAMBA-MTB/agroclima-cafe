@@ -1,0 +1,87 @@
+/* ==========================================================
+   RANKING
+========================================================== */
+
+.ranking-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:16px;
+
+}
+
+.ranking-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:18px;
+
+    border-radius:14px;
+
+    background:#FFFFFF;
+
+    border:1px solid #ECECEC;
+
+    transition:.25s;
+
+}
+
+.ranking-item:hover{
+
+    transform:translateX(6px);
+
+    border-left:5px solid var(--coffee-primary);
+
+}
+
+.ranking-position{
+
+    width:46px;
+
+    height:46px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    border-radius:50%;
+
+    background:#F7F7F7;
+
+    font-size:1.15rem;
+
+    font-weight:700;
+
+}
+
+.ranking-city{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.ranking-city strong{
+
+    color:var(--coffee-primary);
+
+    font-size:1rem;
+
+}
+
+.ranking-city span{
+
+    color:var(--text-secondary);
+
+    font-size:.88rem;
+
+}
