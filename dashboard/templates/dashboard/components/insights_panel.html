@@ -1,10 +1,16 @@
 <section class="dashboard-panel">
 
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
+
     <div class="panel-header">
 
         <div>
 
             <h2>
+
+                <i class="bi bi-lightbulb-fill"></i>
 
                 Insights Climáticos
 
@@ -12,7 +18,7 @@
 
             <p>
 
-                Informações geradas automaticamente.
+                Informações geradas automaticamente a partir dos indicadores climáticos.
 
             </p>
 
@@ -20,39 +26,147 @@
 
     </div>
 
+    <!-- ==========================================================
+         LISTA DE INSIGHTS
+    =========================================================== -->
+
     <div class="insights-list">
 
-        <div class="insight success">
+        {% if insights %}
 
-            <i class="bi bi-check-circle-fill"></i>
+            {% for insight in insights %}
 
-            Temperaturas ideais para o desenvolvimento da florada.
+                <div class="insight {{ insight.level|default:'info' }}">
 
-        </div>
+                    <i class="bi {{ insight.icon|default:'bi-info-circle-fill' }}"></i>
 
-        <div class="insight warning">
+                    <div class="insight-content">
 
-            <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>
 
-            Possibilidade de geadas em regiões acima de 1.200 metros.
+                            {{ insight.title }}
 
-        </div>
+                        </strong>
 
-        <div class="insight info">
+                        <p>
 
-            <i class="bi bi-cloud-rain-heavy-fill"></i>
+                            {{ insight.message }}
 
-            Precipitação prevista para as próximas 48 horas.
+                        </p>
 
-        </div>
+                    </div>
 
-        <div class="insight primary">
+                </div>
 
-            <i class="bi bi-bar-chart-fill"></i>
+            {% endfor %}
 
-            Índice AgroClima permanece acima da média regional.
+        {% else %}
 
-        </div>
+            <div class="insight success">
+
+                <i class="bi bi-check-circle-fill"></i>
+
+                <div class="insight-content">
+
+                    <strong>
+
+                        Florada
+
+                    </strong>
+
+                    <p>
+
+                        Temperaturas ideais para o desenvolvimento da florada.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="insight warning">
+
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                <div class="insight-content">
+
+                    <strong>
+
+                        Alerta de Geada
+
+                    </strong>
+
+                    <p>
+
+                        Possibilidade de geadas em regiões acima de 1.200 metros.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="insight info">
+
+                <i class="bi bi-cloud-rain-heavy-fill"></i>
+
+                <div class="insight-content">
+
+                    <strong>
+
+                        Precipitação
+
+                    </strong>
+
+                    <p>
+
+                        Precipitação prevista para as próximas 48 horas.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="insight primary">
+
+                <i class="bi bi-bar-chart-fill"></i>
+
+                <div class="insight-content">
+
+                    <strong>
+
+                        Índice AgroClima
+
+                    </strong>
+
+                    <p>
+
+                        Índice AgroClima permanece acima da média regional.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- ==========================================================
+         RODAPÉ
+    =========================================================== -->
+
+    <div class="panel-footer">
+
+        <small>
+
+            <i class="bi bi-cpu"></i>
+
+            Insights gerados automaticamente pelo mecanismo analítico da plataforma.
+
+        </small>
 
     </div>
 

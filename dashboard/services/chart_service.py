@@ -1,46 +1,90 @@
+"""
+===============================================================================
+UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
+
+Curso...........: Bacharelado em Ciência de Dados
+Disciplina......: Trabalho de Conclusão de Curso (TCC)
+Projeto.........: AgroClima Café
+Módulo..........: Dashboard
+Arquivo.........: chart_service.py
+
+Descrição.......:
+Serviço responsável pelo fornecimento dos dados utilizados pelos gráficos
+do Dashboard Principal.
+
+Versão..........: 2.0
+===============================================================================
+"""
+
+from clima.services.history_service import HistoryService
+from municipios.models import Municipio
+
+
 class ChartService:
     """
-    Responsável pelos dados dos gráficos do Dashboard.
+    Serviço responsável pelos dados históricos utilizados
+    nos gráficos da Dashboard.
     """
 
-    def get_chart(self):
+    def __init__(self):
+
+        self.history = HistoryService()
+
+    # ==========================================================
+    # DADOS DO GRÁFICO
+    # ==========================================================
+
+    def get_chart(self, days=7):
+
+        municipio = Municipio.objects.first()
+
+        if municipio is None:
+
+            return self._empty()
+
+        data = self.history.chart_data(
+
+            municipio,
+
+            days
+
+        )
 
         return {
 
-            "dias": [
+            "dias": data.get("dias", []),
 
-                "Seg",
-                "Ter",
-                "Qua",
-                "Qui",
-                "Sex",
-                "Sáb",
-                "Dom"
+            "temperatura": data.get("temperatura", []),
 
-            ],
+            "precipitacao": data.get("precipitacao", []),
 
-            "temperatura": [
+            "umidade": data.get("umidade", []),
 
-                16,
-                18,
-                17,
-                19,
-                20,
-                18,
-                17
+            # Preparação para futuras versões
+            "vento": data.get("vento", []),
 
-            ],
+            "indice_agroclima": data.get("indice_agroclima", [])
 
-            "precipitacao": [
+        }
 
-                5,
-                3,
-                8,
-                14,
-                6,
-                1,
-                0
+    # ==========================================================
+    # RETORNO PADRÃO
+    # ==========================================================
 
-            ]
+    def _empty(self):
+
+        return {
+
+            "dias": [],
+
+            "temperatura": [],
+
+            "precipitacao": [],
+
+            "umidade": [],
+
+            "vento": [],
+
+            "indice_agroclima": []
 
         }

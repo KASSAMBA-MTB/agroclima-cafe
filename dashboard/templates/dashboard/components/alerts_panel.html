@@ -1,18 +1,24 @@
 <section class="dashboard-panel">
 
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
+
     <div class="panel-header">
 
         <div>
 
             <h2>
 
-                Eventos Recentes
+                <i class="bi bi-exclamation-triangle-fill"></i>
+
+                Alertas Meteorológicos
 
             </h2>
 
             <p>
 
-                Últimas ocorrências registradas.
+                Alertas ativos gerados automaticamente pela plataforma.
 
             </p>
 
@@ -20,71 +26,191 @@
 
     </div>
 
-    <div class="timeline">
+    <!-- ==========================================================
+         ALERTAS
+    =========================================================== -->
 
-        <div class="timeline-item">
+    <div class="alerts-list">
 
-            <span class="time">
+        {% if alerts %}
 
-                08:10
+            {% for alert in alerts %}
 
-            </span>
+            <div class="alert-card {{ alert.level|default:'info' }}">
 
-            <span>
+                <div class="alert-icon">
 
-                Atualização meteorológica concluída.
+                    <i class="bi {{ alert.icon|default:'bi-info-circle-fill' }}"></i>
 
-            </span>
+                </div>
 
-        </div>
+                <div class="alert-content">
 
-        <div class="timeline-item">
+                    <strong>
 
-            <span class="time">
+                        {{ alert.title }}
 
-                07:45
+                    </strong>
 
-            </span>
+                    <p>
 
-            <span>
+                        {{ alert.message }}
 
-                Alerta de geada moderada emitido.
+                    </p>
 
-            </span>
+                    <small>
 
-        </div>
+                        <i class="bi bi-geo-alt-fill"></i>
 
-        <div class="timeline-item">
+                        {{ alert.location }}
 
-            <span class="time">
+                    </small>
 
-                06:30
+                </div>
 
-            </span>
+                <div class="alert-time">
 
-            <span>
+                    {{ alert.time }}
 
-                Novos dados climáticos recebidos da Open-Meteo.
+                </div>
 
-            </span>
+            </div>
 
-        </div>
+            {% endfor %}
 
-        <div class="timeline-item">
+        {% else %}
 
-            <span class="time">
+            <div class="alert-card danger">
 
-                05:50
+                <div class="alert-icon">
 
-            </span>
+                    <i class="bi bi-snow"></i>
 
-            <span>
+                </div>
 
-                Índice AgroClima recalculado.
+                <div class="alert-content">
 
-            </span>
+                    <strong>
 
-        </div>
+                        Geada Moderada
+
+                    </strong>
+
+                    <p>
+
+                        Risco previsto para municípios acima de 1.100 metros.
+
+                    </p>
+
+                    <small>
+
+                        São Sebastião da Grama • SP
+
+                    </small>
+
+                </div>
+
+                <div class="alert-time">
+
+                    Agora
+
+                </div>
+
+            </div>
+
+            <div class="alert-card warning">
+
+                <div class="alert-icon">
+
+                    <i class="bi bi-cloud-rain-heavy-fill"></i>
+
+                </div>
+
+                <div class="alert-content">
+
+                    <strong>
+
+                        Chuva Intensa
+
+                    </strong>
+
+                    <p>
+
+                        Precipitação elevada prevista nas próximas 24 horas.
+
+                    </p>
+
+                    <small>
+
+                        Poços de Caldas • MG
+
+                    </small>
+
+                </div>
+
+                <div class="alert-time">
+
+                    15 min
+
+                </div>
+
+            </div>
+
+            <div class="alert-card info">
+
+                <div class="alert-icon">
+
+                    <i class="bi bi-wind"></i>
+
+                </div>
+
+                <div class="alert-content">
+
+                    <strong>
+
+                        Ventos Fortes
+
+                    </strong>
+
+                    <p>
+
+                        Rajadas entre 40 e 60 km/h durante a tarde.
+
+                    </p>
+
+                    <small>
+
+                        Divinolândia • SP
+
+                    </small>
+
+                </div>
+
+                <div class="alert-time">
+
+                    30 min
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- ==========================================================
+         RODAPÉ
+    =========================================================== -->
+
+    <div class="panel-footer">
+
+        <small>
+
+            <i class="bi bi-shield-check"></i>
+
+            Alertas processados automaticamente pelo mecanismo de monitoramento climático.
+
+        </small>
 
     </div>
 

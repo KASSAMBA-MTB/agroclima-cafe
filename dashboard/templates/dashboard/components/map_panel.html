@@ -1,10 +1,16 @@
 <section class="dashboard-panel">
 
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
+
     <div class="panel-header">
 
         <div>
 
             <h2>
+
+                <i class="bi bi-globe-americas"></i>
 
                 Painel Geoespacial
 
@@ -12,7 +18,7 @@
 
             <p>
 
-                Região Vulcânica da Mantiqueira Paulista e Sul de Minas.
+                Monitoramento climático da Mantiqueira Vulcânica Paulista.
 
             </p>
 
@@ -20,7 +26,7 @@
 
         <div class="panel-actions">
 
-            <button class="btn-panel">
+            <button class="btn-panel active">
 
                 Municípios
 
@@ -38,9 +44,91 @@
 
             </button>
 
+            <button class="btn-panel">
+
+                Precipitação
+
+            </button>
+
         </div>
 
     </div>
+
+    <!-- ==========================================================
+         KPIs DO MAPA
+    =========================================================== -->
+
+    <div class="map-kpis">
+
+        <div class="map-kpi">
+
+            <span class="label">
+
+                Municípios
+
+            </span>
+
+            <strong>
+
+                22
+
+            </strong>
+
+        </div>
+
+        <div class="map-kpi">
+
+            <span class="label">
+
+                Alertas
+
+            </span>
+
+            <strong class="text-danger">
+
+                3
+
+            </strong>
+
+        </div>
+
+        <div class="map-kpi">
+
+            <span class="label">
+
+                Temperatura Média
+
+            </span>
+
+            <strong>
+
+                18°C
+
+            </strong>
+
+        </div>
+
+        <div class="map-kpi">
+
+            <span class="label">
+
+                Chuva (24h)
+
+            </span>
+
+            <strong>
+
+                21 mm
+
+            </strong>
+
+        </div>
+
+    </div>
+
+    <!-- ==========================================================
+         MAPA
+    =========================================================== -->
 
     <div id="map-container">
 
@@ -50,15 +138,73 @@
 
             <h3>
 
-                Mapa Interativo
+                Mapa Inteligente AgroClima
 
             </h3>
 
             <p>
 
-                Leaflet + HeatMap + GeoJSON
+                Leaflet • GeoJSON • OpenStreetMap • Open-Meteo
 
             </p>
+
+            <small>
+
+                Nesta área será exibido o mapa interativo com camadas climáticas,
+                municípios monitorados, ocorrências de geadas, precipitação e
+                indicadores territoriais.
+
+            </small>
+
+        </div>
+
+    </div>
+
+    <!-- ==========================================================
+         LEGENDA
+    =========================================================== -->
+
+    <div class="map-legend">
+
+        <h5>
+
+            Legenda
+
+        </h5>
+
+        <div class="legend-items">
+
+            <span>
+
+                <i class="bi bi-circle-fill text-success"></i>
+
+                Normal
+
+            </span>
+
+            <span>
+
+                <i class="bi bi-circle-fill text-warning"></i>
+
+                Atenção
+
+            </span>
+
+            <span>
+
+                <i class="bi bi-circle-fill text-danger"></i>
+
+                Alerta
+
+            </span>
+
+            <span>
+
+                <i class="bi bi-circle-fill text-primary"></i>
+
+                Estação Meteorológica
+
+            </span>
 
         </div>
 

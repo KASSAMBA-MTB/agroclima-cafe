@@ -1,79 +1,91 @@
+"""
+==========================================================
+AgroClima Café
+
+App: Clima
+
+Admin
+
+Autor:
+Walter Junio Pontes Teixeira
+
+Curso:
+Ciência de Dados - UNIVESP
+==========================================================
+"""
+
 from django.contrib import admin
 
 from .models import (
     WeatherStation,
-    WeatherObservation,
-    Forecast,
     ClimateCache,
 )
 
+
+# ==========================================================
+# Weather Station
+# ==========================================================
 
 @admin.register(WeatherStation)
 class WeatherStationAdmin(admin.ModelAdmin):
 
     list_display = (
-        "nome",
         "municipio",
-        "estado",
-        "altitude",
+        "provider",
         "ativa",
+        "criado_em",
     )
 
     list_filter = (
-        "estado",
+        "provider",
         "ativa",
+        "municipio__estado",
     )
 
     search_fields = (
-        "nome",
-        "municipio",
-    )
-
-
-@admin.register(WeatherObservation)
-class WeatherObservationAdmin(admin.ModelAdmin):
-
-    list_display = (
-        "station",
-        "observation_time",
-        "temperatura",
-        "umidade",
-        "precipitacao",
-    )
-
-    list_filter = (
-        "station",
+        "municipio__nome",
+        "municipio__estado",
     )
 
     ordering = (
-        "-observation_time",
+        "municipio__nome",
+        "provider",
     )
 
+    list_per_page = 25
 
-@admin.register(Forecast)
-class ForecastAdmin(admin.ModelAdmin):
 
-    list_display = (
-        "station",
-        "forecast_date",
-        "temperatura_minima",
-        "temperatura_maxima",
-    )
-
-    ordering = (
-        "forecast_date",
-    )
-
+# ==========================================================
+# Climate Cache
+# ==========================================================
 
 @admin.register(ClimateCache)
 class ClimateCacheAdmin(admin.ModelAdmin):
 
     list_display = (
-        "station",
+        "municipio",
+        "provider",
         "collected_at",
         "expires_at",
+    )
+
+    list_filter = (
+        "provider",
+        "municipio__estado",
+    )
+
+    search_fields = (
+        "municipio__nome",
     )
 
     ordering = (
         "-collected_at",
     )
+
+    readonly_fields = (
+        "payload",
+        "collected_at",
+        "expires_at",
+    )
+
+    list_per_page = 30

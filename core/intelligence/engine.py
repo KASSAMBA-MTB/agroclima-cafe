@@ -2,25 +2,23 @@
 ==========================================================
 AgroClima Café
 
-Rule Engine
-
-Motor responsável por registrar e executar
-todas as regras da plataforma.
+Intelligence Engine
 
 ==========================================================
 """
 
-from typing import List
+from core.intelligence.rules.frost_rule import FrostRule
 
 
 class RuleEngine:
+    """
+    Responsável por registrar e executar regras.
+    """
 
     def __init__(self):
-
-        self.rules: List = []
+        self.rules = []
 
     def register(self, rule):
-
         self.rules.append(rule)
 
     def evaluate(self, context):
@@ -32,7 +30,28 @@ class RuleEngine:
             result = rule.evaluate(context)
 
             if result is not None:
-
                 results.append(result)
 
         return results
+
+
+class IntelligenceEngine:
+    """
+    Motor central da camada de inteligência.
+    """
+
+    def __init__(self):
+
+        self.engine = RuleEngine()
+
+        self._register_rules()
+
+    def _register_rules(self):
+
+        self.engine.register(
+            FrostRule()
+        )
+
+    def evaluate(self, context):
+
+        return self.engine.evaluate(context)

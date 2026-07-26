@@ -1,18 +1,23 @@
 from django.shortcuts import render
 
-from dashboard.services.dashboard_service import DashboardService
+from dashboard.services.dashboard_facade import DashboardFacade
 
 
-def home(request):
+def dashboard_home(request):
+    """
+    View principal do Dashboard.
+    """
 
-    context = DashboardService().get_dashboard()
+    facade = DashboardFacade()
+
+    context = facade.get_dashboard_data()
 
     return render(
-
         request,
-
         "dashboard/home.html",
-
-        context
-
+        context,
     )
+
+
+# Alias para compatibilidade com versões anteriores
+home = dashboard_home

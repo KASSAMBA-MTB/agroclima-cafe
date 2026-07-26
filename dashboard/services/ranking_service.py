@@ -1,181 +1,95 @@
 """
-==========================================================
-AgroClima Café
+===============================================================================
+UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
 
-Ranking Service
+Curso...........: Bacharelado em Ciência de Dados
+Disciplina......: Trabalho de Conclusão de Curso (TCC)
+Projeto.........: AgroClima Café
+Módulo..........: Dashboard
+Arquivo.........: ranking_service.py
 
-Responsável pelo Ranking AgroClima dos municípios.
+Descrição.......:
+Serviço responsável pela geração do ranking dos municípios utilizando
+o Índice AgroClima.
 
-O ranking é calculado utilizando o
-Índice AgroClima (IAC).
-
-Autor:
-Walter Junio Pontes Teixeira
-
-Curso:
-Ciência de Dados - UNIVESP
-==========================================================
+Versão..........: 2.0
+===============================================================================
 """
 
 from core.intelligence.agroclima_index import AgroClimaIndex
+from clima.services.weather_service import WeatherService
+from municipios.models import Municipio
 
 
 class RankingService:
-
     """
-    Serviço responsável pelo Ranking AgroClima.
+    Gera o ranking dos municípios cadastrados.
     """
 
     def __init__(self):
 
+        self.weather = WeatherService()
         self.iac = AgroClimaIndex()
+
+    # ==========================================================
+    # RANKING
+    # ==========================================================
 
     def get_ranking(self):
 
-        municipios = [
-
-            {
-
-                "municipio": "São Sebastião da Grama",
-
-                "estado": "SP",
-
-                "temperature": 18.2,
-
-                "humidity": 73,
-
-                "precipitation": 26,
-
-                "frost": "low",
-
-                "hail": "low"
-
-            },
-
-            {
-
-                "municipio": "Divinolândia",
-
-                "estado": "SP",
-
-                "temperature": 17.9,
-
-                "humidity": 71,
-
-                "precipitation": 24,
-
-                "frost": "low",
-
-                "hail": "low"
-
-            },
-
-            {
-
-                "municipio": "Águas da Prata",
-
-                "estado": "SP",
-
-                "temperature": 17.5,
-
-                "humidity": 75,
-
-                "precipitation": 27,
-
-                "frost": "medium",
-
-                "hail": "low"
-
-            },
-
-            {
-
-                "municipio": "Poços de Caldas",
-
-                "estado": "MG",
-
-                "temperature": 18.8,
-
-                "humidity": 69,
-
-                "precipitation": 30,
-
-                "frost": "low",
-
-                "hail": "low"
-
-            },
-
-            {
-
-                "municipio": "Caldas",
-
-                "estado": "MG",
-
-                "temperature": 17.3,
-
-                "humidity": 74,
-
-                "precipitation": 29,
-
-                "frost": "medium",
-
-                "hail": "low"
-
-            }
-
-        ]
-
         ranking = []
 
-        for cidade in municipios:
+        municipios = Municipio.objects.all()
 
-            resultado = self.iac.calculate(
+        for municipio in municipios:
 
-                temperature=cidade["temperature"],
+            try:
 
-                humidity=cidade["humidity"],
+                observation = self.weather.update_current_weather(
+                    municipio
+                )
 
-                precipitation=cidade["precipitation"],
+                indice = self.iac.calculate(
+                    temperature=float(observation.temperature),
+                    humidity=float(observation.humidity),
+                    precipitation=float(observation.precipitation),
+                    frost_level="low",
+                    hail_level="low",
+                )
 
-                frost_level=cidade["frost"],
+                ranking.append({
 
-                hail_level=cidade["hail"]
+                    "municipio": municipio.nome,
 
-            )
+                    "estado": "SP",
 
-            ranking.append({
+                    "indice": indice["index"],
 
-                "municipio": cidade["municipio"],
+                    "classificacao": indice["classification"],
 
-                "estado": cidade["estado"],
+                    "icone": indice["icon"],
 
-                "indice": resultado["index"],
+                    "cor": indice["color"],
 
-                "classificacao": resultado["classification"],
+                    # Preparado para Dashboard V3
+                    "tendencia": "estável"
 
-                "cor": resultado["color"],
+                })
 
-                "icone": resultado["icon"]
+            except Exception:
 
-            })
+                continue
 
         ranking.sort(
 
-            key=lambda municipio: municipio["indice"],
+            key=lambda item: item["indice"],
 
             reverse=True
 
         )
 
-        for posicao, municipio in enumerate(
+        for posicao, item in enumerate(ranking, start=1):
 
-            ranking,
-
-            start=1
-
-        ):
-
-            municipio["posicao"] = posicao
+            item["posicao"] = posicao
 
         return ranking

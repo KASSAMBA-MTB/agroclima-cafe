@@ -1,14 +1,16 @@
 <section class="dashboard-panel">
 
-    <!-- ===================================================== -->
-    <!-- CABEÇALHO                                             -->
-    <!-- ===================================================== -->
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
 
     <div class="panel-header">
 
         <div>
 
             <h2>
+
+                <i class="bi bi-graph-up-arrow"></i>
 
                 Evolução Climática
 
@@ -24,7 +26,7 @@
 
         <div class="panel-actions">
 
-            <button class="btn-panel">
+            <button class="btn-panel active">
 
                 Hoje
 
@@ -42,13 +44,91 @@
 
             </button>
 
+            <button class="btn-panel">
+
+                Histórico
+
+            </button>
+
         </div>
 
     </div>
 
-    <!-- ===================================================== -->
-    <!-- GRÁFICO                                               -->
-    <!-- ===================================================== -->
+    <!-- ==========================================================
+         RESUMO
+    =========================================================== -->
+
+    <div class="chart-summary">
+
+        <div class="summary-item">
+
+            <span class="summary-label">
+
+                Temperatura Média
+
+            </span>
+
+            <strong>
+
+                18°C
+
+            </strong>
+
+        </div>
+
+        <div class="summary-item">
+
+            <span class="summary-label">
+
+                Precipitação
+
+            </span>
+
+            <strong>
+
+                21 mm
+
+            </strong>
+
+        </div>
+
+        <div class="summary-item">
+
+            <span class="summary-label">
+
+                Geadas
+
+            </span>
+
+            <strong>
+
+                3
+
+            </strong>
+
+        </div>
+
+        <div class="summary-item">
+
+            <span class="summary-label">
+
+                Tendência
+
+            </span>
+
+            <strong class="text-success">
+
+                Estável
+
+            </strong>
+
+        </div>
+
+    </div>
+
+    <!-- ==========================================================
+         GRÁFICO
+    =========================================================== -->
 
     <div class="chart-container">
 
@@ -56,11 +136,27 @@
 
     </div>
 
+    <!-- ==========================================================
+         RODAPÉ
+    =========================================================== -->
+
+    <div class="chart-footer">
+
+        <small>
+
+            <i class="bi bi-info-circle"></i>
+
+            Dados provenientes do DashboardService e integrados ao Open-Meteo.
+
+        </small>
+
+    </div>
+
 </section>
 
-<!-- ===================================================== -->
-<!-- DADOS RECEBIDOS DO DASHBOARDSERVICE                    -->
-<!-- ===================================================== -->
+<!-- ==========================================================
+     DADOS DO DASHBOARDSERVICE
+=========================================================== -->
 
 {{ chart.dias|json_script:"chart-dias" }}
 

@@ -1,10 +1,16 @@
 <section class="dashboard-panel">
 
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
+
     <div class="panel-header">
 
         <div>
 
             <h2>
+
+                <i class="bi bi-trophy-fill"></i>
 
                 Ranking AgroClima
 
@@ -18,86 +24,156 @@
 
         </div>
 
-    </div>
+        <div class="panel-actions">
 
-    <div class="ranking-list">
+            <button class="btn-panel active">
 
-        {% for cidade in ranking %}
+                Top 10
 
-        <div class="ranking-item">
+            </button>
 
-            <!-- ============================= -->
-            <!-- POSIÇÃO                       -->
-            <!-- ============================= -->
+            <button class="btn-panel">
 
-            <div class="ranking-position">
+                Todos
 
-                {{ cidade.posicao }}º
-
-            </div>
-
-            <!-- ============================= -->
-            <!-- MUNICÍPIO                     -->
-            <!-- ============================= -->
-
-            <div class="ranking-city">
-
-                <strong>
-
-                    {{ cidade.municipio }}
-
-                </strong>
-
-                <span>
-
-                    {{ cidade.estado }}
-
-                </span>
-
-            </div>
-
-            <!-- ============================= -->
-            <!-- ÍNDICE AGROCLIMA              -->
-            <!-- ============================= -->
-
-            <div class="ranking-score">
-
-                <h4>
-
-                    {{ cidade.indice }}
-
-                </h4>
-
-                <small>
-
-                    IAC
-
-                </small>
-
-            </div>
-
-            <!-- ============================= -->
-            <!-- CLASSIFICAÇÃO                 -->
-            <!-- ============================= -->
-
-            <div class="ranking-classification">
-
-                <i class="bi {{ cidade.icone }}"
-                   style="color: {{ cidade.cor }};">
-
-                </i>
-
-                <span>
-
-                    {{ cidade.classificacao }}
-
-                </span>
-
-            </div>
+            </button>
 
         </div>
 
-        {% endfor %}
+    </div>
+
+    <!-- ==========================================================
+         RANKING
+    =========================================================== -->
+
+    <div class="ranking-list">
+
+        {% if ranking %}
+
+            {% for cidade in ranking %}
+
+            <div class="ranking-item">
+
+                <!-- POSIÇÃO -->
+
+                <div class="ranking-position">
+
+                    {% if cidade.posicao == 1 %}
+                        🥇
+                    {% elif cidade.posicao == 2 %}
+                        🥈
+                    {% elif cidade.posicao == 3 %}
+                        🥉
+                    {% else %}
+                        {{ cidade.posicao }}º
+                    {% endif %}
+
+                </div>
+
+                <!-- MUNICÍPIO -->
+
+                <div class="ranking-city">
+
+                    <strong>
+
+                        {{ cidade.municipio }}
+
+                    </strong>
+
+                    <span>
+
+                        {{ cidade.estado }}
+
+                    </span>
+
+                </div>
+
+                <!-- ÍNDICE -->
+
+                <div class="ranking-score">
+
+                    <h4>
+
+                        {{ cidade.indice }}
+
+                    </h4>
+
+                    <small>
+
+                        IAC
+
+                    </small>
+
+                </div>
+
+                <!-- CLASSIFICAÇÃO -->
+
+                <div class="ranking-classification">
+
+                    <i class="bi {{ cidade.icone }}"
+                       style="color: {{ cidade.cor }};">
+
+                    </i>
+
+                    <span>
+
+                        {{ cidade.classificacao }}
+
+                    </span>
+
+                </div>
+
+                <!-- TENDÊNCIA -->
+
+                <div class="ranking-trend">
+
+                    {% if cidade.tendencia %}
+
+                        {{ cidade.tendencia }}
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="ranking-empty">
+
+                <i class="bi bi-database-fill-exclamation"></i>
+
+                <p>
+
+                    Nenhum município disponível para classificação.
+
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- ==========================================================
+         RODAPÉ
+    =========================================================== -->
+
+    <div class="panel-footer">
+
+        <small>
+
+            <i class="bi bi-info-circle"></i>
+
+            Ranking calculado automaticamente a partir do Índice AgroClima (IAC).
+
+        </small>
 
     </div>
 

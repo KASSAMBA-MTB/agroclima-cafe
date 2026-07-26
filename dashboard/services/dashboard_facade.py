@@ -4,53 +4,85 @@ AgroClima Café
 
 Dashboard Facade
 
-Responsável por fornecer todos os dados necessários
-para o Dashboard.
+Responsável por integrar todos os serviços do Dashboard.
 
-A camada de apresentação (Views) nunca deve acessar
-os Services diretamente.
-
-Autor:
-Walter Junio Pontes Teixeira
-
-Curso:
-Ciência de Dados - UNIVESP
 ==========================================================
 """
 
-from dashboard.services.dashboard_service import DashboardService
+from dashboard.services.kpi_service import KPIService
+from dashboard.services.chart_service import ChartService
+from dashboard.services.ranking_service import RankingService
+
+from core.intelligence.engine import IntelligenceEngine
+from core.intelligence.insight_engine import InsightEngine
+from core.intelligence.recommendation_engine import RecommendationEngine
+from core.intelligence.alert_engine import AlertEngine
 
 
 class DashboardFacade:
-    """
-    Fachada do Dashboard.
-
-    Centraliza o acesso aos serviços da plataforma.
-    """
 
     def __init__(self):
 
-        self.dashboard_service = DashboardService()
+        self.kpi = KPIService()
+        self.chart = ChartService()
+        self.ranking = RankingService()
 
-    def get_dashboard_context(self):
-        """
-        Retorna todo o contexto utilizado pela Home do Dashboard.
-        """
+        self.engine = IntelligenceEngine()
+        self.insight = InsightEngine()
+        self.recommendation = RecommendationEngine()
+        self.alert = AlertEngine()
 
-        return self.dashboard_service.get_dashboard()
+    def get_dashboard_data(self):
 
-    def refresh(self):
-        """
-        Método preparado para futuras atualizações
-        automáticas do Dashboard.
+        kpis = self.kpi.get_kpis()
 
-        Futuramente poderá:
+        context = {
 
-        - atualizar cache;
-        - sincronizar Open-Meteo;
-        - recalcular IAC;
-        - atualizar Ranking;
-        - atualizar Insights.
-        """
+            "temperature": kpis["temperature"],
+            "humidity": kpis["humidity"],
+            "wind_speed": kpis["wind_speed"],
+            "altitude": kpis["altitude"],
+            "precipitation": kpis["precipitation"],
 
-        return self.get_dashboard_context()
+            "kpis": kpis,
+
+        }
+
+        # Executa todas as regras
+        rule_results = self.engine.evaluate(context)
+
+        # Gera Insights
+        insights = self.insight.generate(rule_results)
+
+        # Gera Recomendações
+        recommendations = self.recommendation.generate(insights)
+
+        # Gera Alertas
+        alerts = self.alert.generate(recommendations)
+
+        return {
+
+            # KPIs
+            "temperatura_media": kpis["temperatura_media"],
+            "precipitacao": kpis["precipitacao"],
+            "geadas": kpis["geadas"],
+            "granizo": kpis["granizo"],
+            "municipios": kpis["municipios"],
+
+            # Índice AgroClima
+            "indice_agroclima": kpis["indice_agroclima"],
+            "classificacao_agroclima": kpis["classificacao_agroclima"],
+            "cor_agroclima": kpis["cor_agroclima"],
+            "icone_agroclima": kpis["icone_agroclima"],
+            "scores": kpis["scores"],
+
+            # Dashboard
+            "chart": self.chart.get_chart(),
+            "ranking": self.ranking.get_ranking(),
+
+            # Inteligência
+            "insights": insights,
+            "recommendations": recommendations,
+            "alerts": alerts,
+
+        }

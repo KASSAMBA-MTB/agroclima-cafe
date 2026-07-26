@@ -1,0 +1,234 @@
+/* ==========================================================
+   AGROCLIMA CAFÉ
+   DASHBOARD V3
+   ========================================================== */
+
+:root{
+
+    --primary:#1F6F43;
+    --primary-dark:#174F31;
+
+    --secondary:#8B5E34;
+
+    --background:#F4F7F5;
+
+    --card:#FFFFFF;
+
+    --border:#E2E8E5;
+
+    --text:#263238;
+
+    --text-light:#6B7280;
+
+    --shadow:0 8px 24px rgba(0,0,0,.08);
+
+    --radius:16px;
+
+}
+
+
+/* ==========================================================
+   CONTAINER
+   ========================================================== */
+
+.dashboard-v3-container{
+
+    max-width:1600px;
+
+    margin:auto;
+
+    padding:32px;
+
+}
+
+
+/* ==========================================================
+   SECTIONS
+   ========================================================== */
+
+.dashboard-section{
+
+    margin-bottom:28px;
+
+}
+
+
+.section-title{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+
+}
+
+
+.section-title h2{
+
+    font-size:30px;
+
+    font-weight:700;
+
+    color:var(--text);
+
+}
+
+
+.section-title p{
+
+    color:var(--text-light);
+
+    margin-top:4px;
+
+}
+
+
+/* ==========================================================
+   KPI GRID
+   ========================================================== */
+
+.kpi-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    gap:20px;
+
+}
+
+
+/* ==========================================================
+   GRID PRINCIPAL
+   ========================================================== */
+
+.dashboard-main-grid{
+
+    display:grid;
+
+    grid-template-columns:2fr 1fr;
+
+    gap:24px;
+
+    margin-bottom:28px;
+
+}
+
+
+.dashboard-two-columns{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:24px;
+
+    margin-bottom:28px;
+
+}
+
+
+/* ==========================================================
+   PAINÉIS
+   ========================================================== */
+
+.geo-column,
+
+.insights-column{
+
+    background:var(--card);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    border:1px solid var(--border);
+
+    padding:24px;
+
+}
+
+
+/* ==========================================================
+   CARDS
+   ========================================================== */
+
+.card,
+
+.panel{
+
+    background:var(--card);
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+    border:1px solid var(--border);
+
+}
+
+
+/* ==========================================================
+   HOVER
+   ========================================================== */
+
+.card:hover,
+
+.panel:hover,
+
+.geo-column:hover,
+
+.insights-column:hover{
+
+    transform:translateY(-3px);
+
+    transition:.25s;
+
+}
+
+
+/* ==========================================================
+   RESPONSIVO
+   ========================================================== */
+
+@media(max-width:1200px){
+
+.dashboard-main-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.dashboard-two-columns{
+
+    grid-template-columns:1fr;
+
+}
+
+}
+
+
+@media(max-width:768px){
+
+.dashboard-v3-container{
+
+    padding:18px;
+
+}
+
+.kpi-grid{
+
+    grid-template-columns:1fr;
+
+}
+
+.section-title h2{
+
+    font-size:24px;
+
+}
+
+}

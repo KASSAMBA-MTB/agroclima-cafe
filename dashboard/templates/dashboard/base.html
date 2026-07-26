@@ -109,10 +109,17 @@
         href="{% static 'dashboard/css/alerts.css' %}">
 
     <!-- ==========================================================
-         FAVICON (Sprint futura)
+         CSS ESPECÍFICO DE CADA PÁGINA
     =========================================================== -->
 
-    {# 
+    {% block extra_css %}
+    {% endblock %}
+
+    <!-- ==========================================================
+         FAVICON
+    =========================================================== -->
+
+    {#
     <link
         rel="icon"
         href="{% static 'dashboard/img/favicon.ico' %}">
@@ -145,7 +152,6 @@
         <section class="page-content">
 
             {% block content %}
-
             {% endblock %}
 
         </section>
@@ -191,6 +197,13 @@
 <script src="{% static 'dashboard/js/map.js' %}"></script>
 
 <script src="{% static 'dashboard/js/alerts.js' %}"></script>
+
+<!-- ==========================================================
+     JAVASCRIPT ESPECÍFICO DE CADA PÁGINA
+=========================================================== -->
+
+{% block extra_js %}
+{% endblock %}
 
 </body>
 

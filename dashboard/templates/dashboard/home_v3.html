@@ -1,0 +1,131 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}
+Dashboard V3 | AgroClima Café
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'dashboard/css/dashboard_v3.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-v3-container">
+
+    <!-- ==========================================================
+         TÍTULO DA DASHBOARD
+    =========================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="section-title">
+
+            <div>
+
+                <h2>
+                    Dashboard Inteligente AgroClima Café
+                </h2>
+
+                <p>
+                    Monitoramento climático para apoio à decisão na cafeicultura
+                    da Mantiqueira Vulcânica Paulista.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================================
+         KPIs
+    =========================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="kpi-grid">
+
+            {% include "dashboard/components/kpi_card.html" %}
+            {% include "dashboard/components/kpi_card.html" %}
+            {% include "dashboard/components/kpi_card.html" %}
+            {% include "dashboard/components/kpi_card.html" %}
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================================
+         PAINEL PRINCIPAL
+    =========================================================== -->
+
+    <section class="dashboard-main-grid">
+
+        <!-- MAPA -->
+
+        <div class="geo-column">
+
+            {% include "dashboard/components/map_panel.html" %}
+
+        </div>
+
+        <!-- INSIGHTS -->
+
+        <div class="insights-column">
+
+            {% include "dashboard/components/insights_panel.html" %}
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================================
+         ANÁLISES
+    =========================================================== -->
+
+    <section class="dashboard-two-columns">
+
+        <div class="panel">
+
+            {% include "dashboard/components/chart_panel.html" %}
+
+        </div>
+
+        <div class="panel">
+
+            {% include "dashboard/components/ranking_panel.html" %}
+
+        </div>
+
+    </section>
+
+    <!-- ==========================================================
+         EVENTOS
+    =========================================================== -->
+
+    <section class="dashboard-section">
+
+        {% include "dashboard/components/events_panel.html" %}
+
+    </section>
+
+    <!-- ==========================================================
+         ALERTAS
+    =========================================================== -->
+
+    <section class="dashboard-section">
+
+        {% include "dashboard/components/alerts_panel.html" %}
+
+    </section>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script src="{% static 'dashboard/js/dashboard_v3.js' %}"></script>
+
+{% endblock %}

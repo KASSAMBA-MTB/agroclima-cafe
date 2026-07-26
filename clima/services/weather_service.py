@@ -1,47 +1,97 @@
 """
 ==========================================================
-Weather Service
+AgroClima Café
 
+Weather Service
 ==========================================================
 """
 
-from clima.models import Provider
+from datetime import timedelta
 
+from django.utils import timezone
+
+from clima.models import (
+    Provider,
+    WeatherStation,
+)
+
+from .cache_service import CacheService
 from .openmeteo_provider import OpenMeteoProvider
 
 
 class WeatherService:
 
-    """
-    Serviço central da plataforma climática.
-    """
+    CACHE_MINUTES = 30
 
     def __init__(self):
 
+        self.cache = CacheService()
+
         self.providers = {
-
             Provider.OPEN_METEO: OpenMeteoProvider(),
-
         }
 
-    def current_weather(
-
+    def update_current_weather(
         self,
-
         municipio,
-
-        provider=Provider.OPEN_METEO
-
+        provider=Provider.OPEN_METEO,
     ):
 
-        service = self.providers.get(provider)
+        cached = self.cache.get(
+            municipio,
+            provider,
+        )
 
-        if service is None:
+        if cached:
 
-            raise ValueError(
-
-                f"Provider '{provider}' não suportado."
-
+            dto = self.providers[provider].current_weather_from_cache(
+                cached,
+                municipio,
             )
 
-        return service.current_weather(municipio)
+        else:
+
+            dto = self.providers[provider].current_weather(
+                municipio,
+            )
+
+            self.cache.save(
+                municipio=municipio,
+                provider=provider,
+                payload=self.providers[provider].last_payload,
+                expires_at=timezone.now()
+                + timedelta(minutes=self.CACHE_MINUTES),
+            )
+
+        WeatherStation.objects.get_or_create(
+            municipio=municipio,
+            provider=provider,
+            defaults={
+                "ativa": True,
+            },
+        )
+
+        return dto
+
+    def latest(
+        self,
+        municipio,
+        provider=Provider.OPEN_METEO,
+    ):
+
+        cached = self.cache.get(
+            municipio,
+            provider,
+        )
+
+        if cached:
+
+            return self.providers[provider].current_weather_from_cache(
+                cached,
+                municipio,
+            )
+
+        return self.update_current_weather(
+            municipio,
+            provider,
+        )

@@ -1,5 +1,9 @@
 <div class="kpi-card">
 
+    <!-- ==========================================================
+         CABEÇALHO
+    =========================================================== -->
+
     <div class="kpi-header">
 
         <div class="kpi-icon {{ color }}">
@@ -8,13 +12,21 @@
 
         </div>
 
+        {% if variation %}
+
         <span class="kpi-variation">
 
             {{ variation }}
 
         </span>
 
+        {% endif %}
+
     </div>
+
+    <!-- ==========================================================
+         CONTEÚDO
+    =========================================================== -->
 
     <div class="kpi-body">
 
@@ -24,27 +36,63 @@
 
         </span>
 
-        <h2>
+        <h2 class="kpi-value">
 
             {{ value }}
 
             {% if unit %}
-                <small class="kpi-unit">{{ unit }}</small>
+
+                <small class="kpi-unit">
+
+                    {{ unit }}
+
+                </small>
+
             {% endif %}
 
         </h2>
 
+        {% if description %}
+
+        <p class="kpi-description">
+
+            {{ description }}
+
+        </p>
+
+        {% endif %}
+
     </div>
+
+    <!-- ==========================================================
+         RODAPÉ
+    =========================================================== -->
 
     <div class="kpi-footer">
 
-        <small>
+        <div class="kpi-update">
 
             <i class="bi bi-arrow-repeat"></i>
 
-            {{ ultima_atualizacao|date:"H:i" }}
+            <small>
 
-        </small>
+                Atualizado às
+
+                {{ ultima_atualizacao|date:"H:i" }}
+
+            </small>
+
+        </div>
+
+        {% if trend %}
+
+        <div class="kpi-trend">
+
+            {{ trend }}
+
+        </div>
+
+        {% endif %}
 
     </div>
 
