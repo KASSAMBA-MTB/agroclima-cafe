@@ -2,130 +2,389 @@
 {% load static %}
 
 {% block title %}
-Dashboard V3 | AgroClima Café
+    Dashboard Inteligente | AgroClima Café
 {% endblock %}
 
+
 {% block extra_css %}
-<link rel="stylesheet"
-      href="{% static 'dashboard/css/dashboard_v3.css' %}">
 {% endblock %}
+
 
 {% block content %}
 
-<div class="dashboard-v3-container">
+<!-- ==========================================================
+     CABEÇALHO DA DASHBOARD
+=========================================================== -->
 
-    <!-- ==========================================================
-         TÍTULO DA DASHBOARD
-    =========================================================== -->
+<section class="dashboard-section">
 
-    <section class="dashboard-section">
+    <div class="section-title">
 
-        <div class="section-title">
+        <div>
 
-            <div>
+            <h2>
+                Dashboard Inteligente AgroClima Café
+            </h2>
 
-                <h2>
-                    Dashboard Inteligente AgroClima Café
+            <p>
+                Sistema Inteligente de Apoio à Decisão para
+                Monitoramento Climático e Risco de Geadas.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ==========================================================
+     KPIs
+=========================================================== -->
+
+<section class="dashboard-section">
+
+    <div class="kpi-grid">
+
+
+        <!-- ==================================================
+             TEMPERATURA
+        =================================================== -->
+
+        <div class="kpi-card">
+
+            <div class="kpi-header">
+
+                <div class="kpi-icon danger">
+
+                    <i class="bi bi-thermometer-half"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="kpi-body">
+
+                <span class="kpi-title">
+                    Temperatura Média
+                </span>
+
+                <h2 class="kpi-value">
+
+                    {% if kpis.temperatura_media is not None %}
+
+                        {{ kpis.temperatura_media }}
+
+                    {% else %}
+
+                        --
+
+                    {% endif %}
+
+                    <small class="kpi-unit">
+                        °C
+                    </small>
+
                 </h2>
 
-                <p>
-                    Monitoramento climático para apoio à decisão na cafeicultura
-                    da Mantiqueira Vulcânica Paulista.
+                <p class="kpi-description">
+                    Temperatura atual observada
                 </p>
+
+            </div>
+
+
+            <div class="kpi-footer">
+
+                <div class="kpi-update">
+
+                    <i class="bi bi-arrow-repeat"></i>
+
+                    <small>
+
+                        Atualizado às
+                        {{ kpis.ultima_atualizacao|date:"H:i" }}
+
+                    </small>
+
+                </div>
 
             </div>
 
         </div>
 
-    </section>
 
-    <!-- ==========================================================
-         KPIs
-    =========================================================== -->
+        <!-- ==================================================
+             PRECIPITAÇÃO
+        =================================================== -->
 
-    <section class="dashboard-section">
+        <div class="kpi-card">
 
-        <div class="kpi-grid">
+            <div class="kpi-header">
 
-            {% include "dashboard/components/kpi_card.html" %}
-            {% include "dashboard/components/kpi_card.html" %}
-            {% include "dashboard/components/kpi_card.html" %}
-            {% include "dashboard/components/kpi_card.html" %}
+                <div class="kpi-icon primary">
+
+                    <i class="bi bi-cloud-rain"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="kpi-body">
+
+                <span class="kpi-title">
+                    Precipitação
+                </span>
+
+                <h2 class="kpi-value">
+
+                    {% if kpis.precipitacao is not None %}
+
+                        {{ kpis.precipitacao }}
+
+                    {% else %}
+
+                        --
+
+                    {% endif %}
+
+                    <small class="kpi-unit">
+                        mm
+                    </small>
+
+                </h2>
+
+                <p class="kpi-description">
+                    Precipitação observada
+                </p>
+
+            </div>
+
+
+            <div class="kpi-footer">
+
+                <div class="kpi-update">
+
+                    <i class="bi bi-arrow-repeat"></i>
+
+                    <small>
+
+                        Atualizado às
+                        {{ kpis.ultima_atualizacao|date:"H:i" }}
+
+                    </small>
+
+                </div>
+
+            </div>
 
         </div>
 
-    </section>
 
-    <!-- ==========================================================
-         PAINEL PRINCIPAL
-    =========================================================== -->
+        <!-- ==================================================
+             GEADAS
+        =================================================== -->
 
-    <section class="dashboard-main-grid">
+        <div class="kpi-card">
 
-        <!-- MAPA -->
+            <div class="kpi-header">
 
-        <div class="geo-column">
+                <div class="kpi-icon info">
 
-            {% include "dashboard/components/map_panel.html" %}
+                    <i class="bi bi-snow"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="kpi-body">
+
+                <span class="kpi-title">
+                    Ocorrências de Geada
+                </span>
+
+                <h2 class="kpi-value">
+
+                    {{ kpis.geadas }}
+
+                </h2>
+
+                <p class="kpi-description">
+                    Ocorrências registradas
+                </p>
+
+            </div>
+
+
+            <div class="kpi-footer">
+
+                <div class="kpi-update">
+
+                    <i class="bi bi-arrow-repeat"></i>
+
+                    <small>
+
+                        Atualizado às
+                        {{ kpis.ultima_atualizacao|date:"H:i" }}
+
+                    </small>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <!-- INSIGHTS -->
 
-        <div class="insights-column">
+        <!-- ==================================================
+             MUNICÍPIOS
+        =================================================== -->
 
-            {% include "dashboard/components/insights_panel.html" %}
+        <div class="kpi-card">
+
+            <div class="kpi-header">
+
+                <div class="kpi-icon success">
+
+                    <i class="bi bi-geo-alt"></i>
+
+                </div>
+
+            </div>
+
+
+            <div class="kpi-body">
+
+                <span class="kpi-title">
+                    Municípios Monitorados
+                </span>
+
+                <h2 class="kpi-value">
+
+                    {{ kpis.municipios }}
+
+                </h2>
+
+                <p class="kpi-description">
+                    Municípios acompanhados
+                </p>
+
+            </div>
+
+
+            <div class="kpi-footer">
+
+                <div class="kpi-update">
+
+                    <i class="bi bi-arrow-repeat"></i>
+
+                    <small>
+
+                        Atualizado às
+                        {{ kpis.ultima_atualizacao|date:"H:i" }}
+
+                    </small>
+
+                </div>
+
+            </div>
 
         </div>
 
-    </section>
 
-    <!-- ==========================================================
-         ANÁLISES
-    =========================================================== -->
+    </div>
 
-    <section class="dashboard-two-columns">
+</section>
 
-        <div class="panel">
 
-            {% include "dashboard/components/chart_panel.html" %}
+<!-- ==========================================================
+     FROST RISK INDEX
+=========================================================== -->
 
-        </div>
+<section class="dashboard-section">
 
-        <div class="panel">
+    {% include "dashboard/components/frost_panel.html" %}
 
-            {% include "dashboard/components/ranking_panel.html" %}
+</section>
 
-        </div>
 
-    </section>
+<!-- ==========================================================
+     MAPA + INSIGHTS
+=========================================================== -->
 
-    <!-- ==========================================================
-         EVENTOS
-    =========================================================== -->
+<section class="dashboard-main-grid">
 
-    <section class="dashboard-section">
+
+    <div class="geo-column">
+
+        {% include "dashboard/components/map_panel.html" %}
+
+    </div>
+
+
+    <div class="insights-column">
+
+        {% include "dashboard/components/insights_panel.html" %}
+
+    </div>
+
+
+</section>
+
+
+<!-- ==========================================================
+     GRÁFICOS + RANKING
+=========================================================== -->
+
+<section class="dashboard-two-columns">
+
+
+    <div class="panel">
+
+        {% include "dashboard/components/chart_panel.html" %}
+
+    </div>
+
+
+    <div class="panel">
+
+        {% include "dashboard/components/ranking_panel.html" %}
+
+    </div>
+
+
+</section>
+
+
+<!-- ==========================================================
+     EVENTOS + ALERTAS
+=========================================================== -->
+
+<section class="dashboard-two-columns">
+
+
+    <div class="panel">
 
         {% include "dashboard/components/events_panel.html" %}
 
-    </section>
+    </div>
 
-    <!-- ==========================================================
-         ALERTAS
-    =========================================================== -->
 
-    <section class="dashboard-section">
+    <div class="panel">
 
         {% include "dashboard/components/alerts_panel.html" %}
 
-    </section>
+    </div>
 
-</div>
+
+</section>
+
 
 {% endblock %}
 
+
 {% block extra_js %}
-
-<script src="{% static 'dashboard/js/dashboard_v3.js' %}"></script>
-
 {% endblock %}

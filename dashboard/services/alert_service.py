@@ -9,32 +9,49 @@ Módulo..........: Dashboard
 Arquivo.........: alert_service.py
 
 Descrição.......:
-Serviço responsável pela geração dos alertas inteligentes do Dashboard.
+Serviço responsável pela geração automática dos alertas
+meteorológicos exibidos no Dashboard Principal.
 
-Versão..........: 1.0
+Versão..........: 2.0
 ===============================================================================
 """
+
+from typing import Dict, List, Any
 
 
 class AlertService:
     """
-    Gera alertas automáticos a partir dos indicadores climáticos.
+    Gera alertas meteorológicos a partir dos indicadores climáticos.
     """
 
-    def get_alerts(self, kpis):
+    def get_alerts(self, kpis: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Gera alertas automaticamente.
+
+        Parameters
+        ----------
+        kpis : dict
+
+        Returns
+        -------
+        list
+        """
 
         alerts = []
 
-        temperatura = kpis.get("temperature", 0)
-        precipitacao = kpis.get("precipitation", 0)
-        vento = kpis.get("wind_speed", 0)
-        umidade = kpis.get("humidity", 0)
+        temperatura = float(kpis.get("temperature", 0))
+        precipitacao = float(kpis.get("precipitation", 0))
+        umidade = float(kpis.get("humidity", 0))
+        vento = float(kpis.get("wind_speed", 0))
+        altitude = float(kpis.get("altitude", 0))
+
+        municipio = kpis.get("municipio", "Região Monitorada")
 
         # ==========================================================
         # GEADA
         # ==========================================================
 
-        if temperatura <= 2:
+        if temperatura <= 2 and altitude >= 1000:
 
             alerts.append({
 
@@ -45,84 +62,45 @@ class AlertService:
                 "title": "Risco elevado de geada",
 
                 "message": (
-                    f"Temperatura prevista de {temperatura:.1f}°C."
+                    "Temperaturas críticas previstas para regiões "
+                    "de maior altitude."
                 ),
 
-                "location": "Região monitorada",
+                "location": municipio,
 
                 "time": "Agora"
 
             })
 
-        elif temperatura <= 5:
+        # ==========================================================
+        # CHUVA INTENSA
+        # ==========================================================
+
+        if precipitacao >= 40:
 
             alerts.append({
 
                 "level": "warning",
 
-                "icon": "bi-thermometer-snow",
-
-                "title": "Possibilidade de geada",
-
-                "message": (
-                    f"Temperatura de {temperatura:.1f}°C."
-                ),
-
-                "location": "Região monitorada",
-
-                "time": "Agora"
-
-            })
-
-        # ==========================================================
-        # CHUVA
-        # ==========================================================
-
-        if precipitacao >= 50:
-
-            alerts.append({
-
-                "level": "danger",
-
-                "icon": "bi-cloud-rain-heavy",
+                "icon": "bi-cloud-rain-heavy-fill",
 
                 "title": "Chuva intensa",
 
                 "message": (
-                    f"Precipitação de {precipitacao:.1f} mm."
+                    "Volume elevado de precipitação previsto."
                 ),
 
-                "location": "Região monitorada",
+                "location": municipio,
 
-                "time": "Agora"
-
-            })
-
-        elif precipitacao >= 20:
-
-            alerts.append({
-
-                "level": "info",
-
-                "icon": "bi-cloud-rain",
-
-                "title": "Precipitação moderada",
-
-                "message": (
-                    f"Precipitação de {precipitacao:.1f} mm."
-                ),
-
-                "location": "Região monitorada",
-
-                "time": "Agora"
+                "time": "Próximas 24h"
 
             })
 
         # ==========================================================
-        # VENTO
+        # VENTOS
         # ==========================================================
 
-        if vento >= 60:
+        if vento >= 40:
 
             alerts.append({
 
@@ -133,36 +111,36 @@ class AlertService:
                 "title": "Ventos fortes",
 
                 "message": (
-                    f"Velocidade de {vento:.1f} km/h."
+                    "Rajadas podem causar danos à lavoura."
                 ),
 
-                "location": "Região monitorada",
+                "location": municipio,
 
-                "time": "Agora"
+                "time": "Próximas horas"
 
             })
 
         # ==========================================================
-        # UMIDADE
+        # BAIXA UMIDADE
         # ==========================================================
 
-        if umidade <= 30:
+        if umidade < 30:
 
             alerts.append({
 
-                "level": "warning",
+                "level": "info",
 
                 "icon": "bi-droplet-half",
 
-                "title": "Baixa umidade",
+                "title": "Baixa umidade do ar",
 
                 "message": (
-                    f"Umidade relativa de {umidade:.1f}%."
+                    "Condição favorável ao estresse hídrico."
                 ),
 
-                "location": "Região monitorada",
+                "location": municipio,
 
-                "time": "Agora"
+                "time": "Monitoramento"
 
             })
 
@@ -178,15 +156,16 @@ class AlertService:
 
                 "icon": "bi-check-circle",
 
-                "title": "Condições favoráveis",
+                "title": "Nenhum alerta ativo",
 
                 "message": (
-                    "Nenhum alerta meteorológico ativo."
+                    "As condições climáticas encontram-se dentro da "
+                    "normalidade."
                 ),
 
-                "location": "Região monitorada",
+                "location": municipio,
 
-                "time": "Atualizado"
+                "time": "Atual"
 
             })
 

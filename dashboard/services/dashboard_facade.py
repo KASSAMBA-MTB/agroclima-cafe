@@ -1,88 +1,161 @@
 """
-==========================================================
 AgroClima Café
 
 Dashboard Facade
 
-Responsável por integrar todos os serviços do Dashboard.
+Responsável por integrar os serviços da Dashboard
+com a camada de Inteligência.
 
-==========================================================
+Curso...........: Bacharelado em Ciência de Dados
+Instituição.....: UNIVESP
+Projeto.........: AgroClima Café
+
+Versão..........: 3.2
 """
 
-from dashboard.services.kpi_service import KPIService
-from dashboard.services.chart_service import ChartService
-from dashboard.services.ranking_service import RankingService
-
+from dashboard.services.dashboard_service import DashboardService
 from core.intelligence.engine import IntelligenceEngine
-from core.intelligence.insight_engine import InsightEngine
-from core.intelligence.recommendation_engine import RecommendationEngine
-from core.intelligence.alert_engine import AlertEngine
 
 
 class DashboardFacade:
+    """
+    Camada de orquestração da Dashboard.
+
+    Responsável por:
+
+    - Obter os dados estruturados
+    - Preparar o contexto da Inteligência
+    - Executar a Inteligência
+    - Consolidar o contexto final enviado ao Template
+    """
 
     def __init__(self):
+        self.dashboard_service = DashboardService()
+        self.intelligence = IntelligenceEngine()
 
-        self.kpi = KPIService()
-        self.chart = ChartService()
-        self.ranking = RankingService()
-
-        self.engine = IntelligenceEngine()
-        self.insight = InsightEngine()
-        self.recommendation = RecommendationEngine()
-        self.alert = AlertEngine()
+    # ==========================================================
+    # DASHBOARD
+    # ==========================================================
 
     def get_dashboard_data(self):
+        """
+        Retorna o contexto completo utilizado pela Dashboard.
+        """
 
-        kpis = self.kpi.get_kpis()
+        # ======================================================
+        # DADOS ESTRUTURADOS
+        # ======================================================
 
-        context = {
+        context = self.dashboard_service.get_dashboard()
 
-            "temperature": kpis["temperature"],
-            "humidity": kpis["humidity"],
-            "wind_speed": kpis["wind_speed"],
-            "altitude": kpis["altitude"],
-            "precipitation": kpis["precipitation"],
+        # ======================================================
+        # KPIs
+        # ======================================================
 
-            "kpis": kpis,
+        kpis = context.get(
+            "kpis",
+            {}
+        )
 
+        # ======================================================
+        # CONTEXTO DA INTELIGÊNCIA
+        # ======================================================
+
+        intelligence_context = {
+            "temperature": kpis.get(
+                "temperature"
+            ),
+
+            "humidity": kpis.get(
+                "humidity"
+            ),
+
+            "wind_speed": kpis.get(
+                "wind_speed"
+            ),
+
+            "cloud_cover": kpis.get(
+                "cloud_cover"
+            ),
+
+            "altitude": kpis.get(
+                "altitude"
+            ),
+
+            "historical_frost": kpis.get(
+                "historical_frost"
+            ),
+
+            "analysis_date": kpis.get(
+                "analysis_date"
+            ),
         }
 
-        # Executa todas as regras
-        rule_results = self.engine.evaluate(context)
+        # ======================================================
+        # INTELIGÊNCIA
+        # ======================================================
 
-        # Gera Insights
-        insights = self.insight.generate(rule_results)
+        intelligence = self.intelligence.process(
+            intelligence_context
+        )
 
-        # Gera Recomendações
-        recommendations = self.recommendation.generate(insights)
+        # ======================================================
+        # FROST RISK INDEX
+        # ======================================================
 
-        # Gera Alertas
-        alerts = self.alert.generate(recommendations)
+        context["frost"] = intelligence.get(
+            "frost",
+            {
+                "score": 0,
+                "severity": "none",
+                "confidence": 0,
+                "factors": [],
+            },
+        )
 
-        return {
+        # ======================================================
+        # RESULTADOS DAS REGRAS
+        # ======================================================
 
-            # KPIs
-            "temperatura_media": kpis["temperatura_media"],
-            "precipitacao": kpis["precipitacao"],
-            "geadas": kpis["geadas"],
-            "granizo": kpis["granizo"],
-            "municipios": kpis["municipios"],
+        context["rule_results"] = intelligence.get(
+            "rule_results",
+            [],
+        )
 
-            # Índice AgroClima
-            "indice_agroclima": kpis["indice_agroclima"],
-            "classificacao_agroclima": kpis["classificacao_agroclima"],
-            "cor_agroclima": kpis["cor_agroclima"],
-            "icone_agroclima": kpis["icone_agroclima"],
-            "scores": kpis["scores"],
+        # ======================================================
+        # INSIGHTS
+        # ======================================================
 
-            # Dashboard
-            "chart": self.chart.get_chart(),
-            "ranking": self.ranking.get_ranking(),
+        context["insights"] = intelligence.get(
+            "insights",
+            [],
+        )
 
-            # Inteligência
-            "insights": insights,
-            "recommendations": recommendations,
-            "alerts": alerts,
+        # ======================================================
+        # RECOMENDAÇÕES
+        # ======================================================
 
-        }
+        context["recommendations"] = intelligence.get(
+            "recommendations",
+            [],
+        )
+
+        # ======================================================
+        # ALERTAS
+        # ======================================================
+
+        context["alerts"] = intelligence.get(
+            "alerts",
+            [],
+        )
+
+        # ======================================================
+        # EXPLICABILIDADE
+        # ======================================================
+
+        context["explainability"] = intelligence.get(
+            "explainability",
+            {},
+        )
+
+        return context

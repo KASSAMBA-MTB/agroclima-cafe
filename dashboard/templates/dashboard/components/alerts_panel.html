@@ -18,7 +18,8 @@
 
             <p>
 
-                Alertas ativos gerados automaticamente pela plataforma.
+                Alertas gerados automaticamente pelo
+                mecanismo inteligente AgroClima Café.
 
             </p>
 
@@ -36,55 +37,73 @@
 
             {% for alert in alerts %}
 
-            <div class="alert-card {{ alert.level|default:'info' }}">
+                <div class="alert-card {{ alert.color }}">
 
-                <div class="alert-icon">
+                    <div class="alert-icon">
 
-                    <i class="bi {{ alert.icon|default:'bi-info-circle-fill' }}"></i>
+                        <i class="bi {{ alert.icon }}"></i>
+
+                    </div>
+
+                    <div class="alert-content">
+
+                        <strong>
+
+                            {{ alert.title }}
+
+                        </strong>
+
+                        <p>
+
+                            {{ alert.message }}
+
+                        </p>
+
+                        <small>
+
+                            Severidade:
+
+                            <strong>
+
+                                {{ alert.severity|upper }}
+
+                            </strong>
+
+                            &nbsp;&nbsp;
+
+                            FRI:
+
+                            <strong>
+
+                                {{ alert.score }}
+
+                            </strong>
+
+                            &nbsp;&nbsp;
+
+                            Confiança:
+
+                            <strong>
+
+                                {{ alert.confidence }}
+
+                            </strong>
+
+                        </small>
+
+                    </div>
 
                 </div>
-
-                <div class="alert-content">
-
-                    <strong>
-
-                        {{ alert.title }}
-
-                    </strong>
-
-                    <p>
-
-                        {{ alert.message }}
-
-                    </p>
-
-                    <small>
-
-                        <i class="bi bi-geo-alt-fill"></i>
-
-                        {{ alert.location }}
-
-                    </small>
-
-                </div>
-
-                <div class="alert-time">
-
-                    {{ alert.time }}
-
-                </div>
-
-            </div>
 
             {% endfor %}
 
         {% else %}
 
-            <div class="alert-card danger">
+            <div class="alert-card success">
 
                 <div class="alert-icon">
 
-                    <i class="bi bi-snow"></i>
+                    <i class="bi bi-check-circle-fill"></i>
 
                 </div>
 
@@ -92,103 +111,16 @@
 
                     <strong>
 
-                        Geada Moderada
+                        Nenhum Alerta Ativo
 
                     </strong>
 
                     <p>
 
-                        Risco previsto para municípios acima de 1.100 metros.
+                        Não existem alertas meteorológicos
+                        ativos neste momento.
 
                     </p>
-
-                    <small>
-
-                        São Sebastião da Grama • SP
-
-                    </small>
-
-                </div>
-
-                <div class="alert-time">
-
-                    Agora
-
-                </div>
-
-            </div>
-
-            <div class="alert-card warning">
-
-                <div class="alert-icon">
-
-                    <i class="bi bi-cloud-rain-heavy-fill"></i>
-
-                </div>
-
-                <div class="alert-content">
-
-                    <strong>
-
-                        Chuva Intensa
-
-                    </strong>
-
-                    <p>
-
-                        Precipitação elevada prevista nas próximas 24 horas.
-
-                    </p>
-
-                    <small>
-
-                        Poços de Caldas • MG
-
-                    </small>
-
-                </div>
-
-                <div class="alert-time">
-
-                    15 min
-
-                </div>
-
-            </div>
-
-            <div class="alert-card info">
-
-                <div class="alert-icon">
-
-                    <i class="bi bi-wind"></i>
-
-                </div>
-
-                <div class="alert-content">
-
-                    <strong>
-
-                        Ventos Fortes
-
-                    </strong>
-
-                    <p>
-
-                        Rajadas entre 40 e 60 km/h durante a tarde.
-
-                    </p>
-
-                    <small>
-
-                        Divinolândia • SP
-
-                    </small>
-
-                </div>
-
-                <div class="alert-time">
-
-                    30 min
 
                 </div>
 
@@ -208,7 +140,8 @@
 
             <i class="bi bi-shield-check"></i>
 
-            Alertas processados automaticamente pelo mecanismo de monitoramento climático.
+            Alertas priorizados automaticamente pelo
+            Frost Risk Index (FRI).
 
         </small>
 

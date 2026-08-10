@@ -9,27 +9,32 @@ Módulo..........: Dashboard
 Arquivo.........: ranking_service.py
 
 Descrição.......:
-Serviço responsável pela geração do ranking dos municípios utilizando
-o Índice AgroClima.
+Serviço responsável pela geração do Ranking dos Municípios
+utilizando o Frost Risk Index (FRI).
 
-Versão..........: 2.0
+Toda a inteligência permanece centralizada em
+core.intelligence.
+
+Versão..........: 3.0
 ===============================================================================
 """
 
-from core.intelligence.agroclima_index import AgroClimaIndex
 from clima.services.weather_service import WeatherService
+from core.intelligence.engine import IntelligenceEngine
 from municipios.models import Municipio
 
 
 class RankingService:
     """
-    Gera o ranking dos municípios cadastrados.
+    Gera o Ranking dos Municípios baseado no
+    Frost Risk Index (FRI).
     """
 
     def __init__(self):
 
         self.weather = WeatherService()
-        self.iac = AgroClimaIndex()
+
+        self.intelligence = IntelligenceEngine()
 
     # ==========================================================
     # RANKING
@@ -49,30 +54,65 @@ class RankingService:
                     municipio
                 )
 
-                indice = self.iac.calculate(
-                    temperature=float(observation.temperature),
-                    humidity=float(observation.humidity),
-                    precipitation=float(observation.precipitation),
-                    frost_level="low",
-                    hail_level="low",
+                context = {
+
+                    "temperature": float(
+                        observation.temperature
+                    ),
+
+                    "humidity": float(
+                        observation.humidity
+                    ),
+
+                    "wind_speed": float(
+                        observation.wind_speed
+                    ),
+
+                    "cloud_cover": float(
+                        observation.cloud_cover
+                    ),
+
+                    "altitude": municipio.altitude,
+
+                    "historical_frost": False,
+
+                    "analysis_date": observation.observation_time,
+
+                }
+
+                frost = self.intelligence.evaluate_frost(
+                    context
                 )
 
                 ranking.append({
 
-                    "municipio": municipio.nome,
+                    "nome": municipio.nome,
 
-                    "estado": "SP",
+                    "uf": municipio.estado,
 
-                    "indice": indice["index"],
+                    "score": frost.get(
+                        "score",
+                        0
+                    ),
 
-                    "classificacao": indice["classification"],
+                    "severity": frost.get(
+                        "severity",
+                        "none"
+                    ),
 
-                    "icone": indice["icon"],
+                    "color": self._severity_color(
 
-                    "cor": indice["color"],
+                        frost.get(
+                            "severity",
+                            "none"
+                        )
 
-                    # Preparado para Dashboard V3
-                    "tendencia": "estável"
+                    ),
+
+                    "confidence": frost.get(
+                        "confidence",
+                        0
+                    ),
 
                 })
 
@@ -82,14 +122,39 @@ class RankingService:
 
         ranking.sort(
 
-            key=lambda item: item["indice"],
+            key=lambda item: item["score"],
 
             reverse=True
 
         )
 
-        for posicao, item in enumerate(ranking, start=1):
-
-            item["posicao"] = posicao
-
         return ranking
+
+    # ==========================================================
+    # CORES
+    # ==========================================================
+
+    @staticmethod
+    def _severity_color(severity):
+
+        colors = {
+
+            "critical": "danger",
+
+            "high": "warning",
+
+            "medium": "primary",
+
+            "low": "info",
+
+            "none": "success"
+
+        }
+
+        return colors.get(
+
+            severity,
+
+            "secondary"
+
+        )

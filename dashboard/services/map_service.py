@@ -12,7 +12,7 @@ Descrição.......:
 Serviço responsável pelo fornecimento dos dados geográficos utilizados
 no mapa interativo da Dashboard.
 
-Versão..........: 1.0
+Versão..........: 2.0
 ===============================================================================
 """
 
@@ -21,7 +21,10 @@ from municipios.models import Municipio
 
 class MapService:
     """
-    Serviço responsável pelos dados do mapa.
+    Serviço responsável exclusivamente pelos dados geográficos.
+
+    Não executa consultas meteorológicas nem regras de
+    Inteligência.
     """
 
     def get_points(self):
@@ -38,18 +41,29 @@ class MapService:
 
                 "nome": municipio.nome,
 
-                "estado": getattr(municipio, "estado", "SP"),
+                "estado": municipio.estado,
 
                 "latitude": float(municipio.latitude),
 
                 "longitude": float(municipio.longitude),
 
-                "altitude": int(municipio.altitude),
+                "altitude": municipio.altitude,
 
                 "descricao": (
-                    f"{municipio.nome} "
-                    f"({getattr(municipio, 'estado', 'SP')})"
-                )
+                    f"{municipio.nome}/{municipio.estado}"
+                ),
+
+                # ==================================================
+                # CAMPOS PREENCHIDOS PELA DASHBOARDFACADE
+                # ==================================================
+
+                "fri": None,
+
+                "severity": None,
+
+                "confidence": None,
+
+                "color": None,
 
             })
 

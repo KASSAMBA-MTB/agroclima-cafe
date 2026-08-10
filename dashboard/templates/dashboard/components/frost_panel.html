@@ -1,0 +1,248 @@
+<div class="panel frost-panel">
+
+    <!-- ======================================================
+         CABEÇALHO
+    ======================================================= -->
+
+    <div class="panel-header">
+
+        <div class="panel-title">
+
+            <div class="panel-title-icon">
+                <i class="bi bi-snow2"></i>
+            </div>
+
+            <div>
+
+                <h3>
+                    Frost Risk Index (FRI)
+                </h3>
+
+                <p>
+                    Índice de risco de ocorrência de geadas.
+                </p>
+
+            </div>
+
+        </div>
+
+        <span class="frost-engine-label">
+            Inteligência AgroClima
+        </span>
+
+    </div>
+
+
+    <!-- ======================================================
+         CONTEÚDO PRINCIPAL
+    ======================================================= -->
+
+    <div class="frost-content">
+
+        <div class="frost-score">
+
+            <div class="frost-score-label">
+                Índice de risco
+            </div>
+
+            <div class="frost-score-value">
+                {{ frost.score|default:"--" }}
+            </div>
+
+            <div class="frost-score-scale">
+                Escala de 0 a 100
+            </div>
+
+        </div>
+
+
+        <div class="frost-status">
+
+            <span class="frost-status-label">
+                Nível de risco
+            </span>
+
+            {% if frost.severity == "critical" %}
+
+                <span class="frost-badge critical">
+
+                    <i class="bi bi-exclamation-octagon-fill"></i>
+
+                    CRÍTICO
+
+                </span>
+
+            {% elif frost.severity == "high" %}
+
+                <span class="frost-badge high">
+
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+
+                    ALTO
+
+                </span>
+
+            {% elif frost.severity == "medium" %}
+
+                <span class="frost-badge medium">
+
+                    <i class="bi bi-exclamation-circle-fill"></i>
+
+                    MODERADO
+
+                </span>
+
+            {% elif frost.severity == "low" %}
+
+                <span class="frost-badge low">
+
+                    <i class="bi bi-info-circle-fill"></i>
+
+                    BAIXO
+
+                </span>
+
+            {% else %}
+
+                <span class="frost-badge none">
+
+                    <i class="bi bi-check-circle-fill"></i>
+
+                    SEM RISCO
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="frost-confidence">
+
+            <div class="frost-confidence-header">
+
+                <span>
+                    Confiança da avaliação
+                </span>
+
+                <strong>
+                    {{ frost.confidence|default:"0" }}
+                </strong>
+
+            </div>
+
+            <div class="frost-progress">
+
+                <div
+                    class="frost-progress-bar"
+                    style="width: {% widthratio frost.confidence 1 100 %}%;">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         ESCALA VISUAL
+    ======================================================= -->
+
+    <div class="frost-risk-scale">
+
+        <div class="frost-scale-header">
+
+            <span>
+                Intensidade do risco
+            </span>
+
+            <span>
+                FRI {{ frost.score|default:"--" }}/100
+            </span>
+
+        </div>
+
+        <div class="frost-scale">
+
+            <span class="scale-none"></span>
+
+            <span class="scale-low"></span>
+
+            <span class="scale-medium"></span>
+
+            <span class="scale-high"></span>
+
+            <span class="scale-critical"></span>
+
+        </div>
+
+        <div class="frost-scale-labels">
+
+            <span>0</span>
+            <span>20</span>
+            <span>40</span>
+            <span>60</span>
+            <span>80</span>
+            <span>100</span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         FATORES
+    ======================================================= -->
+
+    {% if frost.factors %}
+
+        <div class="frost-factors">
+
+            <div class="frost-factors-header">
+
+                <i class="bi bi-diagram-3"></i>
+
+                <span>
+                    Fatores considerados
+                </span>
+
+            </div>
+
+            <div class="frost-factor-list">
+
+                {% for factor in frost.factors %}
+
+                    <span class="frost-factor">
+
+                        <i class="bi bi-check2"></i>
+
+                        {{ factor }}
+
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ======================================================
+         RODAPÉ
+    ======================================================= -->
+
+    <div class="frost-footer">
+
+        <i class="bi bi-cpu"></i>
+
+        <span>
+            Avaliação calculada automaticamente pelo mecanismo
+            especialista de risco de geadas.
+        </span>
+
+    </div>
+
+</div>

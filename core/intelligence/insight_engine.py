@@ -1,82 +1,142 @@
 """
-==========================================================
 AgroClima Café
 
 Insight Engine
 
-Transforma resultados do Rule Engine em
-insights apresentados ao usuário.
+Transforma resultados das regras em insights
+para exibição na Dashboard.
 
-==========================================================
+Curso...........: Bacharelado em Ciência de Dados
+Instituição.....: UNIVESP
+Projeto.........: AgroClima Café
+
+Versão..........: 3.7
 """
 
 from datetime import datetime
 
 
 class InsightEngine:
+    """
+    Responsável por converter resultados produzidos pelas
+    Rules em informações compreensíveis ao usuário.
+    """
 
-    """
-    Converte regras avaliadas em Insights.
-    """
+    ICONS = {
+        "none": "bi-check-circle-fill",
+        "low": "bi-info-circle-fill",
+        "medium": "bi-exclamation-circle-fill",
+        "high": "bi-exclamation-triangle-fill",
+        "critical": "bi-exclamation-octagon-fill",
+    }
+
+    COLORS = {
+        "none": "success",
+        "low": "info",
+        "medium": "primary",
+        "high": "warning",
+        "critical": "danger",
+    }
+
+    TITLES = {
+        "none": "Sem risco de geada",
+        "low": "Baixo risco de geada",
+        "medium": "Risco moderado de geada",
+        "high": "Alto risco de geada",
+        "critical": "Risco crítico de geada",
+    }
+
+    # ==========================================================
+    # GERAÇÃO DE INSIGHTS
+    # ==========================================================
 
     def generate(self, rule_results):
+        """
+        Converte os resultados das Rules em Insights.
+        """
 
         insights = []
 
         for result in rule_results:
+            severity = result.get(
+                "severity",
+                "none"
+            )
 
-            insights.append({
+            score = result.get(
+                "score",
+                0
+            )
 
-                "id": result["id"],
+            confidence = result.get(
+                "confidence",
+                0
+            )
 
-                "title": result["title"],
+            factors = result.get(
+                "factors",
+                []
+            )
 
-                "description": result["description"],
+            created_at = result.get(
+                "created_at",
+                datetime.now()
+            )
 
-                "recommendation": result["recommendation"],
+            insights.append(
+                {
+                    "id": result.get("id"),
 
-                "severity": result["severity"],
+                    "engine": result.get("engine"),
 
-                "score": result["score"],
+                    "title": self.TITLES.get(
+                        severity,
+                        "Situação climática"
+                    ),
 
-                "icon": self._icon(result["severity"]),
+                    "description": self._description(
+                        score,
+                        severity
+                    ),
 
-                "color": self._color(result["severity"]),
+                    "severity": severity,
 
-                "created_at": datetime.now()
+                    "score": score,
 
-            })
+                    "confidence": confidence,
+
+                    "icon": self.ICONS.get(
+                        severity,
+                        "bi-info-circle-fill"
+                    ),
+
+                    "color": self.COLORS.get(
+                        severity,
+                        "secondary"
+                    ),
+
+                    "factors": factors,
+
+                    "created_at": created_at,
+                }
+            )
 
         return insights
 
-    def _icon(self, severity):
+    # ==========================================================
+    # DESCRIÇÃO
+    # ==========================================================
 
-        icons = {
+    def _description(
+        self,
+        score,
+        severity
+    ):
+        """
+        Gera uma descrição padronizada do FRI.
+        """
 
-            "low": "bi-check-circle-fill",
-
-            "medium": "bi-info-circle-fill",
-
-            "high": "bi-exclamation-triangle-fill",
-
-            "critical": "bi-exclamation-octagon-fill"
-
-        }
-
-        return icons.get(severity, "bi-info-circle-fill")
-
-    def _color(self, severity):
-
-        colors = {
-
-            "low": "success",
-
-            "medium": "primary",
-
-            "high": "warning",
-
-            "critical": "danger"
-
-        }
-
-        return colors.get(severity, "secondary")
+        return (
+            f"Frost Risk Index (FRI): {score} pontos. "
+            f"Nível de risco: {severity.upper()}."
+        )

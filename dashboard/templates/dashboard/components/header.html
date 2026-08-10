@@ -1,73 +1,72 @@
-<header class="header">
+<div class="page-title">
 
-    <div class="header-left">
+    <h2>Dashboard</h2>
 
-        <div class="page-title">
+    <span>
+        Painel de Inteligência Climática da Mantiqueira Vulcânica
+    </span>
 
-            <h2>Dashboard</h2>
+</div>
 
-            <span>
-                Painel de Inteligência Climática da Mantiqueira Vulcânica
-            </span>
 
-        </div>
+<div class="header-info">
 
-    </div>
+    <i class="bi bi-calendar-event"></i>
 
-    <div class="header-right">
+    <div>
 
-        <div class="header-info">
+        <small>Data</small>
 
-            <i class="bi bi-calendar-event"></i>
-
-            <div>
-
-                <small>Data</small>
-
-                <strong>24 Junho 2026</strong>
-
-            </div>
-
-        </div>
-
-        <div class="header-info">
-
-            <i class="bi bi-clock-history"></i>
-
-            <div>
-
-                <small>Atualização</small>
-
-                <strong>08:45</strong>
-
-            </div>
-
-        </div>
-
-        <button class="update-button">
-
-            <i class="bi bi-arrow-repeat"></i>
-
-            Atualizar Dados
-
-        </button>
-
-        <div class="user-profile">
-
-            <img
-                src="https://ui-avatars.com/api/?name=Walter&background=4F3019&color=fff"
-                alt="Usuário">
-
-            <div>
-
-                <strong>Walter</strong>
-
-                <small>Administrador</small>
-
-            </div>
-
-        </div>
+        <strong>
+            {{ kpis.ultima_atualizacao|date:"d/m/Y" }}
+        </strong>
 
     </div>
 
-</header>
+</div>
+
+
+<div class="header-info">
+
+    <i class="bi bi-clock-history"></i>
+
+    <div>
+
+        <small>Atualização</small>
+
+        <strong>
+            {{ kpis.ultima_atualizacao|date:"H:i" }}
+        </strong>
+
+    </div>
+
+</div>
+
+
+<button
+    type="button"
+    class="update-button"
+    onclick="window.location.reload();">
+
+    <i class="bi bi-arrow-repeat"></i>
+
+    Atualizar Dados
+
+</button>
+
+
+<div class="user-profile">
+
+    <img
+        src="https://ui-avatars.com/api/?name=Walter&background=4F3019&color=fff"
+        alt="Usuário">
+
+    <div>
+
+        <strong>Walter</strong>
+
+        <small>Administrador</small>
+
+    </div>
+
+</div>

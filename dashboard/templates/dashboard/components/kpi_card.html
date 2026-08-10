@@ -1,44 +1,57 @@
+<!-- ==========================================================
+     KPI CARD
+=========================================================== -->
+
 <div class="kpi-card">
 
-    <!-- ==========================================================
+    <!-- ======================================================
          CABEÇALHO
-    =========================================================== -->
+    ======================================================= -->
 
     <div class="kpi-header">
 
-        <div class="kpi-icon {{ color }}">
+        <div class="kpi-icon {{ color|default:'secondary' }}">
 
-            <i class="bi {{ icon }}"></i>
+            <i class="bi {{ icon|default:'bi-bar-chart-fill' }}"></i>
 
         </div>
 
         {% if variation %}
 
-        <span class="kpi-variation">
+            <span class="kpi-variation">
 
-            {{ variation }}
+                {{ variation }}
 
-        </span>
+            </span>
 
         {% endif %}
 
     </div>
 
-    <!-- ==========================================================
+
+    <!-- ======================================================
          CONTEÚDO
-    =========================================================== -->
+    ======================================================= -->
 
     <div class="kpi-body">
 
         <span class="kpi-title">
 
-            {{ title }}
+            {{ title|default:'Indicador' }}
 
         </span>
 
         <h2 class="kpi-value">
 
-            {{ value }}
+            {% if value is not None %}
+
+                {{ value }}
+
+            {% else %}
+
+                --
+
+            {% endif %}
 
             {% if unit %}
 
@@ -54,19 +67,20 @@
 
         {% if description %}
 
-        <p class="kpi-description">
+            <p class="kpi-description">
 
-            {{ description }}
+                {{ description }}
 
-        </p>
+            </p>
 
         {% endif %}
 
     </div>
 
-    <!-- ==========================================================
+
+    <!-- ======================================================
          RODAPÉ
-    =========================================================== -->
+    ======================================================= -->
 
     <div class="kpi-footer">
 
@@ -78,7 +92,15 @@
 
                 Atualizado às
 
-                {{ ultima_atualizacao|date:"H:i" }}
+                {% if ultima_atualizacao %}
+
+                    {{ ultima_atualizacao|date:"H:i" }}
+
+                {% else %}
+
+                    --
+
+                {% endif %}
 
             </small>
 
@@ -86,11 +108,11 @@
 
         {% if trend %}
 
-        <div class="kpi-trend">
+            <div class="kpi-trend">
 
-            {{ trend }}
+                {{ trend }}
 
-        </div>
+            </div>
 
         {% endif %}
 

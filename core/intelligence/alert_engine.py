@@ -1,117 +1,134 @@
 """
-==========================================================
 AgroClima Café
 
 Alert Engine
 
-Responsável por transformar recomendações em
-alertas priorizados para o Dashboard.
+Responsável pela geração e priorização dos alertas
+utilizados na Dashboard.
 
-Autor:
-Walter Junio Pontes Teixeira
+Curso...........: Bacharelado em Ciência de Dados
+Instituição.....: UNIVESP
+Projeto.........: AgroClima Café
 
-==========================================================
+Versão..........: 3.7
 """
 
 from datetime import datetime
 
 
 class AlertEngine:
-
     """
-    Motor responsável pela geração dos alertas.
+    Converte recomendações em alertas estruturados.
     """
 
     PRIORITY = {
-
         "critical": 1,
-
         "high": 2,
-
         "medium": 3,
-
-        "low": 4
-
+        "low": 4,
+        "none": 5,
     }
 
+    ICONS = {
+        "critical": "bi-exclamation-octagon-fill",
+        "high": "bi-exclamation-triangle-fill",
+        "medium": "bi-exclamation-circle-fill",
+        "low": "bi-info-circle-fill",
+        "none": "bi-check-circle-fill",
+    }
+
+    COLORS = {
+        "critical": "danger",
+        "high": "warning",
+        "medium": "primary",
+        "low": "info",
+        "none": "success",
+    }
+
+    # ==========================================================
+    # GERAÇÃO DE ALERTAS
+    # ==========================================================
+
     def generate(self, recommendations):
+        """
+        Gera alertas ordenados por prioridade.
+        """
 
         alerts = []
 
         for recommendation in recommendations:
 
-            severity = recommendation["severity"]
+            severity = recommendation.get(
+                "severity",
+                "none"
+            )
 
-            alerts.append({
+            alerts.append(
+                {
+                    "id": recommendation.get(
+                        "id"
+                    ),
 
-                "id": recommendation["id"],
+                    "engine": recommendation.get(
+                        "engine"
+                    ),
 
-                "title": recommendation["title"],
+                    "title": recommendation.get(
+                        "title"
+                    ),
 
-                "severity": severity,
+                    "message": recommendation.get(
+                        "recommendation"
+                    ),
 
-                "priority": self.PRIORITY.get(severity, 99),
+                    "severity": severity,
 
-                "recommendations": recommendation["recommendation"],
+                    "priority": self.PRIORITY.get(
+                        severity,
+                        99
+                    ),
 
-                "icon": self._icon(severity),
+                    "score": recommendation.get(
+                        "score",
+                        0
+                    ),
 
-                "color": self._color(severity),
+                    "confidence": recommendation.get(
+                        "confidence",
+                        0
+                    ),
 
-                "created_at": datetime.now(),
+                    "icon": self.ICONS.get(
+                        severity,
+                        "bi-info-circle-fill"
+                    ),
 
-                "expires": False
+                    "color": self.COLORS.get(
+                        severity,
+                        "secondary"
+                    ),
 
-            })
+                    "factors": recommendation.get(
+                        "factors",
+                        []
+                    ),
+
+                    "active": severity != "none",
+
+                    "created_at": datetime.now(),
+                }
+            )
+
+        # ------------------------------------------------------
+        # Ordenação
+        # ------------------------------------------------------
 
         alerts.sort(
-
-            key=lambda alert: alert["priority"]
-
+            key=lambda alert: (
+                alert["priority"],
+                -alert["score"],
+            )
         )
 
         return alerts
-
-    def _icon(self, severity):
-
-        icons = {
-
-            "low": "bi-check-circle-fill",
-
-            "medium": "bi-info-circle-fill",
-
-            "high": "bi-exclamation-triangle-fill",
-
-            "critical": "bi-exclamation-octagon-fill"
-
-        }
-
-        return icons.get(
-
-            severity,
-
-            "bi-info-circle-fill"
-
-        )
-
-    def _color(self, severity):
-
-        colors = {
-
-            "low": "success",
-
-            "medium": "primary",
-
-            "high": "warning",
-
-            "critical": "danger"
-
-        }
-
-        return colors.get(
-
-            severity,
-
-            "secondary"
-
-        )
+    

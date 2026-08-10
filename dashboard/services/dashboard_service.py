@@ -1,5 +1,4 @@
 """
-===============================================================================
 UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
 
 Curso...........: Bacharelado em Ciência de Dados
@@ -13,79 +12,99 @@ Polo............: São João da Boa Vista - SP
 Ano.............: 2026
 
 Descrição.......:
-Serviço responsável por consolidar todos os dados do Dashboard Principal.
+Serviço responsável por consolidar todos os dados estruturados
+da Dashboard Principal.
 
-Versão..........: 2.1
-===============================================================================
+Versão..........: 3.1
 """
 
 from dashboard.services.kpi_service import KPIService
 from dashboard.services.chart_service import ChartService
 from dashboard.services.ranking_service import RankingService
-from dashboard.services.alert_service import AlertService
+from dashboard.services.events_service import EventsService
+from dashboard.services.map_service import MapService
 
 
 class DashboardService:
     """
-    Facade responsável por montar todo o contexto da Dashboard.
+    Consolida todos os dados estruturados utilizados pela
+    Dashboard.
+
+    Não executa regras de negócio inteligentes.
+    A camada de Inteligência é responsabilidade da
+    DashboardFacade.
     """
 
     def __init__(self):
-
         self.kpi_service = KPIService()
-
         self.chart_service = ChartService()
-
         self.ranking_service = RankingService()
+        self.events_service = EventsService()
+        self.map_service = MapService()
 
-        self.alert_service = AlertService()
-
-    # ======================================================================
+    # ==========================================================
     # DASHBOARD
-    # ======================================================================
+    # ==========================================================
 
     def get_dashboard(self):
+        """
+        Consolida os dados estruturados da Dashboard.
+        """
 
         context = {}
 
-        # ==========================================================
+        # ======================================================
         # KPIs
-        # ==========================================================
+        # ======================================================
 
         kpis = self.kpi_service.get_kpis()
 
-        # Compatibilidade com templates antigos
+        # Compatibilidade com templates legados
         context.update(kpis)
 
         # Dashboard V3
         context["kpis"] = kpis
 
-        # ==========================================================
-        # ALERTAS
-        # ==========================================================
-
-        context["alerts"] = self.alert_service.get_alerts(kpis)
-
-        # ==========================================================
+        # ======================================================
         # GRÁFICOS
-        # ==========================================================
+        # ======================================================
 
-        context["chart"] = self.chart_service.get_chart()
+        context["chart"] = (
+            self.chart_service.get_chart()
+        )
 
-        # ==========================================================
+        # ======================================================
         # RANKING
-        # ==========================================================
+        # ======================================================
 
-        context["ranking"] = self.ranking_service.get_ranking()
+        context["ranking"] = (
+            self.ranking_service.get_ranking()
+        )
 
-        # ==========================================================
-        # PRÓXIMOS MÓDULOS
-        # ==========================================================
+        # ======================================================
+        # EVENTOS
+        # ======================================================
 
-        context["eventos"] = []
+        context["eventos"] = (
+            self.events_service.get_events(kpis)
+        )
+
+        # ======================================================
+        # MAPA
+        # ======================================================
+
+        context["map_points"] = (
+            self.map_service.get_points()
+        )
+
+        # ======================================================
+        # CAMPOS PREENCHIDOS PELA DASHBOARDFACADE
+        # ======================================================
 
         context["insights"] = []
 
-        context["map_points"] = []
+        context["recommendations"] = []
+
+        context["alerts"] = []
 
         return context

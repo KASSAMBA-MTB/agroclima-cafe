@@ -1,80 +1,122 @@
 """
-==========================================================
 AgroClima Café
 
 Recommendation Engine
 
-Responsável por transformar Insights em
-ações recomendadas ao usuário.
+Responsável por transformar os Insights em
+recomendações agronômicas para apoio à decisão.
 
-==========================================================
+Curso...........: Bacharelado em Ciência de Dados
+Instituição.....: UNIVESP
+Projeto.........: AgroClima Café
+
+Versão..........: 3.7
 """
 
 
 class RecommendationEngine:
+    """
+    Gera recomendações a partir dos Insights.
+    """
 
-    """
-    Gera recomendações baseadas no Insight.
-    """
+    RECOMMENDATIONS = {
+        "none": {
+            "title": "Situação Normal",
+            "recommendation": (
+                "Não há necessidade de ações preventivas. "
+                "Manter o monitoramento climático."
+            ),
+        },
+
+        "low": {
+            "title": "Monitoramento Preventivo",
+            "recommendation": (
+                "Acompanhar a previsão meteorológica e observar "
+                "a evolução das condições climáticas."
+            ),
+        },
+
+        "medium": {
+            "title": "Atenção",
+            "recommendation": (
+                "Reforçar o monitoramento da lavoura e preparar "
+                "medidas preventivas caso haja agravamento."
+            ),
+        },
+
+        "high": {
+            "title": "Ação Preventiva",
+            "recommendation": (
+                "Adotar medidas de proteção contra geadas, "
+                "principalmente em áreas de maior altitude."
+            ),
+        },
+
+        "critical": {
+            "title": "Ação Imediata",
+            "recommendation": (
+                "Executar imediatamente as estratégias de mitigação "
+                "previstas para eventos severos de geada."
+            ),
+        },
+    }
+
+    # ==========================================================
+    # GERAÇÃO DE RECOMENDAÇÕES
+    # ==========================================================
 
     def generate(self, insights):
+        """
+        Gera recomendações baseadas na severidade dos Insights.
+        """
 
         recommendations = []
 
         for insight in insights:
 
-            recommendations.append({
+            severity = insight.get(
+                "severity",
+                "none"
+            )
 
-                "id": insight["id"],
+            template = self.RECOMMENDATIONS.get(
+                severity,
+                self.RECOMMENDATIONS["none"]
+            )
 
-                "title": insight["title"],
+            recommendations.append(
+                {
+                    "id": insight.get("id"),
 
-                "severity": insight["severity"],
+                    "engine": insight.get("engine"),
 
-                "recommendation": self._recommend(insight)
+                    "severity": severity,
 
-            })
+                    "score": insight.get(
+                        "score",
+                        0
+                    ),
+
+                    "confidence": insight.get(
+                        "confidence",
+                        0
+                    ),
+
+                    "title": template["title"],
+
+                    "recommendation": template[
+                        "recommendation"
+                    ],
+
+                    "icon": insight.get("icon"),
+
+                    "color": insight.get("color"),
+
+                    "factors": insight.get(
+                        "factors",
+                        []
+                    ),
+                }
+            )
 
         return recommendations
-
-    def _recommend(self, insight):
-
-        severity = insight["severity"]
-
-        title = insight["title"]
-
-        rules = {
-
-            "Risco Elevado de Geada": {
-
-                "low": [
-                    "Realizar monitoramento preventivo."
-                ],
-
-                "medium": [
-                    "Monitorar áreas de maior altitude.",
-                    "Acompanhar previsões meteorológicas."
-                ],
-
-                "high": [
-                    "Proteger mudas jovens.",
-                    "Inspecionar áreas suscetíveis.",
-                    "Preparar medidas emergenciais."
-                ],
-
-                "critical": [
-                    "Acionar protocolo de contingência.",
-                    "Executar plano de mitigação imediatamente."
-                ]
-
-            }
-
-        }
-
-        return rules.get(title, {}).get(
-
-            severity,
-
-            ["Nenhuma recomendação disponível."]
-
-        )

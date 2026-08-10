@@ -12,13 +12,14 @@
 
                 <i class="bi bi-trophy-fill"></i>
 
-                Ranking AgroClima
+                Ranking de Risco de Geadas
 
             </h2>
 
             <p>
 
-                Classificação dos municípios monitorados pelo Índice AgroClima (IAC).
+                Classificação dos municípios monitorados pelo
+                Frost Risk Index (FRI).
 
             </p>
 
@@ -50,96 +51,87 @@
 
         {% if ranking %}
 
-            {% for cidade in ranking %}
+            {% for municipio in ranking %}
 
-            <div class="ranking-item">
+                <div class="ranking-item">
 
-                <!-- POSIÇÃO -->
+                    <!-- POSIÇÃO -->
 
-                <div class="ranking-position">
+                    <div class="ranking-position">
 
-                    {% if cidade.posicao == 1 %}
-                        🥇
-                    {% elif cidade.posicao == 2 %}
-                        🥈
-                    {% elif cidade.posicao == 3 %}
-                        🥉
-                    {% else %}
-                        {{ cidade.posicao }}º
-                    {% endif %}
+                        {% if forloop.counter == 1 %}
+                            🥇
+                        {% elif forloop.counter == 2 %}
+                            🥈
+                        {% elif forloop.counter == 3 %}
+                            🥉
+                        {% else %}
+                            {{ forloop.counter }}º
+                        {% endif %}
 
-                </div>
+                    </div>
 
-                <!-- MUNICÍPIO -->
+                    <!-- MUNICÍPIO -->
 
-                <div class="ranking-city">
+                    <div class="ranking-city">
 
-                    <strong>
+                        <strong>
 
-                        {{ cidade.municipio }}
+                            {{ municipio.nome }}
 
-                    </strong>
+                        </strong>
 
-                    <span>
+                        <span>
 
-                        {{ cidade.estado }}
+                            {{ municipio.uf }}
 
-                    </span>
+                        </span>
 
-                </div>
+                    </div>
 
-                <!-- ÍNDICE -->
+                    <!-- FRI -->
 
-                <div class="ranking-score">
+                    <div class="ranking-score">
 
-                    <h4>
+                        <h4>
 
-                        {{ cidade.indice }}
+                            {{ municipio.score }}
 
-                    </h4>
+                        </h4>
 
-                    <small>
+                        <small>
 
-                        IAC
+                            FRI
 
-                    </small>
+                        </small>
 
-                </div>
+                    </div>
 
-                <!-- CLASSIFICAÇÃO -->
+                    <!-- SEVERIDADE -->
 
-                <div class="ranking-classification">
+                    <div class="ranking-classification">
 
-                    <i class="bi {{ cidade.icone }}"
-                       style="color: {{ cidade.cor }};">
+                        <span class="badge bg-{{ municipio.color }}">
 
-                    </i>
+                            {{ municipio.severity|upper }}
 
-                    <span>
+                        </span>
 
-                        {{ cidade.classificacao }}
+                    </div>
 
-                    </span>
+                    <!-- CONFIANÇA -->
 
-                </div>
+                    <div class="ranking-trend">
 
-                <!-- TENDÊNCIA -->
+                        <small>
 
-                <div class="ranking-trend">
+                            {{ municipio.confidence }}
 
-                    {% if cidade.tendencia %}
+                        </small>
 
-                        {{ cidade.tendencia }}
-
-                    {% else %}
-
-                        —
-
-                    {% endif %}
+                    </div>
 
                 </div>
-
-            </div>
 
             {% endfor %}
 
@@ -169,9 +161,10 @@
 
         <small>
 
-            <i class="bi bi-info-circle"></i>
+            <i class="bi bi-cpu"></i>
 
-            Ranking calculado automaticamente a partir do Índice AgroClima (IAC).
+            Ranking calculado automaticamente pelo
+            Frost Risk Index (FRI).
 
         </small>
 
