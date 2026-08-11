@@ -1,125 +1,693 @@
 /* ==========================================================
+   AGROCLIMA CAFÉ
    PAINEL GEOESPACIAL
+   Identidade visual inspirada na Mantiqueira Vulcânica
 ========================================================== */
 
-#map-container{
 
-    width:100%;
+/* ==========================================================
+   PAINEL
+========================================================== */
 
-    height:560px;
+.map-panel {
 
-    border-radius:18px;
+    width: 100%;
 
-    overflow:hidden;
+    background: var(--surface-color, #ffffff);
 
-    border:1px solid var(--border-color);
+    border: 1px solid var(--border-color, #e5e0d9);
 
-    background:#F8FAF8;
+    border-radius: 18px;
 
-    position:relative;
+    overflow: hidden;
 
-}
-
-.map-placeholder{
-
-    width:100%;
-
-    height:100%;
-
-    display:flex;
-
-    flex-direction:column;
-
-    justify-content:center;
-
-    align-items:center;
-
-    text-align:center;
-
-    background:linear-gradient(
-        135deg,
-        #F5F8F2,
-        #EEF5EA
-    );
+    box-shadow: 0 8px 24px rgba(47, 37, 27, .06);
 
 }
 
-.map-placeholder i{
 
-    font-size:5rem;
+/* ==========================================================
+   CABEÇALHO
+========================================================== */
 
-    color:var(--coffee-primary);
+.map-panel-header {
 
-    opacity:.25;
+    padding: 22px 24px;
 
-    margin-bottom:20px;
+    display: flex;
 
-}
+    align-items: center;
 
-.map-placeholder h3{
+    justify-content: space-between;
 
-    color:var(--coffee-primary);
+    gap: 20px;
 
-    font-size:2rem;
-
-    margin-bottom:10px;
-
-    font-weight:700;
+    border-bottom: 1px solid #ebe6df;
 
 }
 
-.map-placeholder p{
 
-    color:var(--text-secondary);
+.map-panel-header h2 {
 
-    font-size:1rem;
+    margin: 0;
 
-}
+    display: flex;
 
-.btn-panel{
+    align-items: center;
 
-    border:none;
+    gap: 9px;
 
-    padding:10px 18px;
+    color: #2f3d25;
 
-    border-radius:10px;
+    font-family: "Poppins", sans-serif;
 
-    background:white;
+    font-size: 1.25rem;
 
-    border:1px solid var(--border-color);
-
-    cursor:pointer;
-
-    transition:.25s;
-
-    font-size:.90rem;
-
-    font-weight:500;
+    font-weight: 700;
 
 }
 
-.btn-panel:hover{
 
-    background:var(--coffee-primary);
+.map-panel-header h2 i {
 
-    color:white;
-
-}
-
-.leaflet-container{
-
-    width:100%;
-
-    height:100%;
+    color: #6d4b2f;
 
 }
 
-@media(max-width:992px){
 
-#map-container{
+.map-panel-header p {
 
-height:420px;
+    margin: 5px 0 0;
+
+    color: #756b61;
+
+    font-size: .85rem;
 
 }
+
+
+/* ==========================================================
+   BOTÕES DE CAMADAS
+========================================================== */
+
+.map-layer-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+}
+
+
+.map-layer-actions .btn-panel {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 13px;
+
+    border: 1px solid #dfd8cf;
+
+    border-radius: 9px;
+
+    background: #fff;
+
+    color: #4c453e;
+
+    font-size: .78rem;
+
+    font-weight: 600;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+
+}
+
+
+.map-layer-actions .btn-panel:hover {
+
+    transform: translateY(-1px);
+
+    border-color: #8b6a48;
+
+    color: #5b3c22;
+
+    background: #faf7f2;
+
+}
+
+
+.map-layer-actions .btn-panel.active {
+
+    background: #4f3019;
+
+    border-color: #4f3019;
+
+    color: #fff;
+
+}
+
+
+/* ==========================================================
+   KPIs
+========================================================== */
+
+.map-kpis {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 1px;
+
+    background: #ebe6df;
+
+    border-bottom: 1px solid #ebe6df;
+
+}
+
+
+.map-kpi {
+
+    padding: 15px 20px;
+
+    background: #fff;
+
+}
+
+
+.map-kpi .label {
+
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #82776c;
+
+    font-size: .72rem;
+
+    font-weight: 500;
+
+}
+
+
+.map-kpi strong {
+
+    color: #2e2a26;
+
+    font-size: 1.05rem;
+
+    font-weight: 700;
+
+}
+
+
+/* ==========================================================
+   CONTAINER DO MAPA
+========================================================== */
+
+#map-container {
+
+    width: 100%;
+
+    height: 560px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    background:
+        linear-gradient(
+            135deg,
+            #e8eee2,
+            #f4efe4
+        );
+
+}
+
+
+.leaflet-container {
+
+    width: 100%;
+
+    height: 100%;
+
+    font-family: "Inter", sans-serif;
+
+    background: #e8eee2;
+
+}
+
+
+/* ==========================================================
+   LOADING
+========================================================== */
+
+.map-loading {
+
+    position: absolute;
+
+    inset: 0;
+
+    z-index: 500;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(238, 244, 232, .96),
+            rgba(248, 243, 232, .96)
+        );
+
+    color: #4f3019;
+
+}
+
+
+.map-loading-icon {
+
+    width: 58px;
+
+    height: 58px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: rgba(79, 48, 25, .08);
+
+}
+
+
+.map-loading-icon i {
+
+    font-size: 1.8rem;
+
+    opacity: .65;
+
+}
+
+
+.map-loading strong {
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 1rem;
+
+}
+
+
+.map-loading span {
+
+    color: #756b61;
+
+    font-size: .78rem;
+
+}
+
+
+/* ==========================================================
+   MARCADOR AGROCLIMA
+========================================================== */
+
+.agroclima-marker {
+
+    width: 34px;
+
+    height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 3px solid #fff;
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, .28);
+
+    color: #fff;
+
+    font-size: .85rem;
+
+}
+
+
+.agroclima-marker.normal {
+
+    background: #2f8f4e;
+
+}
+
+
+.agroclima-marker.attention {
+
+    background: #e5a82f;
+
+}
+
+
+.agroclima-marker.alert {
+
+    background: #df6b2f;
+
+}
+
+
+.agroclima-marker.critical {
+
+    background: #c43d3d;
+
+}
+
+
+.agroclima-marker.none {
+
+    background: #2f8f4e;
+
+}
+
+
+/* ==========================================================
+   POPUP
+========================================================== */
+
+.agroclima-popup {
+
+    min-width: 220px;
+
+    font-family: "Inter", sans-serif;
+
+}
+
+
+.agroclima-popup-title {
+
+    margin-bottom: 3px;
+
+    color: #3b2b1e;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 1rem;
+
+    font-weight: 700;
+
+}
+
+
+.agroclima-popup-location {
+
+    margin-bottom: 12px;
+
+    color: #7b7066;
+
+    font-size: .74rem;
+
+}
+
+
+.agroclima-popup-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 8px;
+
+}
+
+
+.agroclima-popup-item {
+
+    padding: 7px;
+
+    border-radius: 7px;
+
+    background: #f7f4ef;
+
+}
+
+
+.agroclima-popup-label {
+
+    display: block;
+
+    color: #8a8076;
+
+    font-size: .65rem;
+
+}
+
+
+.agroclima-popup-value {
+
+    display: block;
+
+    margin-top: 2px;
+
+    color: #332a23;
+
+    font-size: .78rem;
+
+    font-weight: 700;
+
+}
+
+
+.agroclima-popup-risk {
+
+    display: inline-flex;
+
+    margin-top: 10px;
+
+    padding: 4px 8px;
+
+    border-radius: 999px;
+
+    font-size: .65rem;
+
+    font-weight: 700;
+
+}
+
+
+/* ==========================================================
+   CONTROLES LEAFLET
+========================================================== */
+
+.leaflet-control-zoom {
+
+    border: none !important;
+
+    box-shadow: 0 4px 12px rgba(47, 37, 27, .16) !important;
+
+}
+
+
+.leaflet-control-zoom a {
+
+    color: #4f3019 !important;
+
+    background: rgba(255, 255, 255, .94) !important;
+
+}
+
+
+/* ==========================================================
+   LEGENDA
+========================================================== */
+
+.map-legend {
+
+    padding: 15px 20px;
+
+    background: #fff;
+
+    border-top: 1px solid #ebe6df;
+
+}
+
+
+.map-legend-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    margin-bottom: 9px;
+
+    color: #4f3019;
+
+    font-size: .78rem;
+
+    font-weight: 700;
+
+}
+
+
+.legend-items {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+
+}
+
+
+.legend-item {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    color: #756b61;
+
+    font-size: .72rem;
+
+}
+
+
+.legend-dot {
+
+    width: 9px;
+
+    height: 9px;
+
+    display: inline-block;
+
+    border-radius: 50%;
+
+}
+
+
+.legend-dot.normal {
+
+    background: #2f8f4e;
+
+}
+
+
+.legend-dot.attention {
+
+    background: #e5a82f;
+
+}
+
+
+.legend-dot.alert {
+
+    background: #df6b2f;
+
+}
+
+
+.legend-dot.critical {
+
+    background: #c43d3d;
+
+}
+
+
+.legend-dot.station {
+
+    background: #4f3019;
+
+}
+
+
+/* ==========================================================
+   RESPONSIVIDADE
+========================================================== */
+
+@media (max-width: 1100px) {
+
+    .map-panel-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+}
+
+
+@media (max-width: 768px) {
+
+    .map-kpis {
+
+        grid-template-columns: repeat(2, 1fr);
+
+    }
+
+    #map-container {
+
+        height: 440px;
+
+    }
+
+    .map-layer-actions {
+
+        width: 100%;
+
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .map-kpis {
+
+        grid-template-columns: 1fr 1fr;
+
+    }
+
+    #map-container {
+
+        height: 380px;
+
+    }
+
+    .legend-items {
+
+        gap: 9px;
+
+    }
 
 }

@@ -1,51 +1,62 @@
-<section class="dashboard-panel">
+<section class="dashboard-panel map-panel">
 
     <!-- ==========================================================
          CABEÇALHO
     =========================================================== -->
 
-    <div class="panel-header">
+    <div class="panel-header map-panel-header">
 
         <div>
 
             <h2>
-
                 <i class="bi bi-globe-americas"></i>
-
                 Painel Geoespacial
-
             </h2>
 
             <p>
-
                 Monitoramento climático da Mantiqueira Vulcânica Paulista.
-
             </p>
 
         </div>
 
-        <div class="panel-actions">
+        <div class="panel-actions map-layer-actions">
 
-            <button class="btn-panel active">
+            <button
+                type="button"
+                class="btn-panel active"
+                data-map-layer="municipios">
 
+                <i class="bi bi-geo-alt"></i>
                 Municípios
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-map-layer="geadas">
 
+                <i class="bi bi-snow2"></i>
                 Geadas
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-map-layer="temperatura">
 
+                <i class="bi bi-thermometer-half"></i>
                 Temperatura
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-map-layer="precipitacao">
 
+                <i class="bi bi-cloud-rain"></i>
                 Precipitação
 
             </button>
@@ -54,8 +65,9 @@
 
     </div>
 
+
     <!-- ==========================================================
-         KPIs DO MAPA
+         INDICADORES DO MAPA
     =========================================================== -->
 
     <div class="map-kpis">
@@ -63,102 +75,97 @@
         <div class="map-kpi">
 
             <span class="label">
-
                 Municípios
-
             </span>
 
             <strong>
-
-                22
-
+                {{ map_points|length }}
             </strong>
 
         </div>
 
+
         <div class="map-kpi">
 
             <span class="label">
-
                 Alertas
-
             </span>
 
             <strong class="text-danger">
-
-                3
-
+                {{ alerts|length }}
             </strong>
 
         </div>
 
+
         <div class="map-kpi">
 
             <span class="label">
-
                 Temperatura Média
-
             </span>
 
             <strong>
 
-                18°C
+                {% if kpis.temperatura_media is not None %}
+                    {{ kpis.temperatura_media }}°C
+                {% else %}
+                    --
+                {% endif %}
 
             </strong>
 
         </div>
 
+
         <div class="map-kpi">
 
             <span class="label">
-
                 Chuva (24h)
-
             </span>
 
             <strong>
 
-                21 mm
+                {% if kpis.precipitacao is not None %}
+                    {{ kpis.precipitacao }} mm
+                {% else %}
+                    --
+                {% endif %}
 
             </strong>
 
         </div>
 
     </div>
+
 
     <!-- ==========================================================
          MAPA
     =========================================================== -->
 
-    <div id="map-container">
+    <div
+        id="map-container"
+        class="agroclima-map">
 
-        <div class="map-placeholder">
+        <div class="map-loading">
 
-            <i class="bi bi-globe-americas"></i>
+            <div class="map-loading-icon">
 
-            <h3>
+                <i class="bi bi-globe-americas"></i>
 
-                Mapa Inteligente AgroClima
+            </div>
 
-            </h3>
+            <strong>
+                Carregando Mapa AgroClima
+            </strong>
 
-            <p>
-
-                Leaflet • GeoJSON • OpenStreetMap • Open-Meteo
-
-            </p>
-
-            <small>
-
-                Nesta área será exibido o mapa interativo com camadas climáticas,
-                municípios monitorados, ocorrências de geadas, precipitação e
-                indicadores territoriais.
-
-            </small>
+            <span>
+                Preparando municípios monitorados...
+            </span>
 
         </div>
 
     </div>
+
 
     <!-- ==========================================================
          LEGENDA
@@ -166,48 +173,70 @@
 
     <div class="map-legend">
 
-        <h5>
+        <div class="map-legend-title">
+
+            <i class="bi bi-layers"></i>
 
             Legenda
 
-        </h5>
+        </div>
+
 
         <div class="legend-items">
 
-            <span>
+            <span class="legend-item">
 
-                <i class="bi bi-circle-fill text-success"></i>
+                <i class="legend-dot normal"></i>
 
                 Normal
 
             </span>
 
-            <span>
 
-                <i class="bi bi-circle-fill text-warning"></i>
+            <span class="legend-item">
+
+                <i class="legend-dot attention"></i>
 
                 Atenção
 
             </span>
 
-            <span>
 
-                <i class="bi bi-circle-fill text-danger"></i>
+            <span class="legend-item">
+
+                <i class="legend-dot alert"></i>
 
                 Alerta
 
             </span>
 
-            <span>
 
-                <i class="bi bi-circle-fill text-primary"></i>
+            <span class="legend-item">
 
-                Estação Meteorológica
+                <i class="legend-dot critical"></i>
+
+                Crítico
+
+            </span>
+
+
+            <span class="legend-item">
+
+                <i class="legend-dot station"></i>
+
+                Município monitorado
 
             </span>
 
         </div>
 
     </div>
+
+
+    <!-- ==========================================================
+         DADOS PARA O MAPA
+    =========================================================== -->
+
+    {{ map_points|json_script:"agroclima-map-points" }}
 
 </section>

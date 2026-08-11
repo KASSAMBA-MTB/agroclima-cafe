@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-    Dashboard Inteligente | AgroClima Café
+Dashboard Inteligente | AgroClima Café
 {% endblock %}
 
 
@@ -13,378 +13,357 @@
 {% block content %}
 
 <!-- ==========================================================
-     CABEÇALHO DA DASHBOARD
+     TÍTULO DA DASHBOARD
 =========================================================== -->
 
-<section class="dashboard-section">
+<div class="section-title">
 
-    <div class="section-title">
+    <div>
 
-        <div>
+        <h2>
+            Dashboard Inteligente AgroClima Café
+        </h2>
 
-            <h2>
-                Dashboard Inteligente AgroClima Café
-            </h2>
-
-            <p>
-                Sistema Inteligente de Apoio à Decisão para
-                Monitoramento Climático e Risco de Geadas.
-            </p>
-
-        </div>
+        <p>
+            Sistema Inteligente de Apoio à Decisão para
+            Monitoramento Climático e Risco de Geadas.
+        </p>
 
     </div>
 
-</section>
+</div>
 
 
 <!-- ==========================================================
      KPIs
 =========================================================== -->
 
-<section class="dashboard-section">
-
-    <div class="kpi-grid">
+<div class="kpi-grid">
 
 
-        <!-- ==================================================
-             TEMPERATURA
-        =================================================== -->
+    <!-- ======================================================
+         TEMPERATURA
+    ======================================================= -->
 
-        <div class="kpi-card">
+    <div class="kpi-card">
 
-            <div class="kpi-header">
+        <div class="kpi-header">
 
-                <div class="kpi-icon danger">
+            <div class="kpi-icon danger">
 
-                    <i class="bi bi-thermometer-half"></i>
-
-                </div>
-
-            </div>
-
-
-            <div class="kpi-body">
-
-                <span class="kpi-title">
-                    Temperatura Média
-                </span>
-
-                <h2 class="kpi-value">
-
-                    {% if kpis.temperatura_media is not None %}
-
-                        {{ kpis.temperatura_media }}
-
-                    {% else %}
-
-                        --
-
-                    {% endif %}
-
-                    <small class="kpi-unit">
-                        °C
-                    </small>
-
-                </h2>
-
-                <p class="kpi-description">
-                    Temperatura atual observada
-                </p>
-
-            </div>
-
-
-            <div class="kpi-footer">
-
-                <div class="kpi-update">
-
-                    <i class="bi bi-arrow-repeat"></i>
-
-                    <small>
-
-                        Atualizado às
-                        {{ kpis.ultima_atualizacao|date:"H:i" }}
-
-                    </small>
-
-                </div>
+                <i class="bi bi-thermometer-half"></i>
 
             </div>
 
         </div>
 
 
-        <!-- ==================================================
-             PRECIPITAÇÃO
-        =================================================== -->
+        <div class="kpi-body">
 
-        <div class="kpi-card">
+            <span class="kpi-title">
+                Temperatura Média
+            </span>
 
-            <div class="kpi-header">
+            <h2 class="kpi-value">
 
-                <div class="kpi-icon primary">
+                {% if kpis.temperatura_media is not None %}
 
-                    <i class="bi bi-cloud-rain"></i>
+                    {{ kpis.temperatura_media }}
 
-                </div>
+                {% else %}
 
-            </div>
+                    --
 
+                {% endif %}
 
-            <div class="kpi-body">
+                <small class="kpi-unit">
+                    °C
+                </small>
 
-                <span class="kpi-title">
-                    Precipitação
-                </span>
+            </h2>
 
-                <h2 class="kpi-value">
-
-                    {% if kpis.precipitacao is not None %}
-
-                        {{ kpis.precipitacao }}
-
-                    {% else %}
-
-                        --
-
-                    {% endif %}
-
-                    <small class="kpi-unit">
-                        mm
-                    </small>
-
-                </h2>
-
-                <p class="kpi-description">
-                    Precipitação observada
-                </p>
-
-            </div>
-
-
-            <div class="kpi-footer">
-
-                <div class="kpi-update">
-
-                    <i class="bi bi-arrow-repeat"></i>
-
-                    <small>
-
-                        Atualizado às
-                        {{ kpis.ultima_atualizacao|date:"H:i" }}
-
-                    </small>
-
-                </div>
-
-            </div>
+            <p class="kpi-description">
+                Temperatura atual observada
+            </p>
 
         </div>
 
 
-        <!-- ==================================================
-             GEADAS
-        =================================================== -->
+        <div class="kpi-footer">
 
-        <div class="kpi-card">
+            <div class="kpi-update">
 
-            <div class="kpi-header">
+                <i class="bi bi-arrow-repeat"></i>
 
-                <div class="kpi-icon info">
-
-                    <i class="bi bi-snow"></i>
-
-                </div>
-
-            </div>
-
-
-            <div class="kpi-body">
-
-                <span class="kpi-title">
-                    Ocorrências de Geada
-                </span>
-
-                <h2 class="kpi-value">
-
-                    {{ kpis.geadas }}
-
-                </h2>
-
-                <p class="kpi-description">
-                    Ocorrências registradas
-                </p>
-
-            </div>
-
-
-            <div class="kpi-footer">
-
-                <div class="kpi-update">
-
-                    <i class="bi bi-arrow-repeat"></i>
-
-                    <small>
-
-                        Atualizado às
-                        {{ kpis.ultima_atualizacao|date:"H:i" }}
-
-                    </small>
-
-                </div>
+                <small>
+                    Atualizado às
+                    {{ kpis.ultima_atualizacao|date:"H:i" }}
+                </small>
 
             </div>
 
         </div>
-
-
-        <!-- ==================================================
-             MUNICÍPIOS
-        =================================================== -->
-
-        <div class="kpi-card">
-
-            <div class="kpi-header">
-
-                <div class="kpi-icon success">
-
-                    <i class="bi bi-geo-alt"></i>
-
-                </div>
-
-            </div>
-
-
-            <div class="kpi-body">
-
-                <span class="kpi-title">
-                    Municípios Monitorados
-                </span>
-
-                <h2 class="kpi-value">
-
-                    {{ kpis.municipios }}
-
-                </h2>
-
-                <p class="kpi-description">
-                    Municípios acompanhados
-                </p>
-
-            </div>
-
-
-            <div class="kpi-footer">
-
-                <div class="kpi-update">
-
-                    <i class="bi bi-arrow-repeat"></i>
-
-                    <small>
-
-                        Atualizado às
-                        {{ kpis.ultima_atualizacao|date:"H:i" }}
-
-                    </small>
-
-                </div>
-
-            </div>
-
-        </div>
-
 
     </div>
 
-</section>
+
+    <!-- ======================================================
+         PRECIPITAÇÃO
+    ======================================================= -->
+
+    <div class="kpi-card">
+
+        <div class="kpi-header">
+
+            <div class="kpi-icon primary">
+
+                <i class="bi bi-cloud-rain"></i>
+
+            </div>
+
+        </div>
+
+
+        <div class="kpi-body">
+
+            <span class="kpi-title">
+                Precipitação
+            </span>
+
+            <h2 class="kpi-value">
+
+                {% if kpis.precipitacao is not None %}
+
+                    {{ kpis.precipitacao }}
+
+                {% else %}
+
+                    --
+
+                {% endif %}
+
+                <small class="kpi-unit">
+                    mm
+                </small>
+
+            </h2>
+
+            <p class="kpi-description">
+                Precipitação observada
+            </p>
+
+        </div>
+
+
+        <div class="kpi-footer">
+
+            <div class="kpi-update">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                <small>
+                    Atualizado às
+                    {{ kpis.ultima_atualizacao|date:"H:i" }}
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         GEADAS
+    ======================================================= -->
+
+    <div class="kpi-card">
+
+        <div class="kpi-header">
+
+            <div class="kpi-icon info">
+
+                <i class="bi bi-snow"></i>
+
+            </div>
+
+        </div>
+
+
+        <div class="kpi-body">
+
+            <span class="kpi-title">
+                Ocorrências de Geada
+            </span>
+
+            <h2 class="kpi-value">
+
+                {{ kpis.geadas }}
+
+            </h2>
+
+            <p class="kpi-description">
+                Ocorrências registradas
+            </p>
+
+        </div>
+
+
+        <div class="kpi-footer">
+
+            <div class="kpi-update">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                <small>
+                    Atualizado às
+                    {{ kpis.ultima_atualizacao|date:"H:i" }}
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================================
+         MUNICÍPIOS
+    ======================================================= -->
+
+    <div class="kpi-card">
+
+        <div class="kpi-header">
+
+            <div class="kpi-icon success">
+
+                <i class="bi bi-geo-alt"></i>
+
+            </div>
+
+        </div>
+
+
+        <div class="kpi-body">
+
+            <span class="kpi-title">
+                Municípios Monitorados
+            </span>
+
+            <h2 class="kpi-value">
+
+                {{ kpis.municipios }}
+
+            </h2>
+
+            <p class="kpi-description">
+                Municípios acompanhados
+            </p>
+
+        </div>
+
+
+        <div class="kpi-footer">
+
+            <div class="kpi-update">
+
+                <i class="bi bi-arrow-repeat"></i>
+
+                <small>
+                    Atualizado às
+                    {{ kpis.ultima_atualizacao|date:"H:i" }}
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
 
 
 <!-- ==========================================================
      FROST RISK INDEX
 =========================================================== -->
 
-<section class="dashboard-section">
-
-    {% include "dashboard/components/frost_panel.html" %}
-
-</section>
+{% include "dashboard/components/frost_panel.html" %}
 
 
 <!-- ==========================================================
-     MAPA + INSIGHTS
+     PAINEL GEOESPACIAL + INSIGHTS
 =========================================================== -->
 
-<section class="dashboard-main-grid">
+<div class="geo-column">
+
+    {% include "dashboard/components/map_panel.html" %}
+
+</div>
 
 
-    <div class="geo-column">
+<div class="insights-column">
 
-        {% include "dashboard/components/map_panel.html" %}
+    {% include "dashboard/components/insights_panel.html" %}
 
-    </div>
-
-
-    <div class="insights-column">
-
-        {% include "dashboard/components/insights_panel.html" %}
-
-    </div>
-
-
-</section>
+</div>
 
 
 <!-- ==========================================================
-     GRÁFICOS + RANKING
+     GRÁFICO
 =========================================================== -->
 
-<section class="dashboard-two-columns">
+<div class="panel">
 
+    {% include "dashboard/components/chart_panel.html" %}
 
-    <div class="panel">
-
-        {% include "dashboard/components/chart_panel.html" %}
-
-    </div>
-
-
-    <div class="panel">
-
-        {% include "dashboard/components/ranking_panel.html" %}
-
-    </div>
-
-
-</section>
+</div>
 
 
 <!-- ==========================================================
-     EVENTOS + ALERTAS
+     RANKING
 =========================================================== -->
 
-<section class="dashboard-two-columns">
+<div class="panel">
+
+    {% include "dashboard/components/ranking_panel.html" %}
+
+</div>
 
 
-    <div class="panel">
+<!-- ==========================================================
+     EVENTOS
+=========================================================== -->
 
-        {% include "dashboard/components/events_panel.html" %}
+<div class="panel">
 
-    </div>
+    {% include "dashboard/components/events_panel.html" %}
 
-
-    <div class="panel">
-
-        {% include "dashboard/components/alerts_panel.html" %}
-
-    </div>
+</div>
 
 
-</section>
+<!-- ==========================================================
+     ALERTAS
+=========================================================== -->
+
+<div class="panel">
+
+    {% include "dashboard/components/alerts_panel.html" %}
+
+</div>
 
 
 {% endblock %}
 
 
+<!-- ==========================================================
+     JAVASCRIPT ESPECÍFICO DA DASHBOARD V3
+=========================================================== -->
+
 {% block extra_js %}
+
+<script
+    src="{% static 'dashboard/js/dashboard_v3.js' %}">
+</script>
+
 {% endblock %}
