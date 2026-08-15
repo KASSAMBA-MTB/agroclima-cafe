@@ -1,234 +1,1555 @@
 /* ==========================================================
    AGROCLIMA CAFÉ
    DASHBOARD V3
-   ========================================================== */
+   SISTEMA VISUAL PRINCIPAL
+========================================================== */
 
-:root{
 
-    --primary:#1F6F43;
-    --primary-dark:#174F31;
+/* ==========================================================
+   1. VARIÁVEIS VISUAIS
+========================================================== */
 
-    --secondary:#8B5E34;
+:root {
 
-    --background:#F4F7F5;
+    --primary: #1F6F43;
+    --primary-dark: #174F31;
+    --primary-light: #EAF4EE;
 
-    --card:#FFFFFF;
+    --secondary: #8B5E34;
+    --secondary-light: #F4EADF;
 
-    --border:#E2E8E5;
+    --background: #F5F6F3;
+    --card: #FFFFFF;
 
-    --text:#263238;
+    --border: #E1E5E1;
+    --border-light: #ECEFEC;
 
-    --text-light:#6B7280;
+    --text: #263238;
+    --text-dark: #18221D;
+    --text-light: #6B7280;
 
-    --shadow:0 8px 24px rgba(0,0,0,.08);
+    --success: #2E8B57;
+    --warning: #D99000;
+    --danger: #C83C3C;
+    --info: #2477B8;
 
-    --radius:16px;
+    --shadow-sm:
+        0 2px 8px rgba(27, 39, 32, .05);
+
+    --shadow:
+        0 6px 20px rgba(27, 39, 32, .07);
+
+    --shadow-lg:
+        0 12px 30px rgba(27, 39, 32, .10);
+
+    --radius-sm: 10px;
+    --radius: 16px;
+    --radius-lg: 20px;
+
+    --content-max-width: 1560px;
 
 }
 
 
 /* ==========================================================
-   CONTAINER
-   ========================================================== */
+   2. BASE DO DASHBOARD
+========================================================== */
 
-.dashboard-v3-container{
+.page-content {
 
-    max-width:1600px;
+    width: 100%;
 
-    margin:auto;
+    max-width: var(--content-max-width);
 
-    padding:32px;
+    margin: 0 auto;
 
-}
+    padding: 28px 32px 40px;
 
-
-/* ==========================================================
-   SECTIONS
-   ========================================================== */
-
-.dashboard-section{
-
-    margin-bottom:28px;
-
-}
-
-
-.section-title{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:18px;
-
-}
-
-
-.section-title h2{
-
-    font-size:30px;
-
-    font-weight:700;
-
-    color:var(--text);
-
-}
-
-
-.section-title p{
-
-    color:var(--text-light);
-
-    margin-top:4px;
+    box-sizing: border-box;
 
 }
 
 
 /* ==========================================================
-   KPI GRID
-   ========================================================== */
+   3. COMPOSIÇÃO GLOBAL DA PÁGINA
+========================================================== */
 
-.kpi-grid{
+.page-content {
 
-    display:grid;
+    display: grid;
 
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    grid-template-columns:
+        repeat(12, minmax(0, 1fr));
 
-    gap:20px;
+    column-gap: 24px;
 
-}
+    row-gap: 24px;
 
-
-/* ==========================================================
-   GRID PRINCIPAL
-   ========================================================== */
-
-.dashboard-main-grid{
-
-    display:grid;
-
-    grid-template-columns:2fr 1fr;
-
-    gap:24px;
-
-    margin-bottom:28px;
-
-}
-
-
-.dashboard-two-columns{
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr;
-
-    gap:24px;
-
-    margin-bottom:28px;
+    align-items: start;
 
 }
 
 
 /* ==========================================================
-   PAINÉIS
-   ========================================================== */
+   4. CABEÇALHO / VISÃO GERAL
+========================================================== */
 
+.page-content > *:nth-child(1) {
+
+    grid-column: 1 / -1;
+
+}
+
+
+/* ==========================================================
+   5. KPIs
+========================================================== */
+
+.page-content > .kpi-grid,
+.page-content > .dashboard-kpis {
+
+    grid-column: 1 / -1;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 18px;
+
+    width: 100%;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+/* ==========================================================
+   6. FROST RISK INDEX
+========================================================== */
+
+.page-content > *:nth-child(3) {
+
+    grid-column: 1 / 9;
+
+    width: 100%;
+
+}
+
+
+/* ==========================================================
+   7. INSIGHTS
+========================================================== */
+
+.page-content > .insights-column {
+
+    grid-column: 9 / -1;
+
+    width: 100%;
+
+}
+
+
+/* ==========================================================
+   8. MAPA
+========================================================== */
+
+.page-content > .geo-column {
+
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+}
+
+
+/* ==========================================================
+   9. PAINÉIS RESTANTES
+========================================================== */
+
+.page-content > .panel:nth-child(6) {
+
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+}
+
+
+.page-content > .panel:nth-child(7) {
+
+    grid-column: 1 / 7;
+
+    width: 100%;
+
+}
+
+
+.page-content > .panel:nth-child(8) {
+
+    grid-column: 7 / -1;
+
+    width: 100%;
+
+}
+
+
+.page-content > .panel:nth-child(9) {
+
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+}
+
+
+/* ==========================================================
+   10. SEÇÃO DE TÍTULO
+========================================================== */
+
+.section-title {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-end;
+
+    gap: 20px;
+
+    width: 100%;
+
+    margin: 0;
+
+    padding: 2px 2px 0;
+
+}
+
+
+.section-title h2 {
+
+    margin: 0;
+
+    color: var(--text-dark);
+
+    font-size: 28px;
+
+    line-height: 1.2;
+
+    font-weight: 700;
+
+    letter-spacing: -.4px;
+
+}
+
+
+.section-title p {
+
+    margin: 7px 0 0;
+
+    color: var(--text-light);
+
+    font-size: 15px;
+
+    line-height: 1.5;
+
+}
+
+
+/* ==========================================================
+   11. PAINÉIS
+========================================================== */
+
+.dashboard-panel,
+.panel,
 .geo-column,
+.insights-column {
 
-.insights-column{
+    box-sizing: border-box;
 
-    background:var(--card);
+}
 
-    border-radius:var(--radius);
 
-    box-shadow:var(--shadow);
+.dashboard-panel {
 
-    border:1px solid var(--border);
+    background: var(--card);
 
-    padding:24px;
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+    padding: 24px;
+
+    width: 100%;
+
+    min-width: 0;
+
+    transition:
+        box-shadow .25s ease,
+        transform .25s ease;
+
+}
+
+
+.dashboard-panel:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: var(--shadow-lg);
+
+}
+
+
+.panel {
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
+
+    padding: 24px;
+
+    width: 100%;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+.panel:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow: var(--shadow-lg);
+
+    transition:
+        box-shadow .25s ease,
+        transform .25s ease;
 
 }
 
 
 /* ==========================================================
-   CARDS
-   ========================================================== */
+   12. PAINEL GEOESPACIAL
+========================================================== */
 
-.card,
+.geo-column {
 
-.panel{
+    background: var(--card);
 
-    background:var(--card);
+    border: 1px solid var(--border);
 
-    border-radius:var(--radius);
+    border-radius: var(--radius);
 
-    box-shadow:var(--shadow);
+    box-shadow: var(--shadow);
 
-    border:1px solid var(--border);
+    padding: 24px;
+
+    min-width: 0;
+
+}
+
+
+.geo-column > .dashboard-panel {
+
+    border: none;
+
+    box-shadow: none;
+
+    padding: 0;
 
 }
 
 
 /* ==========================================================
-   HOVER
-   ========================================================== */
+   13. INSIGHTS
+========================================================== */
 
-.card:hover,
+.insights-column {
 
-.panel:hover,
+    background: var(--card);
 
-.geo-column:hover,
+    border: 1px solid var(--border);
 
-.insights-column:hover{
+    border-radius: var(--radius);
 
-    transform:translateY(-3px);
+    box-shadow: var(--shadow);
 
-    transition:.25s;
+    padding: 24px;
+
+    min-width: 0;
+
+    height: 100%;
+
+    box-sizing: border-box;
+
+}
+
+
+.insights-column > .dashboard-panel {
+
+    border: none;
+
+    box-shadow: none;
+
+    padding: 0;
 
 }
 
 
 /* ==========================================================
-   RESPONSIVO
-   ========================================================== */
+   14. CABEÇALHOS DOS PAINÉIS
+========================================================== */
 
-@media(max-width:1200px){
+.panel-header {
 
-.dashboard-main-grid{
+    display: flex;
 
-    grid-template-columns:1fr;
+    justify-content: space-between;
 
-}
+    align-items: flex-start;
 
-.dashboard-two-columns{
+    gap: 20px;
 
-    grid-template-columns:1fr;
+    margin-bottom: 20px;
 
-}
+    padding-bottom: 16px;
 
-}
-
-
-@media(max-width:768px){
-
-.dashboard-v3-container{
-
-    padding:18px;
+    border-bottom: 1px solid var(--border-light);
 
 }
 
-.kpi-grid{
 
-    grid-template-columns:1fr;
+.panel-header h2 {
+
+    margin: 0;
+
+    color: var(--text-dark);
+
+    font-size: 21px;
+
+    line-height: 1.25;
+
+    font-weight: 700;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
 
 }
 
-.section-title h2{
 
-    font-size:24px;
+.panel-header p {
+
+    margin: 6px 0 0;
+
+    color: var(--text-light);
+
+    font-size: 14px;
+
+    line-height: 1.45;
 
 }
 
+
+/* ==========================================================
+   15. AÇÕES DOS PAINÉIS
+========================================================== */
+
+.panel-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
 }
+
+
+.btn-panel {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    min-height: 38px;
+
+    padding: 8px 14px;
+
+    border-radius: 9px;
+
+    border: 1px solid var(--border);
+
+    background: #FFFFFF;
+
+    color: var(--text);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+
+}
+
+
+.btn-panel:hover {
+
+    background: var(--primary);
+
+    border-color: var(--primary);
+
+    color: #FFFFFF;
+
+}
+
+
+.btn-panel.active {
+
+    background: var(--primary);
+
+    border-color: var(--primary);
+
+    color: #FFFFFF;
+
+}
+
+
+/* ==========================================================
+   16. KPI GRID
+========================================================== */
+
+/*
+   IMPORTANTE:
+   O HTML atual utiliza .dashboard-kpis.
+   Versões anteriores utilizavam .kpi-grid.
+
+   As duas classes são suportadas para manter
+   compatibilidade com a arquitetura existente.
+*/
+
+.kpi-grid,
+.dashboard-kpis {
+
+    display: grid !important;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr)) !important;
+
+    grid-template-rows: auto;
+
+    gap: 18px;
+
+    width: 100%;
+
+    min-width: 0;
+
+    margin: 0;
+
+    padding: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+/* ==========================================================
+   17. KPI CARD
+========================================================== */
+
+.kpi-grid > .kpi-card,
+.dashboard-kpis > .kpi-card {
+
+    position: relative;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+
+    max-width: none !important;
+
+    min-height: 178px;
+
+    margin: 0 !important;
+
+    padding: 20px;
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow-sm);
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    grid-column: auto !important;
+
+    grid-row: auto !important;
+
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+
+}
+
+
+.kpi-grid > .kpi-card:hover,
+.dashboard-kpis > .kpi-card:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow: var(--shadow);
+
+}
+
+
+/* ==========================================================
+   18. KPI HEADER
+========================================================== */
+
+.kpi-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    min-height: 46px;
+
+    margin-bottom: 12px;
+
+}
+
+
+/* ==========================================================
+   19. KPI ICON
+========================================================== */
+
+.kpi-icon {
+
+    width: 46px;
+
+    height: 46px;
+
+    flex: 0 0 46px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 13px;
+
+    font-size: 20px;
+
+}
+
+
+.kpi-icon.danger {
+
+    background: #FFF0E5;
+
+    color: #C45A12;
+
+}
+
+
+.kpi-icon.primary {
+
+    background: #EAF4FF;
+
+    color: #2678B8;
+
+}
+
+
+.kpi-icon.info {
+
+    background: #EAF3FF;
+
+    color: #2774C7;
+
+}
+
+
+.kpi-icon.success {
+
+    background: #E9F6ED;
+
+    color: var(--primary);
+
+}
+
+
+/* ==========================================================
+   20. KPI BODY
+========================================================== */
+
+.kpi-body {
+
+    min-width: 0;
+
+}
+
+
+.kpi-title {
+
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: var(--text-light);
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+
+.kpi-value,
+.kpi-body h2 {
+
+    margin: 0;
+
+    color: var(--text-dark);
+
+    font-size: 30px;
+
+    line-height: 1.15;
+
+    font-weight: 700;
+
+    letter-spacing: -.5px;
+
+}
+
+
+.kpi-unit {
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    color: var(--text-light);
+
+    margin-left: 3px;
+
+}
+
+
+.kpi-description {
+
+    margin: 7px 0 0;
+
+    color: var(--text-light);
+
+    font-size: 12px;
+
+    line-height: 1.4;
+
+}
+
+
+/* ==========================================================
+   21. KPI FOOTER
+========================================================== */
+
+.kpi-footer {
+
+    margin-top: 15px;
+
+    padding-top: 11px;
+
+    border-top: 1px solid var(--border-light);
+
+}
+
+
+.kpi-update {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: var(--text-light);
+
+}
+
+
+.kpi-update i {
+
+    font-size: 13px;
+
+}
+
+
+.kpi-update small {
+
+    font-size: 11px;
+
+    color: var(--text-light);
+
+}
+
+
+/* ==========================================================
+   22. MAPA
+========================================================== */
+
+#map-container {
+
+    width: 100%;
+
+    height: 480px;
+
+    border-radius: 13px;
+
+    overflow: hidden;
+
+    border: 1px solid var(--border);
+
+}
+
+
+.agroclima-map {
+
+    width: 100%;
+
+    height: 480px;
+
+}
+
+
+/* ==========================================================
+   23. GRÁFICOS
+========================================================== */
+
+.chart-container {
+
+    width: 100%;
+
+    height: 340px;
+
+    position: relative;
+
+}
+
+
+.chart-summary {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+
+}
+
+
+.summary-item {
+
+    background: #F8FAF8;
+
+    padding: 13px 15px;
+
+    border-radius: 11px;
+
+    border: 1px solid var(--border-light);
+
+}
+
+
+.summary-label {
+
+    display: block;
+
+    color: var(--text-light);
+
+    font-size: 12px;
+
+    margin-bottom: 4px;
+
+}
+
+
+/* ==========================================================
+   24. INSIGHTS
+========================================================== */
+
+.insights-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+
+.insight {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    border-radius: 11px;
+
+}
+
+
+.insight i {
+
+    flex: 0 0 auto;
+
+    font-size: 20px;
+
+}
+
+
+.insight-content {
+
+    min-width: 0;
+
+}
+
+
+.insight-content strong {
+
+    display: block;
+
+    margin-bottom: 3px;
+
+}
+
+
+.insight.success {
+
+    background: #EAF7EE;
+
+}
+
+
+.insight.warning {
+
+    background: #FFF7E5;
+
+}
+
+
+.insight.info {
+
+    background: #EAF4FF;
+
+}
+
+
+.insight.primary {
+
+    background: #EEF6F1;
+
+}
+
+
+/* ==========================================================
+   25. RANKING
+========================================================== */
+
+.ranking-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
+}
+
+
+.ranking-item {
+
+    display: grid;
+
+    grid-template-columns:
+        44px minmax(0, 1fr) 70px 80px;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    border-radius: 10px;
+
+    border: 1px solid var(--border-light);
+
+    background: #FFFFFF;
+
+}
+
+
+.ranking-position {
+
+    font-weight: 700;
+
+    font-size: 15px;
+
+}
+
+
+.ranking-score {
+
+    text-align: center;
+
+    font-weight: 700;
+
+}
+
+
+.ranking-trend {
+
+    text-align: right;
+
+    font-weight: 600;
+
+}
+
+
+/* ==========================================================
+   26. ALERTAS
+========================================================== */
+
+.alerts-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+
+.alert-card {
+
+    display: grid;
+
+    grid-template-columns:
+        46px minmax(0, 1fr) auto;
+
+    gap: 14px;
+
+    align-items: center;
+
+    padding: 14px;
+
+    border-radius: 11px;
+
+    border-left: 4px solid transparent;
+
+}
+
+
+.alert-card.danger {
+
+    background: #FDECEC;
+
+    border-left-color: #D32F2F;
+
+}
+
+
+.alert-card.warning {
+
+    background: #FFF7E5;
+
+    border-left-color: #F59E0B;
+
+}
+
+
+.alert-card.info {
+
+    background: #EAF4FF;
+
+    border-left-color: #2563EB;
+
+}
+
+
+.alert-icon {
+
+    font-size: 23px;
+
+    text-align: center;
+
+}
+
+
+.alert-time {
+
+    color: var(--text-light);
+
+    font-size: .85rem;
+
+}
+
+
+/* ==========================================================
+   27. TIMELINE / EVENTOS
+========================================================== */
+
+.timeline {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+}
+
+
+.timeline-item {
+
+    display: grid;
+
+    grid-template-columns:
+        70px minmax(0, 1fr);
+
+    gap: 12px;
+
+    align-items: start;
+
+}
+
+
+.timeline-time {
+
+    font-weight: 700;
+
+    color: var(--primary);
+
+    font-size: 13px;
+
+}
+
+
+.timeline-content {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+
+.timeline-content i {
+
+    font-size: 17px;
+
+    margin-top: 2px;
+
+}
+
+
+/* ==========================================================
+   28. FOOTER DOS PAINÉIS
+========================================================== */
+
+.panel-footer {
+
+    margin-top: 16px;
+
+    padding-top: 13px;
+
+    border-top: 1px solid var(--border);
+
+    color: var(--text-light);
+
+    font-size: .82rem;
+
+}
+
+
+/* ==========================================================
+   29. CONTROLE DE ESPAÇAMENTO
+========================================================== */
+
+.page-content > * {
+
+    margin-top: 0 !important;
+
+    margin-bottom: 0 !important;
+
+}
+
+
+/* ==========================================================
+   30. EVITA ESTOURO HORIZONTAL
+========================================================== */
+
+.page-content,
+.page-content > *,
+.kpi-grid,
+.dashboard-kpis,
+.kpi-card,
+.panel,
+.dashboard-panel,
+.geo-column,
+.insights-column {
+
+    min-width: 0;
+
+}
+
+
+/* ==========================================================
+   31. TABLETS / NOTEBOOKS
+========================================================== */
+
+@media (max-width: 1400px) {
+
+    .page-content {
+
+        padding-left: 24px;
+
+        padding-right: 24px;
+
+    }
+
+
+    .kpi-grid,
+    .dashboard-kpis {
+
+        gap: 14px;
+
+    }
+
+
+    .kpi-card {
+
+        padding: 18px;
+
+    }
+
+}
+
+
+/* ==========================================================
+   32. RESPONSIVIDADE - 1200px
+========================================================== */
+
+@media (max-width: 1200px) {
+
+    .page-content > *:nth-child(3) {
+
+        grid-column: 1 / -1;
+
+    }
+
+
+    .page-content > .insights-column {
+
+        grid-column: 1 / -1;
+
+    }
+
+
+    .page-content > .panel:nth-child(7) {
+
+        grid-column: 1 / -1;
+
+    }
+
+
+    .page-content > .panel:nth-child(8) {
+
+        grid-column: 1 / -1;
+
+    }
+
+
+    .kpi-grid,
+    .dashboard-kpis {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+
+/* ==========================================================
+   33. RESPONSIVIDADE - 992px
+========================================================== */
+
+@media (max-width: 992px) {
+
+    .page-content {
+
+        padding: 22px 20px 32px;
+
+        row-gap: 20px;
+
+    }
+
+
+    .page-content > * {
+
+        grid-column: 1 / -1 !important;
+
+    }
+
+
+    .panel-header {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+    }
+
+
+    .panel-actions {
+
+        width: 100%;
+
+        justify-content: flex-start;
+
+    }
+
+
+    .btn-panel {
+
+        flex: 0 1 auto;
+
+    }
+
+
+    #map-container,
+    .agroclima-map {
+
+        height: 420px;
+
+    }
+
+}
+
+
+/* ==========================================================
+   34. RESPONSIVIDADE - 768px
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .page-content {
+
+        padding: 18px 14px 28px;
+
+        row-gap: 18px;
+
+    }
+
+
+    .kpi-grid,
+    .dashboard-kpis {
+
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+    }
+
+
+    .kpi-card {
+
+        min-height: 160px;
+
+    }
+
+
+    .section-title {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 8px;
+
+    }
+
+
+    .section-title h2 {
+
+        font-size: 24px;
+
+    }
+
+
+    .panel,
+    .dashboard-panel,
+    .geo-column,
+    .insights-column {
+
+        padding: 18px;
+
+    }
+
+
+    .chart-container {
+
+        height: 280px;
+
+    }
+
+
+    #map-container,
+    .agroclima-map {
+
+        height: 320px;
+
+    }
+
+
+    .chart-summary {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+
+    .ranking-item {
+
+        grid-template-columns:
+            40px minmax(0, 1fr) 65px;
+
+    }
+
+
+    .ranking-trend {
+
+        display: none;
+
+    }
+
+
+    .alert-card {
+
+        grid-template-columns:
+            42px minmax(0, 1fr);
+
+    }
+
+}
+
+
+/* ==========================================================
+   35. RESPONSIVIDADE - 520px
+========================================================== */
+
+@media (max-width: 520px) {
+
+    .page-content {
+
+        padding: 14px 10px 24px;
+
+    }
+
+
+    .chart-summary {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .panel-actions {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        width: 100%;
+
+    }
+
+
+    .btn-panel {
+
+        width: 100%;
+
+    }
+
+
+    .panel-header h2 {
+
+        font-size: 19px;
+
+    }
+
+
+    .kpi-value,
+    .kpi-body h2 {
+
+        font-size: 28px;
+
+    }
+
+}
+
+
+/* ==========================================================
+   FIM DO DASHBOARD V3
+========================================================== */

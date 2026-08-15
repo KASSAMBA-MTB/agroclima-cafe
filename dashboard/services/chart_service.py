@@ -12,12 +12,11 @@ Descrição.......:
 Serviço responsável pelo fornecimento dos dados utilizados pelos gráficos
 do Dashboard Principal.
 
-Versão..........: 2.0
+Versão..........: 2.2
 ===============================================================================
 """
 
 from clima.services.history_service import HistoryService
-from municipios.models import Municipio
 
 
 class ChartService:
@@ -34,36 +33,153 @@ class ChartService:
     # DADOS DO GRÁFICO
     # ==========================================================
 
-    def get_chart(self, days=7):
+    def get_chart(
+        self,
+        days=7,
+    ):
+        """
+        Mantém compatibilidade com chamadas existentes.
 
-        municipio = Municipio.objects.first()
-
-        if municipio is None:
-
-            return self._empty()
+        Retorna o período solicitado.
+        """
 
         data = self.history.chart_data(
 
-            municipio,
+            municipio=None,
 
-            days
+            days=days,
+
+        )
+
+        return self._format(
+            data
+        )
+
+    # ==========================================================
+    # PERÍODOS DO DASHBOARD
+    # ==========================================================
+
+    def get_chart_periods(self):
+        """
+        Prepara todas as séries utilizadas pelos controles
+        de período do gráfico.
+
+        Hoje:
+            somente o dia atual.
+
+        7 dias:
+            últimos 7 dias.
+
+        30 dias:
+            últimos 30 dias.
+
+        Histórico:
+            todo o histórico disponível no banco.
+        """
+
+        hoje = self.history.chart_data(
+
+            municipio=None,
+
+            days=1,
+
+        )
+
+        sete_dias = self.history.chart_data(
+
+            municipio=None,
+
+            days=7,
+
+        )
+
+        trinta_dias = self.history.chart_data(
+
+            municipio=None,
+
+            days=30,
+
+        )
+
+        historico = self.history.chart_data(
+
+            municipio=None,
+
+            days=None,
 
         )
 
         return {
 
-            "dias": data.get("dias", []),
+            "hoje": self._format(
+                hoje
+            ),
 
-            "temperatura": data.get("temperatura", []),
+            "7_dias": self._format(
+                sete_dias
+            ),
 
-            "precipitacao": data.get("precipitacao", []),
+            "30_dias": self._format(
+                trinta_dias
+            ),
 
-            "umidade": data.get("umidade", []),
+            "historico": self._format(
+                historico
+            ),
 
-            # Preparação para futuras versões
-            "vento": data.get("vento", []),
+        }
 
-            "indice_agroclima": data.get("indice_agroclima", [])
+    # ==========================================================
+    # FORMATAÇÃO
+    # ==========================================================
+
+    @staticmethod
+    def _format(
+        data,
+    ):
+
+        if not data:
+
+            return {
+                "dias": [],
+                "temperatura": [],
+                "precipitacao": [],
+                "umidade": [],
+                "vento": [],
+                "indice_agroclima": [],
+            }
+
+        return {
+
+            "dias": data.get(
+                "dias",
+                [],
+            ),
+
+            "temperatura": data.get(
+                "temperatura",
+                [],
+            ),
+
+            "precipitacao": data.get(
+                "precipitacao",
+                [],
+            ),
+
+            "umidade": data.get(
+                "umidade",
+                [],
+            ),
+
+            "vento": data.get(
+                "vento",
+                [],
+            ),
+
+            "indice_agroclima": data.get(
+                "indice_agroclima",
+                [],
+            ),
 
         }
 
@@ -85,6 +201,6 @@ class ChartService:
 
             "vento": [],
 
-            "indice_agroclima": []
+            "indice_agroclima": [],
 
         }

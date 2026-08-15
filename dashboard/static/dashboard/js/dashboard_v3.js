@@ -80,6 +80,7 @@ const MapController = {
         "3549102": "São João da Boa Vista",
 
         "3556404": "Vargem Grande do Sul"
+
     },
 
 
@@ -137,12 +138,13 @@ const MapController = {
 
         fillOpacity:
             0.32
+
     },
 
 
     /* ======================================================
        ESTILOS DA CAMADA GEADAS
-       ====================================================== */
+    ====================================================== */
 
     frostStyles: {
 
@@ -162,6 +164,7 @@ const MapController = {
 
             fillOpacity:
                 0.45
+
         },
 
 
@@ -181,6 +184,7 @@ const MapController = {
 
             fillOpacity:
                 0.45
+
         },
 
 
@@ -200,6 +204,7 @@ const MapController = {
 
             fillOpacity:
                 0.50
+
         },
 
 
@@ -219,6 +224,7 @@ const MapController = {
 
             fillOpacity:
                 0.55
+
         },
 
 
@@ -238,7 +244,9 @@ const MapController = {
 
             fillOpacity:
                 0.35
+
         }
+
     },
 
 
@@ -261,6 +269,7 @@ const MapController = {
             );
 
             return;
+
         }
 
 
@@ -274,6 +283,7 @@ const MapController = {
             );
 
             return;
+
         }
 
 
@@ -282,6 +292,7 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
@@ -323,6 +334,7 @@ const MapController = {
 
                 attribution:
                     "&copy; OpenStreetMap"
+
             }
         ).addTo(
             this.map
@@ -367,6 +379,7 @@ const MapController = {
             },
             300
         );
+
     },
 
 
@@ -391,6 +404,7 @@ const MapController = {
             this.hideLoading();
 
             return;
+
         }
 
 
@@ -414,6 +428,7 @@ const MapController = {
             this.hideLoading();
 
             return;
+
         }
 
 
@@ -430,6 +445,7 @@ const MapController = {
             this.hideLoading();
 
             return;
+
         }
 
 
@@ -461,6 +477,7 @@ const MapController = {
 
 
         this.hideLoading();
+
     },
 
 
@@ -491,9 +508,12 @@ const MapController = {
                         key
                     ] =
                         point;
+
                 }
+
             }
         );
+
     },
 
 
@@ -508,6 +528,7 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
@@ -530,7 +551,9 @@ const MapController = {
 
                             Accept:
                                 "application/geo+json, application/json"
+
                         }
+
                     }
                 );
 
@@ -542,6 +565,7 @@ const MapController = {
                 throw new Error(
                     `HTTP ${response.status}`
                 );
+
             }
 
 
@@ -559,6 +583,7 @@ const MapController = {
                 throw new Error(
                     "GeoJSON territorial inválido."
                 );
+
             }
 
 
@@ -597,7 +622,9 @@ const MapController = {
                                 properties.sigla_uf ||
                                 properties.SIGLA_UF ||
                                 ""
+
                         };
+
                     }
                 );
 
@@ -627,9 +654,11 @@ const MapController = {
                                 feature
                             );
 
+
                         return monitoredCodes.includes(
                             code
                         );
+
                     }
                 );
 
@@ -686,6 +715,7 @@ const MapController = {
                 console.info(
                     "[AGROCLIMA] VALIDAÇÃO TERRITORIAL: 6/6 municípios encontrados."
                 );
+
             }
 
 
@@ -716,6 +746,7 @@ const MapController = {
                 console.error(
                     "[AGROCLIMA] ERRO TERRITORIAL: Vargem Grande do Sul (3556404) não foi retornada pela fonte."
                 );
+
             }
 
 
@@ -737,6 +768,7 @@ const MapController = {
 
                 features:
                     monitoredFeatures
+
             };
 
 
@@ -764,7 +796,9 @@ const MapController = {
                                     feature,
                                     layer
                                 );
+
                             }
+
                     }
                 );
 
@@ -806,8 +840,10 @@ const MapController = {
 
                         maxZoom:
                             10
+
                     }
                 );
+
             }
 
 
@@ -817,7 +853,9 @@ const MapController = {
                 "[AGROCLIMA] Erro ao carregar território municipal:",
                 error
             );
+
         }
+
     },
 
 
@@ -835,10 +873,12 @@ const MapController = {
         ) {
 
             return {};
+
         }
 
 
         return feature.properties;
+
     },
 
 
@@ -867,6 +907,7 @@ const MapController = {
         ) {
 
             return "";
+
         }
 
 
@@ -878,6 +919,7 @@ const MapController = {
                 7,
                 "0"
             );
+
     },
 
 
@@ -896,6 +938,7 @@ const MapController = {
             properties.NM_MUN ??
             ""
         ).trim();
+
     },
 
 
@@ -914,6 +957,7 @@ const MapController = {
             properties.SIGLA_UF ??
             ""
         ).trim();
+
     },
 
 
@@ -956,6 +1000,7 @@ const MapController = {
                                 ) ===
                             code
                         );
+
                     }
                 );
 
@@ -965,7 +1010,9 @@ const MapController = {
             ) {
 
                 return point;
+
             }
+
         }
 
 
@@ -980,6 +1027,7 @@ const MapController = {
                 )
             )
         ] || null;
+
     },
 
 
@@ -1020,6 +1068,7 @@ const MapController = {
                 ] ||
                 this.frostStyles.none
             );
+
         }
 
 
@@ -1048,7 +1097,9 @@ const MapController = {
 
             fillOpacity:
                 this.territoryStyle.fillOpacity
+
         };
+
     },
 
 
@@ -1111,6 +1162,7 @@ const MapController = {
                             "geadas"
                                 ? 0.65
                                 : 0.55
+
                     });
 
 
@@ -1121,7 +1173,9 @@ const MapController = {
                     ) {
 
                         target.bringToFront();
+
                     }
+
                 },
 
 
@@ -1139,9 +1193,13 @@ const MapController = {
 
 
                         this.updateTerritoryStyle();
+
                     }
+
                 }
+
         });
+
     },
 
 
@@ -1196,12 +1254,14 @@ const MapController = {
 
                 </div>
             `;
+
         }
 
 
         return this.buildPopup(
             point
         );
+
     },
 
 
@@ -1216,6 +1276,7 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
@@ -1225,6 +1286,7 @@ const MapController = {
                     feature
                 )
         );
+
     },
 
 
@@ -1245,11 +1307,13 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
         loading.style.display =
             "none";
+
     },
 
 
@@ -1267,6 +1331,7 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
@@ -1285,6 +1350,7 @@ const MapController = {
             );
 
             return;
+
         }
 
 
@@ -1311,6 +1377,7 @@ const MapController = {
                     );
 
                     return;
+
                 }
 
 
@@ -1341,6 +1408,7 @@ const MapController = {
                     );
 
                     return;
+
                 }
 
 
@@ -1370,6 +1438,7 @@ const MapController = {
                             title:
                                 point.nome ||
                                 "Município"
+
                         }
                     );
 
@@ -1397,6 +1466,7 @@ const MapController = {
                         longitude
                     ]
                 );
+
             }
         );
 
@@ -1430,10 +1500,14 @@ const MapController = {
 
                         maxZoom:
                             10
+
                     }
                 );
+
             }
+
         }
+
     },
 
 
@@ -1483,7 +1557,9 @@ const MapController = {
                     0,
                     -17
                 ]
+
         });
+
     },
 
 
@@ -1651,6 +1727,7 @@ const MapController = {
 
             </div>
         `;
+
     },
 
 
@@ -1668,6 +1745,7 @@ const MapController = {
         ) {
 
             return "";
+
         }
 
 
@@ -1683,6 +1761,7 @@ const MapController = {
             )
             .toLowerCase()
             .trim();
+
     },
 
 
@@ -1699,6 +1778,7 @@ const MapController = {
         ) {
 
             return "none";
+
         }
 
 
@@ -1717,6 +1797,7 @@ const MapController = {
         ) {
 
             return "critical";
+
         }
 
 
@@ -1726,6 +1807,7 @@ const MapController = {
         ) {
 
             return "alert";
+
         }
 
 
@@ -1737,6 +1819,7 @@ const MapController = {
         ) {
 
             return "attention";
+
         }
 
 
@@ -1746,6 +1829,7 @@ const MapController = {
         ) {
 
             return "normal";
+
         }
 
 
@@ -1756,10 +1840,12 @@ const MapController = {
         ) {
 
             return "none";
+
         }
 
 
         return "none";
+
     },
 
 
@@ -1787,6 +1873,7 @@ const MapController = {
 
             none:
                 "SEM CLASSIFICAÇÃO"
+
         };
 
 
@@ -1796,6 +1883,7 @@ const MapController = {
             ] ||
             labels.none
         );
+
     },
 
 
@@ -1823,6 +1911,7 @@ const MapController = {
 
             none:
                 "#f0f0f0"
+
         };
 
 
@@ -1832,6 +1921,7 @@ const MapController = {
             ] ||
             colors.none
         );
+
     },
 
 
@@ -1859,6 +1949,7 @@ const MapController = {
 
             none:
                 "#666"
+
         };
 
 
@@ -1868,6 +1959,7 @@ const MapController = {
             ] ||
             colors.none
         );
+
     },
 
 
@@ -1888,6 +1980,7 @@ const MapController = {
         ) {
 
             return;
+
         }
 
 
@@ -1904,6 +1997,7 @@ const MapController = {
                                 item.classList.remove(
                                     "active"
                                 );
+
                             }
                         );
 
@@ -1920,10 +2014,13 @@ const MapController = {
                         this.changeLayer(
                             this.activeLayer
                         );
+
                     }
                 );
+
             }
         );
+
     },
 
 
@@ -1944,6 +2041,7 @@ const MapController = {
         ) {
 
             this.territoryLayer.bringToBack();
+
         }
 
 
@@ -1962,6 +2060,7 @@ const MapController = {
                     marker.setOpacity(
                         1
                     );
+
                 }
             );
 
@@ -1970,6 +2069,7 @@ const MapController = {
 
 
             return;
+
         }
 
 
@@ -1988,6 +2088,7 @@ const MapController = {
                     marker.setOpacity(
                         1
                     );
+
                 }
             );
 
@@ -1996,6 +2097,7 @@ const MapController = {
 
 
             return;
+
         }
 
 
@@ -2019,6 +2121,7 @@ const MapController = {
                     marker.setOpacity(
                         0.45
                     );
+
                 }
             );
 
@@ -2027,6 +2130,7 @@ const MapController = {
 
 
             return;
+
         }
 
 
@@ -2050,6 +2154,7 @@ const MapController = {
                     marker.setOpacity(
                         0.45
                     );
+
                 }
             );
 
@@ -2058,6 +2163,7 @@ const MapController = {
 
 
             return;
+
         }
 
 
@@ -2065,6 +2171,7 @@ const MapController = {
             "[AGROCLIMA] Camada de mapa não reconhecida:",
             layer
         );
+
     },
 
 
@@ -2082,6 +2189,7 @@ const MapController = {
         ) {
 
             return "";
+
         }
 
 
@@ -2113,8 +2221,1098 @@ const MapController = {
                 "'",
                 "&#039;"
             );
+
     }
+
 };
+
+
+/* ==========================================================
+   AGROCLIMA CAFÉ
+   DASHBOARD V3
+   CHART CONTROLLER — FASE 2
+
+   Responsabilidades:
+   - Ler os dados fornecidos pelo DashboardService
+   - Inicializar o gráfico de evolução climática
+   - Exibir temperatura média
+   - Exibir média móvel de 7 dias
+   - Disponibilizar precipitação como série secundária
+   - Controlar os períodos do painel
+
+   IMPORTANTE:
+   Nenhuma regra de inteligência climática é calculada aqui.
+   Os dados são fornecidos pelo backend através de json_script.
+========================================================== */
+
+
+const ChartController = {
+
+    chart: null,
+
+    initialized: false,
+
+    activePeriod: null,
+
+
+    init() {
+
+        if (this.initialized) {
+
+            return;
+
+        }
+
+
+        const canvas =
+            document.getElementById("weatherChart");
+
+
+        if (!canvas) {
+
+            console.info(
+                "[AGROCLIMA] Canvas #weatherChart não encontrado."
+            );
+
+            return;
+
+        }
+
+
+        if (typeof Chart === "undefined") {
+
+            console.error(
+                "[AGROCLIMA] Chart.js não está disponível."
+            );
+
+            return;
+
+        }
+
+
+        /* ==================================================
+           SÉRIES DISPONIBILIZADAS PELO BACKEND
+
+           Cada período possui sua própria série histórica.
+           O JavaScript somente seleciona e apresenta os
+           dados; nenhuma regra climática é calculada aqui.
+        ================================================== */
+
+        this.periods = {
+
+            hoje: this.readPeriod(
+                "chart-period-hoje-dias",
+                "chart-period-hoje-temperatura",
+                "chart-period-hoje-precipitacao"
+            ),
+
+            "7": this.readPeriod(
+                "chart-period-7-dias",
+                "chart-period-7-temperatura",
+                "chart-period-7-precipitacao"
+            ),
+
+            "30": this.readPeriod(
+                "chart-period-30-dias",
+                "chart-period-30-temperatura",
+                "chart-period-30-precipitacao"
+            ),
+
+            historico: this.readPeriod(
+                "chart-period-historico-dias",
+                "chart-period-historico-temperatura",
+                "chart-period-historico-precipitacao"
+            )
+
+        };
+
+
+        /* ==================================================
+           COMPATIBILIDADE COM O BLOCO ANTIGO
+
+           Caso a página ainda possua os elementos legados,
+           eles continuam sendo aceitos como fallback.
+        ================================================== */
+
+        if (!this.periods["7"].dias.length) {
+
+            this.periods["7"] = {
+
+                dias: this.readJson(
+                    "chart-dias"
+                ),
+
+                temperatura: this.readJson(
+                    "chart-temperatura"
+                ),
+
+                precipitacao: this.readJson(
+                    "chart-precipitacao"
+                )
+
+            };
+
+        }
+
+
+        /*
+         * O painel inicia visualmente no período "Hoje".
+         * Portanto, o gráfico também deve iniciar com os dados
+         * de "Hoje". Caso esse período ainda não possua dados,
+         * utiliza 7 dias como fallback, preservando a
+         * disponibilidade do gráfico.
+         */
+        let initialKey = "hoje";
+
+
+        if (!this.periods[initialKey].dias.length) {
+            initialKey = "7";
+        }
+
+
+        if (!this.periods[initialKey].dias.length) {
+            initialKey = "30";
+        }
+
+
+        if (!this.periods[initialKey].dias.length) {
+            initialKey = "historico";
+        }
+
+
+        const initialPeriod =
+            this.periods[initialKey];
+
+
+        if (!initialPeriod.dias.length) {
+
+            console.warn(
+                "[AGROCLIMA] Nenhum dado de evolução climática disponível."
+            );
+
+            return;
+
+        }
+
+
+        this.activePeriod = initialKey;
+
+
+        this.createChart(
+            canvas,
+            initialPeriod.dias,
+            initialPeriod.temperatura,
+            initialPeriod.precipitacao
+        );
+
+
+        this.bindPeriodButtons();
+
+
+        /*
+         * Mantém o estado visual do botão sincronizado
+         * com o período efetivamente apresentado.
+         */
+        this.setActivePeriodButton(
+            initialKey
+        );
+
+
+        this.initialized = true;
+
+    },
+
+
+    readPeriod(
+        daysId,
+        temperatureId,
+        precipitationId
+    ) {
+
+        return {
+
+            dias: this.readJson(
+                daysId
+            ),
+
+            temperatura: this.readJson(
+                temperatureId
+            ),
+
+            precipitacao: this.readJson(
+                precipitationId
+            )
+
+        };
+
+    },
+
+
+    readJson(id) {
+
+        const element =
+            document.getElementById(id);
+
+
+        if (!element) {
+
+            return [];
+
+        }
+
+
+        try {
+
+            const value =
+                JSON.parse(
+                    element.textContent
+                );
+
+
+            return Array.isArray(value)
+                ? value
+                : [];
+
+
+        } catch (error) {
+
+            console.error(
+                `[AGROCLIMA] Erro ao interpretar ${id}.`,
+                error
+            );
+
+
+            return [];
+
+        }
+
+    },
+
+
+    normalizeNumber(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+
+            return null;
+
+        }
+
+
+        const number =
+            Number(
+                String(value)
+                    .replace(",", ".")
+            );
+
+
+        return Number.isFinite(number)
+            ? number
+            : null;
+
+    },
+
+
+    buildMovingAverage(values) {
+
+        return values.map(
+            (_, index) => {
+
+                const start =
+                    Math.max(
+                        0,
+                        index - 6
+                    );
+
+
+                const window =
+                    values
+                        .slice(
+                            start,
+                            index + 1
+                        )
+                        .filter(
+                            value =>
+                                value !== null &&
+                                Number.isFinite(value)
+                        );
+
+
+                if (!window.length) {
+
+                    return null;
+
+                }
+
+
+                const average =
+                    window.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    ) / window.length;
+
+
+                return Number(
+                    average.toFixed(1)
+                );
+
+            }
+        );
+
+    },
+
+
+    createChart(
+        canvas,
+        labels,
+        temperature,
+        precipitation
+    ) {
+
+        if (this.chart) {
+
+            this.chart.destroy();
+
+        }
+
+
+        const safeTemperature =
+            labels.map(
+                (_, index) =>
+                    this.normalizeNumber(
+                        temperature[index]
+                    )
+            );
+
+
+        const safePrecipitation =
+            labels.map(
+                (_, index) =>
+                    this.normalizeNumber(
+                        precipitation[index]
+                    )
+            );
+
+
+        const movingAverage =
+            this.buildMovingAverage(
+                safeTemperature
+            );
+
+
+        const context =
+            canvas.getContext("2d");
+
+
+        this.chart =
+            new Chart(
+                context,
+                {
+
+                    type: "line",
+
+
+                    data: {
+
+                        labels: labels,
+
+
+                        datasets: [
+
+                            {
+
+                                label:
+                                    "Temperatura média",
+
+                                data:
+                                    safeTemperature,
+
+                                borderColor:
+                                    "#F0A51A",
+
+                                backgroundColor:
+                                    "rgba(240,165,26,0.08)",
+
+                                borderWidth:
+                                    2.4,
+
+                                pointRadius:
+                                    2.2,
+
+                                pointHoverRadius:
+                                    5,
+
+                                pointBackgroundColor:
+                                    "#F0A51A",
+
+                                pointBorderColor:
+                                    "#F0A51A",
+
+                                tension:
+                                    0.28,
+
+                                fill:
+                                    false,
+
+                                yAxisID:
+                                    "temperature"
+
+                            },
+
+
+                            {
+
+                                label:
+                                    "Média móvel (7 dias)",
+
+                                data:
+                                    movingAverage,
+
+                                borderColor:
+                                    "#BEB7AA",
+
+                                backgroundColor:
+                                    "transparent",
+
+                                borderWidth:
+                                    1.4,
+
+                                borderDash:
+                                    [6, 5],
+
+                                pointRadius:
+                                    0,
+
+                                pointHoverRadius:
+                                    0,
+
+                                tension:
+                                    0.25,
+
+                                fill:
+                                    false,
+
+                                yAxisID:
+                                    "temperature"
+
+                            },
+
+
+                            {
+
+                                label:
+                                    "Precipitação",
+
+                                data:
+                                    safePrecipitation,
+
+                                borderColor:
+                                    "#4FA3D1",
+
+                                backgroundColor:
+                                    "rgba(79,163,209,0.10)",
+
+                                borderWidth:
+                                    1.6,
+
+                                pointRadius:
+                                    1.5,
+
+                                tension:
+                                    0.25,
+
+                                fill:
+                                    false,
+
+                                hidden:
+                                    true,
+
+                                yAxisID:
+                                    "precipitation"
+
+                            }
+
+                        ]
+
+                    },
+
+
+                    options: {
+
+                        responsive:
+                            true,
+
+                        maintainAspectRatio:
+                            false,
+
+
+                        animation: {
+
+                            duration:
+                                500
+
+                        },
+
+
+                        interaction: {
+
+                            mode:
+                                "index",
+
+                            intersect:
+                                false
+
+                        },
+
+
+                        layout: {
+
+                            padding: {
+
+                                top:
+                                    4,
+
+                                right:
+                                    8,
+
+                                bottom:
+                                    2,
+
+                                left:
+                                    4
+
+                            }
+
+                        },
+
+
+                        plugins: {
+
+                            legend: {
+
+                                display:
+                                    true,
+
+                                position:
+                                    "top",
+
+                                align:
+                                    "start",
+
+
+                                labels: {
+
+                                    color:
+                                        "#3C342B",
+
+                                    usePointStyle:
+                                        true,
+
+                                    pointStyle:
+                                        "line",
+
+                                    boxWidth:
+                                        24,
+
+                                    padding:
+                                        16,
+
+
+                                    font: {
+
+                                        family:
+                                            "Inter, sans-serif",
+
+                                        size:
+                                            11,
+
+                                        weight:
+                                            "500"
+
+                                    }
+
+                                }
+
+                            },
+
+
+                            tooltip: {
+
+                                backgroundColor:
+                                    "#211A14",
+
+                                titleColor:
+                                    "#FFFFFF",
+
+                                bodyColor:
+                                    "#F4EFE8",
+
+                                borderColor:
+                                    "#6F543C",
+
+                                borderWidth:
+                                    1,
+
+                                padding:
+                                    10,
+
+
+                                callbacks: {
+
+                                    label:
+                                        context => {
+
+                                            const value =
+                                                context.parsed.y;
+
+
+                                            if (
+                                                value === null ||
+                                                value === undefined
+                                            ) {
+
+                                                return (
+                                                    `${context.dataset.label}: —`
+                                                );
+
+                                            }
+
+
+                                            if (
+                                                context.dataset.yAxisID ===
+                                                "precipitation"
+                                            ) {
+
+                                                return (
+                                                    `${context.dataset.label}: ${value.toFixed(1)} mm`
+                                                );
+
+                                            }
+
+
+                                            return (
+                                                `${context.dataset.label}: ${value.toFixed(1)} °C`
+                                            );
+
+                                        }
+
+                                }
+
+                            }
+
+                        },
+
+
+                        scales: {
+
+                            x: {
+
+                                grid: {
+
+                                    color:
+                                        "rgba(74,63,52,0.08)",
+
+                                    drawBorder:
+                                        false
+
+                                },
+
+
+                                border: {
+
+                                    display:
+                                        false
+
+                                },
+
+
+                                ticks: {
+
+                                    color:
+                                        "#756C61",
+
+                                    maxRotation:
+                                        0,
+
+                                    minRotation:
+                                        0,
+
+                                    autoSkip:
+                                        true,
+
+                                    maxTicksLimit:
+                                        8,
+
+
+                                    font: {
+
+                                        family:
+                                            "Inter, sans-serif",
+
+                                        size:
+                                            10
+
+                                    }
+
+                                }
+
+                            },
+
+
+                            temperature: {
+
+                                position:
+                                    "left",
+
+                                beginAtZero:
+                                    false,
+
+
+                                grid: {
+
+                                    color:
+                                        "rgba(74,63,52,0.08)",
+
+                                    drawBorder:
+                                        false
+
+                                },
+
+
+                                border: {
+
+                                    display:
+                                        false
+
+                                },
+
+
+                                ticks: {
+
+                                    color:
+                                        "#756C61",
+
+                                    callback:
+                                        value =>
+                                            `${value}°C`,
+
+
+                                    font: {
+
+                                        family:
+                                            "Inter, sans-serif",
+
+                                        size:
+                                            10
+
+                                    }
+
+                                }
+
+                            },
+
+
+                            precipitation: {
+
+                                position:
+                                    "right",
+
+                                beginAtZero:
+                                    true,
+
+
+                                grid: {
+
+                                    drawOnChartArea:
+                                        false,
+
+                                    drawBorder:
+                                        false
+
+                                },
+
+
+                                border: {
+
+                                    display:
+                                        false
+
+                                },
+
+
+                                ticks: {
+
+                                    display:
+                                        false
+
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        window.weatherChart =
+            this.chart;
+
+    },
+
+
+    bindPeriodButtons() {
+
+        const buttons =
+            document.querySelectorAll(
+                ".panel-actions .btn-panel"
+            );
+
+
+        if (!buttons.length) {
+
+            return;
+
+        }
+
+
+        buttons.forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        const label =
+                            button.textContent
+                                .trim()
+                                .toLowerCase();
+
+                        let period =
+                            "7";
+
+
+                        if (label === "hoje") {
+
+                            period = "hoje";
+
+
+                        } else if (
+                            label === "7 dias"
+                        ) {
+
+                            period = "7";
+
+
+                        } else if (
+                            label === "30 dias"
+                        ) {
+
+                            period = "30";
+
+
+                        } else if (
+                            label === "histórico"
+                        ) {
+
+                            period = "historico";
+
+                        }
+
+
+                        const data =
+                            this.periods[period];
+
+
+                        /*
+                         * Valida o período antes de alterar o
+                         * estado visual do botão. Assim, um período
+                         * sem dados não deixa a interface
+                         * aparentemente selecionada sem atualizar
+                         * o gráfico.
+                         */
+                        if (
+                            !data ||
+                            !data.dias.length
+                        ) {
+
+                            console.warn(
+                                "[AGROCLIMA] Período sem dados:",
+                                period
+                            );
+
+                            return;
+
+                        }
+
+
+                        const canvas =
+                            document.getElementById(
+                                "weatherChart"
+                            );
+
+
+                        if (!canvas) {
+
+                            return;
+
+                        }
+
+
+                        this.createChart(
+                            canvas,
+                            data.dias,
+                            data.temperatura,
+                            data.precipitacao
+                        );
+
+
+                        this.activePeriod = period;
+
+
+                        this.setActivePeriodButton(
+                            period
+                        );
+
+
+                        console.info(
+                            "[AGROCLIMA] Período selecionado:",
+                            period,
+                            "| Registros:",
+                            data.dias.length
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    },
+
+
+    /*
+     * ======================================================
+     * BOTÃO DO PERÍODO ATIVO
+     *
+     * Mantém a seleção visual sincronizada com os dados
+     * realmente apresentados no gráfico.
+     * ======================================================
+     */
+
+    setActivePeriodButton(
+        period
+    ) {
+
+        const buttons =
+            document.querySelectorAll(
+                ".panel-actions .btn-panel"
+            );
+
+
+        if (!buttons.length) {
+
+            return;
+
+        }
+
+
+        buttons.forEach(
+            button => {
+
+                button.classList.remove(
+                    "active"
+                );
+
+
+                const label =
+                    button.textContent
+                        .trim()
+                        .toLowerCase();
+
+
+                let buttonPeriod =
+                    "7";
+
+
+                if (label === "hoje") {
+
+                    buttonPeriod = "hoje";
+
+
+                } else if (
+                    label === "7 dias"
+                ) {
+
+                    buttonPeriod = "7";
+
+
+                } else if (
+                    label === "30 dias"
+                ) {
+
+                    buttonPeriod = "30";
+
+
+                } else if (
+                    label === "histórico"
+                ) {
+
+                    buttonPeriod = "historico";
+
+                }
+
+
+                if (
+                    buttonPeriod === period
+                ) {
+
+                    button.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    },
+
+
+    resize() {
+
+        if (
+            this.chart &&
+            typeof this.chart.resize === "function"
+        ) {
+
+            this.chart.resize();
+
+        }
+
+    }
+
+};
+
+
+/* ==========================================================
+   REDIMENSIONAMENTO
+========================================================== */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        ChartController.resize();
+
+    }
+);
 
 
 /* ==========================================================
@@ -2126,6 +3324,8 @@ document.addEventListener(
     () => {
 
         MapController.init();
+
+        ChartController.init();
 
     }
 );

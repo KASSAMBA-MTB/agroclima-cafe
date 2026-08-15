@@ -26,25 +26,37 @@
 
         <div class="panel-actions">
 
-            <button class="btn-panel active">
+            <button
+                type="button"
+                class="btn-panel active"
+                data-period="hoje">
 
                 Hoje
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-period="7_dias">
 
                 7 dias
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-period="30_dias">
 
                 30 dias
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-period="historico">
 
                 Histórico
 
@@ -53,6 +65,7 @@
         </div>
 
     </div>
+
 
     <!-- ==========================================================
          RESUMO
@@ -76,6 +89,7 @@
 
         </div>
 
+
         <div class="summary-item">
 
             <span class="summary-label">
@@ -92,6 +106,7 @@
 
         </div>
 
+
         <div class="summary-item">
 
             <span class="summary-label">
@@ -107,6 +122,7 @@
             </strong>
 
         </div>
+
 
         <div class="summary-item">
 
@@ -126,6 +142,7 @@
 
     </div>
 
+
     <!-- ==========================================================
          GRÁFICO
     =========================================================== -->
@@ -135,6 +152,7 @@
         <canvas id="weatherChart"></canvas>
 
     </div>
+
 
     <!-- ==========================================================
          RODAPÉ
@@ -154,8 +172,23 @@
 
 </section>
 
+
 <!-- ==========================================================
      DADOS DO DASHBOARDSERVICE
+     PERÍODOS DO GRÁFICO
+=========================================================== -->
+
+{{ chart_periods.hoje|json_script:"chart-period-hoje" }}
+
+{{ chart_periods.7_dias|json_script:"chart-period-7-dias" }}
+
+{{ chart_periods.30_dias|json_script:"chart-period-30-dias" }}
+
+{{ chart_periods.historico|json_script:"chart-period-historico" }}
+
+
+<!-- ==========================================================
+     COMPATIBILIDADE COM A ESTRUTURA EXISTENTE
 =========================================================== -->
 
 {{ chart.dias|json_script:"chart-dias" }}

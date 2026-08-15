@@ -5,13 +5,14 @@ AgroClima Café
 Weather Service
 
 Responsável pela obtenção, cache e persistência dos
-dados meteorológicos atuais.
+dados meteorológicos atuais e históricos.
 
 ==========================================================
 """
 
 from datetime import timedelta
 
+from django.db import transaction
 from django.utils import timezone
 
 from clima.models import (
@@ -108,7 +109,7 @@ class WeatherService:
         )
 
         # ======================================================
-        # PERSISTÊNCIA DA OBSERVAÇÃO
+        # PERSISTÊNCIA DA OBSERVAÇÃO ATUAL
         # ======================================================
 
         self._save_observation(
@@ -171,6 +172,222 @@ class WeatherService:
         )
 
     # ==========================================================
+    # COLETA HISTÓRICA
+    # ==========================================================
+
+    def collect_historical_weather(
+        self,
+        municipio,
+        days=7,
+        provider=Provider.OPEN_METEO,
+    ):
+        """
+        Obtém dados meteorológicos horários históricos através
+        do provider configurado e persiste as observações no
+        banco de dados.
+
+        Os dados são reais e provenientes da série horária
+        retornada pelo Open-Meteo.
+
+        A mesma observação não é duplicada, pois o modelo
+        WeatherObservation utiliza a combinação:
+
+            station + observation_time
+
+        como chave única lógica.
+
+        Retorna um resumo da operação.
+        """
+
+        try:
+
+            days = int(days)
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+
+            days = 7
+
+        days = max(
+            1,
+            min(days, 92),
+        )
+
+        provider_instance = (
+            self.providers.get(provider)
+        )
+
+        if provider_instance is None:
+
+            raise ValueError(
+                f"Provider não suportado: {provider}"
+            )
+
+        # ======================================================
+        # ESTAÇÃO
+        # ======================================================
+
+        station = (
+            self._get_or_create_station(
+                municipio=municipio,
+                provider=provider,
+            )
+        )
+
+        # ======================================================
+        # OBTENÇÃO DO HISTÓRICO
+        # ======================================================
+
+        historical_data = (
+            provider_instance
+            .historical_hourly_weather(
+                municipio=municipio,
+                days=days,
+            )
+        )
+
+        if not historical_data:
+
+            return {
+                "municipio": municipio,
+                "provider": provider,
+                "dias": days,
+                "total_recebido": 0,
+                "total_persistido": 0,
+                "total_atualizado": 0,
+            }
+
+        # ======================================================
+        # PERSISTÊNCIA
+        # ======================================================
+
+        total_persistido = 0
+
+        total_atualizado = 0
+
+        with transaction.atomic():
+
+            for item in historical_data:
+
+                observation_time = (
+                    item.get(
+                        "observation_time"
+                    )
+                )
+
+                if observation_time is None:
+
+                    continue
+
+                observation, created = (
+                    WeatherObservation.objects
+                    .update_or_create(
+
+                        station=station,
+
+                        observation_time=(
+                            observation_time
+                        ),
+
+                        defaults={
+
+                            "temperatura": (
+                                item.get(
+                                    "temperatura",
+                                    0,
+                                )
+                            ),
+
+                            "umidade": (
+                                item.get(
+                                    "umidade",
+                                    0,
+                                )
+                            ),
+
+                            "pressao": (
+                                item.get(
+                                    "pressao",
+                                    0,
+                                )
+                            ),
+
+                            "velocidade_vento": (
+                                item.get(
+                                    "velocidade_vento",
+                                    0,
+                                )
+                            ),
+
+                            "direcao_vento": (
+                                item.get(
+                                    "direcao_vento",
+                                    0,
+                                )
+                            ),
+
+                            "precipitacao": (
+                                item.get(
+                                    "precipitacao",
+                                    0,
+                                )
+                            ),
+
+                            "cobertura_nuvens": (
+                                item.get(
+                                    "cobertura_nuvens",
+                                    0,
+                                )
+                            ),
+
+                            "codigo_tempo": (
+                                item.get(
+                                    "codigo_tempo",
+                                    0,
+                                )
+                            ),
+
+                        },
+                    )
+                )
+
+                if created:
+
+                    total_persistido += 1
+
+                else:
+
+                    total_atualizado += 1
+
+        # ======================================================
+        # RESULTADO
+        # ======================================================
+
+        return {
+
+            "municipio": municipio,
+
+            "provider": provider,
+
+            "dias": days,
+
+            "total_recebido": len(
+                historical_data
+            ),
+
+            "total_persistido": (
+                total_persistido
+            ),
+
+            "total_atualizado": (
+                total_atualizado
+            ),
+
+        }
+
+    # ==========================================================
     # ESTAÇÃO
     # ==========================================================
 
@@ -182,8 +399,8 @@ class WeatherService:
         """
         Obtém ou cria a estação climática associada ao município.
 
-        WeatherStation possui uma ForeignKey para Municipio.
-        Portanto, o objeto Municipio é utilizado diretamente.
+        O objeto Municipio é utilizado diretamente na relação
+        com WeatherStation.
         """
 
         station, _ = (
@@ -196,13 +413,14 @@ class WeatherService:
                 defaults={
                     "ativa": True,
                 },
+
             )
         )
 
         return station
 
     # ==========================================================
-    # OBSERVAÇÃO
+    # OBSERVAÇÃO ATUAL
     # ==========================================================
 
     def _save_observation(
@@ -275,7 +493,9 @@ class WeatherService:
                     "codigo_tempo": (
                         dto.weather_code
                     ),
+
                 },
+
             )
         )
 

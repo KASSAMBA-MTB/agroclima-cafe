@@ -1,428 +1,496 @@
 /* ==========================================================
-   DASHBOARD V3
-   AgroClima Café
+   AGROCLIMA CAFÉ
+   DASHBOARD.CSS
+   Estrutura principal do Dashboard Inteligente
 ========================================================== */
+
 
 /* ==========================================================
-   HEADER
+   RESET LOCAL DO DASHBOARD
 ========================================================== */
 
-.header-left h2{
+.dashboard-container,
+.dashboard-section,
+.kpi-grid,
+.dashboard-two-columns,
+.geo-column,
+.insights-column,
+.panel {
 
-    font-size:30px;
-
-    font-weight:700;
-
-    color:var(--coffee-primary);
-
-    margin-bottom:4px;
-
-}
-
-.header-left span{
-
-    color:var(--text-secondary);
-
-    font-size:.95rem;
+    box-sizing: border-box;
 
 }
 
-.header-right{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:20px;
-
-}
-
-.header-info{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:10px;
-
-}
-
-.header-info i{
-
-    font-size:22px;
-
-    color:var(--coffee-gold);
-
-}
-
-.update-button{
-
-    background:var(--coffee-primary);
-
-    color:#FFF;
-
-    padding:12px 22px;
-
-    border:none;
-
-    border-radius:var(--radius-sm);
-
-    cursor:pointer;
-
-    transition:var(--transition-normal);
-
-}
-
-.update-button:hover{
-
-    background:var(--coffee-secondary);
-
-}
-
-.user-profile{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-}
-
-.user-profile img{
-
-    width:50px;
-
-    height:50px;
-
-    border-radius:50%;
-
-    object-fit:cover;
-
-}
 
 /* ==========================================================
-   SIDEBAR
+   CONTAINER PRINCIPAL
 ========================================================== */
 
-.logo-area{
+.dashboard-container {
 
-    padding:32px 24px;
+    display: flex;
 
-    text-align:center;
+    flex-direction: column;
 
-    border-bottom:1px solid rgba(255,255,255,.10);
+    width: 100%;
 
-}
+    max-width: 100%;
 
-.logo-area h2{
+    margin: 0;
 
-    color:#FFF;
+    padding: 0;
 
-    font-size:28px;
-
-    margin-bottom:6px;
+    gap: 24px;
 
 }
 
-.logo-area span{
-
-    color:#D8D8D8;
-
-    font-size:13px;
-
-}
-
-.sidebar nav{
-
-    margin-top:28px;
-
-}
-
-.sidebar nav ul{
-
-    margin:0;
-
-    padding:0;
-
-    list-style:none;
-
-}
-
-.sidebar nav li{
-
-    margin-bottom:6px;
-
-}
-
-.sidebar nav a{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:14px;
-
-    color:#FFF;
-
-    text-decoration:none;
-
-    padding:15px 28px;
-
-    transition:var(--transition-normal);
-
-}
-
-.sidebar nav a:hover{
-
-    background:var(--coffee-secondary);
-
-}
-
-.sidebar nav i{
-
-    font-size:18px;
-
-    color:var(--coffee-gold-light);
-
-}
-
-.sidebar-footer{
-
-    position:absolute;
-
-    bottom:25px;
-
-    width:100%;
-
-    text-align:center;
-
-    color:#C8C8C8;
-
-    font-size:13px;
-
-}
-
-.sidebar-footer hr{
-
-    border-color:rgba(255,255,255,.10);
-
-    margin-bottom:15px;
-
-}
 
 /* ==========================================================
-   HOME
+   SEÇÕES
 ========================================================== */
 
-.dashboard-container{
+.dashboard-section {
 
-    display:flex;
+    display: flex;
 
-    flex-direction:column;
+    flex-direction: column;
 
-    gap:32px;
+    width: 100%;
 
-}
-
-.dashboard-section{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:20px;
+    gap: 18px;
 
 }
 
-.section-title{
 
-    display:flex;
+/* ==========================================================
+   TÍTULO DA SEÇÃO
+========================================================== */
 
-    justify-content:space-between;
+.section-title {
 
-    align-items:flex-end;
+    display: flex;
 
-    gap:20px;
+    align-items: flex-end;
 
-}
+    justify-content: space-between;
 
-.section-title h2{
+    width: 100%;
 
-    margin:0;
-
-    color:var(--coffee-primary);
-
-    font-size:1.70rem;
-
-    font-weight:700;
+    margin: 0 0 18px 0;
 
 }
 
-.section-title p{
 
-    margin-top:8px;
+.section-title > div {
 
-    color:var(--text-secondary);
-
-    font-size:.95rem;
-
-    line-height:1.5;
+    min-width: 0;
 
 }
 
-.dashboard-two-columns{
 
-    display:grid;
+.section-title h2 {
 
-    grid-template-columns:380px 1fr;
+    margin: 0;
 
-    gap:28px;
+    color: var(--coffee-primary);
 
-    align-items:start;
+    font-family: "Poppins", "Inter", sans-serif;
+
+    font-size: 1.65rem;
+
+    font-weight: 700;
+
+    line-height: 1.2;
 
 }
+
+
+.section-title p {
+
+    margin: 6px 0 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: .92rem;
+
+    line-height: 1.45;
+
+}
+
+
+/* ==========================================================
+   ==========================================================
+   GRID PRINCIPAL DOS 4 KPIs
+   ==========================================================
+========================================================== */
+
+.kpi-grid {
+
+    display: grid !important;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr)) !important;
+
+    grid-template-rows: 1fr !important;
+
+    align-items: stretch !important;
+
+    justify-content: stretch !important;
+
+    width: 100% !important;
+
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    margin: 0 !important;
+
+    padding: 0 !important;
+
+    gap: 24px !important;
+
+}
+
+
+/* ==========================================================
+   CADA CARD DEVE OCUPAR APENAS SUA COLUNA
+========================================================== */
+
+.kpi-grid > .kpi-card {
+
+    display: flex;
+
+    width: auto !important;
+
+    min-width: 0 !important;
+
+    max-width: none !important;
+
+    margin: 0 !important;
+
+    grid-column: auto !important;
+
+    grid-row: auto !important;
+
+    align-self: stretch !important;
+
+}
+
+
+/* ==========================================================
+   GARANTIA CONTRA REGRAS DE FLEXBOX
+========================================================== */
+
+.kpi-grid {
+
+    flex-direction: unset !important;
+
+    flex-wrap: unset !important;
+
+}
+
+
+/* ==========================================================
+   GRID CENTRAL
+========================================================== */
+
+.dashboard-two-columns {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 2fr)
+        minmax(300px, 1fr);
+
+    gap: 24px;
+
+    width: 100%;
+
+    max-width: 100%;
+
+    align-items: stretch;
+
+}
+
+
+/* ==========================================================
+   COLUNA GEOESPACIAL
+========================================================== */
+
+.geo-column {
+
+    display: block;
+
+    width: 100%;
+
+    min-width: 0;
+
+}
+
+
+/* ==========================================================
+   COLUNA INSIGHTS
+========================================================== */
+
+.insights-column {
+
+    display: block;
+
+    width: 100%;
+
+    min-width: 0;
+
+}
+
 
 /* ==========================================================
    PAINÉIS
 ========================================================== */
 
-.dashboard-panel{
+.panel {
 
-    background:var(--surface-color);
+    display: block;
 
-    border:1px solid var(--border-color);
+    width: 100%;
 
-    border-radius:18px;
-
-    padding:28px;
-
-    box-shadow:0 8px 24px rgba(0,0,0,.06);
-
-    transition:.30s;
+    min-width: 0;
 
 }
 
-.dashboard-panel:hover{
-
-    transform:translateY(-3px);
-
-    box-shadow:0 14px 34px rgba(0,0,0,.10);
-
-}
-
-.panel-header{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    margin-bottom:24px;
-
-}
-
-.panel-header h2{
-
-    margin:0;
-
-    font-size:1.35rem;
-
-    font-weight:700;
-
-    color:var(--coffee-primary);
-
-}
-
-.panel-header p{
-
-    margin-top:6px;
-
-    color:var(--text-secondary);
-
-    font-size:.90rem;
-
-}
-
-.panel-actions{
-
-    display:flex;
-
-    gap:10px;
-
-}
 
 /* ==========================================================
-   BOTÕES
+   PAINEL PADRÃO
 ========================================================== */
 
-.btn-panel{
+.dashboard-panel {
 
-    background:#FFF;
+    width: 100%;
 
-    border:1px solid var(--border-color);
+    min-width: 0;
 
-    border-radius:10px;
+    background: var(--coffee-surface);
 
-    padding:10px 18px;
+    border: 1px solid var(--coffee-border);
 
-    cursor:pointer;
+    border-radius: 16px;
 
-    transition:.25s;
+    box-shadow: var(--shadow-sm);
 
-    font-size:.90rem;
-
-    font-weight:500;
+    box-sizing: border-box;
 
 }
 
-.btn-panel:hover{
-
-    background:var(--coffee-primary);
-
-    color:#FFF;
-
-}
 
 /* ==========================================================
-   RESPONSIVO
+   CABEÇALHO DOS PAINÉIS
 ========================================================== */
 
-@media(max-width:1200px){
+.panel-header {
 
-.dashboard-two-columns{
+    display: flex;
 
-    grid-template-columns:1fr;
+    align-items: center;
 
-}
+    justify-content: space-between;
 
-}
-
-@media(max-width:768px){
-
-.section-title{
-
-    flex-direction:column;
-
-    align-items:flex-start;
+    gap: 20px;
 
 }
 
-.panel-header{
 
-    flex-direction:column;
+.panel-header h2 {
 
-    align-items:flex-start;
+    margin: 0;
 
-    gap:18px;
+    color: var(--coffee-primary);
+
+    font-family: "Poppins", "Inter", sans-serif;
+
+    font-size: 1.25rem;
+
+    font-weight: 700;
 
 }
 
-.panel-actions{
 
-    flex-wrap:wrap;
+.panel-header p {
+
+    margin: 5px 0 0 0;
+
+    color: var(--text-secondary);
+
+    font-size: .86rem;
+
+    line-height: 1.4;
 
 }
+
+
+/* ==========================================================
+   AÇÕES DOS PAINÉIS
+========================================================== */
+
+.panel-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+}
+
+
+.btn-panel {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    min-height: 36px;
+
+    padding: 7px 13px;
+
+    background: #ffffff;
+
+    color: var(--coffee-primary);
+
+    border: 1px solid var(--coffee-border);
+
+    border-radius: 9px;
+
+    font-size: .80rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        color .2s ease,
+        border-color .2s ease;
+
+}
+
+
+.btn-panel:hover {
+
+    background: var(--coffee-primary);
+
+    color: #ffffff;
+
+    border-color: var(--coffee-primary);
+
+}
+
+
+.btn-panel.active {
+
+    background: var(--coffee-primary);
+
+    color: #ffffff;
+
+    border-color: var(--coffee-primary);
+
+}
+
+
+/* ==========================================================
+   TABLETS
+========================================================== */
+
+@media (max-width: 1200px) {
+
+    .kpi-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+        grid-template-rows: auto !important;
+
+        gap: 20px !important;
+
+    }
+
+    .dashboard-two-columns {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .kpi-grid {
+
+        grid-template-columns:
+            minmax(0, 1fr) !important;
+
+        gap: 16px !important;
+
+    }
+
+    .section-title {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 8px;
+
+    }
+
+    .section-title h2 {
+
+        font-size: 1.45rem;
+
+    }
+
+    .panel-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+    .panel-actions {
+
+        width: 100%;
+
+    }
+
+}
+
+
+/* ==========================================================
+   SMARTPHONE
+========================================================== */
+
+@media (max-width: 576px) {
+
+    .dashboard-two-columns {
+
+        gap: 16px;
+
+    }
+
+    .panel-actions {
+
+        flex-wrap: wrap;
+
+    }
 
 }

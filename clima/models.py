@@ -193,6 +193,115 @@ class WeatherObservation(models.Model):
 
 
 # ==========================================================
+# HISTÓRICO METEOROLÓGICO DIÁRIO
+# ==========================================================
+
+class HistoricalWeatherDaily(models.Model):
+    """
+    Série histórica meteorológica diária de uma estação.
+
+    Este modelo é separado de WeatherObservation porque
+    representa dados climáticos agregados por dia, enquanto
+    WeatherObservation representa observações instantâneas.
+
+    Os dados são provenientes dos providers climáticos e
+    podem ser utilizados pelo HistoryService, ChartService
+    e demais componentes analíticos do sistema.
+    """
+
+    station = models.ForeignKey(
+        WeatherStation,
+        on_delete=models.CASCADE,
+        related_name="historical_weather",
+        verbose_name="Estação",
+    )
+
+    data = models.DateField(
+        verbose_name="Data",
+    )
+
+    temperatura_media = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        verbose_name="Temperatura média",
+    )
+
+    temperatura_minima = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        verbose_name="Temperatura mínima",
+    )
+
+    temperatura_maxima = models.DecimalField(
+        max_digits=5,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        verbose_name="Temperatura máxima",
+    )
+
+    precipitacao = models.DecimalField(
+        max_digits=8,
+        decimal_places=1,
+        default=0,
+        verbose_name="Precipitação",
+    )
+
+    criado_em = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Criado em",
+    )
+
+    atualizado_em = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Atualizado em",
+    )
+
+    class Meta:
+        verbose_name = "Histórico Meteorológico Diário"
+        verbose_name_plural = (
+            "Históricos Meteorológicos Diários"
+        )
+
+        ordering = [
+            "data",
+        ]
+
+        indexes = [
+            models.Index(
+                fields=["station"],
+            ),
+            models.Index(
+                fields=["data"],
+            ),
+            models.Index(
+                fields=[
+                    "station",
+                    "data",
+                ],
+            ),
+        ]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=[
+                    "station",
+                    "data",
+                ],
+                name="unique_station_historical_daily",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.station} - "
+            f"{self.data}"
+        )
+
+
+# ==========================================================
 # FORECAST
 # ==========================================================
 

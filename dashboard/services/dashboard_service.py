@@ -1,4 +1,5 @@
 """
+===============================================================================
 UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
 
 Curso...........: Bacharelado em Ciência de Dados
@@ -15,7 +16,8 @@ Descrição.......:
 Serviço responsável por consolidar todos os dados estruturados
 da Dashboard Principal.
 
-Versão..........: 3.3
+Versão..........: 3.4
+===============================================================================
 """
 
 from clima.models import WeatherObservation
@@ -34,7 +36,7 @@ class DashboardService:
 
     Não executa regras de negócio inteligentes.
 
-    A camada de Inteligência é responsabilidade da
+    A camada de Inteligência permanece responsabilidade da
     DashboardFacade.
     """
 
@@ -82,6 +84,24 @@ class DashboardService:
         )
 
         # ======================================================
+        # PERÍODOS DO GRÁFICO
+        #
+        # Disponibiliza separadamente:
+        #
+        #   Hoje
+        #   7 dias
+        #   30 dias
+        #   Histórico
+        #
+        # O frontend apenas alterna entre os dados
+        # já consolidados pelo ChartService.
+        # ======================================================
+
+        context["chart_periods"] = (
+            self.chart_service.get_chart_periods()
+        )
+
+        # ======================================================
         # RANKING
         # ======================================================
 
@@ -94,7 +114,9 @@ class DashboardService:
         # ======================================================
 
         context["eventos"] = (
-            self.events_service.get_events(kpis)
+            self.events_service.get_events(
+                kpis
+            )
         )
 
         # ======================================================
@@ -151,6 +173,7 @@ class DashboardService:
         """
 
         if not map_points:
+
             return []
 
         municipality_names = [
@@ -160,6 +183,7 @@ class DashboardService:
         ]
 
         if not municipality_names:
+
             return map_points
 
         observations = (
@@ -169,7 +193,9 @@ class DashboardService:
                 "station__municipio",
             )
             .filter(
-                station__municipio__nome__in=municipality_names
+                station__municipio__nome__in=(
+                    municipality_names
+                )
             )
             .order_by(
                 "station__municipio__nome",
@@ -182,10 +208,15 @@ class DashboardService:
         for observation in observations:
 
             municipality = (
-                observation.station.municipio.nome
+                observation.station
+                .municipio
+                .nome
             )
 
-            if municipality in latest_by_municipality:
+            if municipality in (
+                latest_by_municipality
+            ):
+
                 continue
 
             latest_by_municipality[
@@ -198,7 +229,9 @@ class DashboardService:
 
             enriched = dict(point)
 
-            municipality = point.get("nome")
+            municipality = point.get(
+                "nome"
+            )
 
             observation = (
                 latest_by_municipality.get(
@@ -260,8 +293,12 @@ class DashboardService:
 
                 if observation.observation_time:
 
-                    enriched["observation_time"] = (
-                        observation.observation_time.isoformat()
+                    enriched[
+                        "observation_time"
+                    ] = (
+                        observation
+                        .observation_time
+                        .isoformat()
                     )
 
             enriched_points.append(
@@ -275,16 +312,21 @@ class DashboardService:
     # ==========================================================
 
     @staticmethod
-    def _to_float(value):
+    def _to_float(
+        value,
+    ):
 
         if value is None:
+
             return None
 
         try:
+
             return float(value)
 
         except (
             TypeError,
             ValueError,
         ):
+
             return None
