@@ -68,7 +68,11 @@
 
 
     <!-- ==========================================================
-         RESUMO
+         RESUMO DO PERÍODO ATIVO
+
+         O backend fornece chart_periods.*.resumo através do
+         ChartService. O JavaScript atualiza os valores quando
+         o período é alterado.
     =========================================================== -->
 
     <div class="chart-summary">
@@ -76,14 +80,22 @@
         <div class="summary-item">
 
             <span class="summary-label">
-
                 Temperatura Média
-
             </span>
 
-            <strong>
+            <strong
+                data-summary="temperatura_media"
+            >
 
-                18°C
+                {% if chart_periods.hoje.resumo.temperatura_media is not None %}
+
+                    {{ chart_periods.hoje.resumo.temperatura_media|floatformat:1 }}°C
+
+                {% else %}
+
+                    --
+
+                {% endif %}
 
             </strong>
 
@@ -93,14 +105,22 @@
         <div class="summary-item">
 
             <span class="summary-label">
-
                 Precipitação
-
             </span>
 
-            <strong>
+            <strong
+                data-summary="precipitacao"
+            >
 
-                21 mm
+                {% if chart_periods.hoje.resumo.precipitacao is not None %}
+
+                    {{ chart_periods.hoje.resumo.precipitacao|floatformat:1 }} mm
+
+                {% else %}
+
+                    --
+
+                {% endif %}
 
             </strong>
 
@@ -110,14 +130,22 @@
         <div class="summary-item">
 
             <span class="summary-label">
-
                 Geadas
-
             </span>
 
-            <strong>
+            <strong
+                data-summary="geadas"
+            >
 
-                3
+                {% if chart_periods.hoje.resumo.geadas is not None %}
+
+                    {{ chart_periods.hoje.resumo.geadas }}
+
+                {% else %}
+
+                    --
+
+                {% endif %}
 
             </strong>
 
@@ -127,14 +155,29 @@
         <div class="summary-item">
 
             <span class="summary-label">
-
                 Tendência
-
             </span>
 
-            <strong class="text-success">
+            <strong
+                data-summary="tendencia"
+                {% if chart_periods.hoje.resumo.tendencia == "Alta" %}
+                    class="text-danger"
+                {% elif chart_periods.hoje.resumo.tendencia == "Queda" %}
+                    class="text-primary"
+                {% elif chart_periods.hoje.resumo.tendencia == "Estável" %}
+                    class="text-success"
+                {% endif %}
+            >
 
-                Estável
+                {% if chart_periods.hoje.resumo.tendencia %}
+
+                    {{ chart_periods.hoje.resumo.tendencia }}
+
+                {% else %}
+
+                    --
+
+                {% endif %}
 
             </strong>
 
@@ -176,6 +219,9 @@
 <!-- ==========================================================
      DADOS DO DASHBOARDSERVICE
      PERÍODOS DO GRÁFICO
+
+     Cada objeto contém as séries e o resumo correspondente
+     ao próprio período.
 =========================================================== -->
 
 {{ chart_periods.hoje|json_script:"chart-period-hoje" }}

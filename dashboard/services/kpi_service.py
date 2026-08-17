@@ -1,4 +1,5 @@
 """
+===============================================================================
 UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
 
 Curso...........: Bacharelado em Ciência de Dados
@@ -13,17 +14,15 @@ Ano.............: 2026
 
 Descrição.......:
 Serviço responsável por consolidar os indicadores (KPIs) exibidos no
-Dashboard Principal. Os dados são obtidos a partir do serviço
-meteorológico, processados pelo Índice AgroClima e disponibilizados para
-os componentes visuais da aplicação.
+Dashboard Principal.
 
-Tecnologias.....:
-• Python 3.14
-• Django 6.x
-• PostgreSQL
-• Open-Meteo API
+Os dados meteorológicos são obtidos pelo WeatherService através de
+WeatherDTO. O KPIService utiliza os nomes de atributos definidos pelo DTO
+e disponibiliza também os campos estruturados utilizados pela camada
+de Inteligência.
 
-Versão..........: 2.1
+Versão..........: 2.3
+===============================================================================
 """
 
 from django.utils import timezone
@@ -36,10 +35,20 @@ from municipios.models import Municipio
 class KPIService:
     """
     Serviço responsável pelo carregamento dos indicadores do Dashboard.
+
+    Responsabilidades:
+
+    - obter a observação meteorológica atual;
+    - calcular o Índice AgroClima;
+    - preparar os KPIs visuais;
+    - disponibilizar os dados estruturados para a camada de Inteligência;
+    - manter um retorno seguro quando não existem municípios.
     """
 
     def __init__(self):
+
         self.weather = WeatherService()
+
         self.iac = AgroClimaIndex()
 
     # ==========================================================
@@ -49,32 +58,111 @@ class KPIService:
     def get_kpis(self):
         """
         Obtém e consolida os indicadores climáticos.
+
+        O WeatherService retorna um WeatherDTO.
+
+        Os atributos utilizados abaixo correspondem ao contrato
+        atual do WeatherDTO:
+
+            temperature
+            humidity
+            precipitation
+            wind_speed
+            cloud_cover
+            observation_time
         """
 
         municipio = Municipio.objects.first()
 
         if municipio is None:
+
             return self._empty()
 
-        observation = self.weather.update_current_weather(
-            municipio
+        # ======================================================
+        # OBSERVAÇÃO METEOROLÓGICA ATUAL
+        # ======================================================
+
+        observation = (
+            self.weather.update_current_weather(
+                municipio
+            )
         )
 
+        # ======================================================
+        # DADOS DO WEATHERDTO
+        #
+        # IMPORTANTE:
+        # O objeto retornado pelo WeatherService é WeatherDTO.
+        #
+        # Portanto, os atributos devem utilizar os nomes definidos
+        # pelo DTO, e não os nomes dos campos do modelo
+        # WeatherObservation.
+        # ======================================================
+
+        temperature = self._to_float(
+            observation.temperature
+        )
+
+        humidity = self._to_float(
+            observation.humidity
+        )
+
+        precipitation = self._to_float(
+            observation.precipitation
+        )
+
+        wind_speed = self._to_float(
+            observation.wind_speed
+        )
+
+        cloud_cover = self._to_float(
+            observation.cloud_cover
+        )
+
+        # ======================================================
+        # ÍNDICE AGROCLIMA
+        # ======================================================
+
         indice = self.iac.calculate(
-            temperature=float(
-                observation.temperature
+
+            temperature=(
+                temperature
+                if temperature is not None
+                else 0
             ),
-            humidity=float(
-                observation.humidity
+
+            humidity=(
+                humidity
+                if humidity is not None
+                else 0
             ),
-            precipitation=float(
-                observation.precipitation
+
+            precipitation=(
+                precipitation
+                if precipitation is not None
+                else 0
             ),
+
             frost_level="low",
+
             hail_level="low",
         )
 
+        # ======================================================
+        # DATA/HORA DA ATUALIZAÇÃO
+        # ======================================================
+
         now = timezone.localtime()
+
+        analysis_date = (
+            observation.observation_time
+            if observation.observation_time is not None
+            else now
+        )
+
+        # ======================================================
+        # CONTEXTO CONSOLIDADO
+        # ======================================================
 
         return {
 
@@ -82,21 +170,44 @@ class KPIService:
             # KPIs VISUAIS
             # ==================================================
 
-            "temperatura_media": round(
-                float(observation.temperature),
-                1
+            "temperatura_media": (
+                round(
+                    temperature,
+                    1
+                )
+                if temperature is not None
+                else None
             ),
 
-            "precipitacao": round(
-                float(observation.precipitation),
-                1
+            "precipitacao": (
+                round(
+                    precipitation,
+                    1
+                )
+                if precipitation is not None
+                else None
             ),
+
+            # ==================================================
+            # GEADAS / GRANIZO
+            #
+            # Os módulos históricos correspondentes ainda não
+            # estão integrados ao KPIService.
+            # ==================================================
 
             "geadas": 0,
 
             "granizo": 0,
 
+            # ==================================================
+            # TERRITÓRIO
+            # ==================================================
+
             "municipios": Municipio.objects.count(),
+
+            # ==================================================
+            # ÍNDICE AGROCLIMA
+            # ==================================================
 
             "indice_agroclima": indice["index"],
 
@@ -104,14 +215,24 @@ class KPIService:
                 indice["classification"]
             ),
 
-            "cor_agroclima": indice["color"],
+            "cor_agroclima": (
+                indice["color"]
+            ),
 
-            "icone_agroclima": indice["icon"],
+            "icone_agroclima": (
+                indice["icon"]
+            ),
+
+            # ==================================================
+            # ATUALIZAÇÃO
+            # ==================================================
 
             "ultima_atualizacao": now,
 
             "ultima_atualizacao_str": (
-                now.strftime("%d/%m/%Y %H:%M")
+                now.strftime(
+                    "%d/%m/%Y %H:%M"
+                )
             ),
 
             # ==================================================
@@ -119,7 +240,9 @@ class KPIService:
             # ==================================================
 
             "status_dashboard": {
+
                 "status": "normal",
+
                 "mensagem": (
                     f'Condição '
                     f'{indice["classification"]}'
@@ -127,51 +250,66 @@ class KPIService:
             },
 
             # ==================================================
-            # DADOS PARA MÓDULOS DE INTELIGÊNCIA
+            # DADOS PARA A CAMADA DE INTELIGÊNCIA
             # ==================================================
 
-            "temperature": float(
-                observation.temperature
-            ),
+            "temperature": temperature,
 
-            "humidity": float(
-                observation.humidity
-            ),
+            "humidity": humidity,
 
-            "wind_speed": float(
-                observation.wind_speed
-            ),
+            "wind_speed": wind_speed,
 
-            "cloud_cover": (
-                float(observation.cloud_cover)
-                if observation.cloud_cover is not None
+            "cloud_cover": cloud_cover,
+
+            "altitude": (
+                int(municipio.altitude)
+                if municipio.altitude is not None
                 else None
             ),
 
-            "altitude": int(
-                municipio.altitude
-            ),
+            "precipitation": precipitation,
 
-            "precipitation": float(
-                observation.precipitation
-            ),
-
-            "analysis_date": (
-                observation.observation_time
-                if observation.observation_time is not None
-                else now
-            ),
+            "analysis_date": analysis_date,
 
             # Histórico observado de geadas ainda não está
             # disponível no modelo atual.
+
             "historical_frost": None,
 
             # ==================================================
-            # AGROCLIMA INDEX
+            # ÍNDICE AGROCLIMA
             # ==================================================
 
             "scores": indice["scores"],
         }
+
+    # ==========================================================
+    # CONVERSÃO NUMÉRICA
+    # ==========================================================
+
+    @staticmethod
+    def _to_float(value):
+        """
+        Converte um valor para float de maneira segura.
+
+        Retorna None quando o valor não existe ou não pode ser
+        convertido.
+        """
+
+        if value is None:
+
+            return None
+
+        try:
+
+            return float(value)
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+
+            return None
 
     # ==========================================================
     # RETORNO PADRÃO
@@ -200,29 +338,47 @@ class KPIService:
 
             "municipios": 0,
 
+            # ==================================================
+            # ÍNDICE AGROCLIMA
+            # ==================================================
+
             "indice_agroclima": "--",
 
             "classificacao_agroclima": "--",
 
             "cor_agroclima": "#999999",
 
-            "icone_agroclima": "bi-dash-circle",
+            "icone_agroclima": (
+                "bi-dash-circle"
+            ),
+
+            # ==================================================
+            # ATUALIZAÇÃO
+            # ==================================================
 
             "ultima_atualizacao": now,
 
             "ultima_atualizacao_str": (
-                now.strftime("%d/%m/%Y %H:%M")
+                now.strftime(
+                    "%d/%m/%Y %H:%M"
+                )
             ),
 
+            # ==================================================
+            # STATUS
+            # ==================================================
+
             "status_dashboard": {
+
                 "status": "offline",
+
                 "mensagem": (
                     "Nenhum município cadastrado."
                 ),
             },
 
             # ==================================================
-            # Inteligência
+            # INTELIGÊNCIA
             # ==================================================
 
             "temperature": None,
@@ -242,7 +398,7 @@ class KPIService:
             "historical_frost": None,
 
             # ==================================================
-            # Índice AgroClima
+            # ÍNDICE AGROCLIMA
             # ==================================================
 
             "scores": {},

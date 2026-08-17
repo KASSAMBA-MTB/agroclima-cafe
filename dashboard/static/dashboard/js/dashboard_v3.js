@@ -2298,33 +2298,75 @@ const ChartController = {
            dados; nenhuma regra climática é calculada aqui.
         ================================================== */
 
+        /*
+         * O template V3 publica CADA PERÍODO em um único json_script:
+         *
+         *   chart-period-hoje
+         *   chart-period-7-dias
+         *   chart-period-30-dias
+         *   chart-period-historico
+         *
+         * Portanto, não devemos procurar IDs derivados como
+         * "-temperatura" ou "-precipitacao". Esses elementos não existem
+         * no template atual.
+         *
+         * O objeto retornado por readPeriod() já contém:
+         *   dias
+         *   temperatura
+         *   precipitacao
+         */
+
+        const hoje =
+            this.readPeriod(
+                "chart-period-hoje"
+            );
+
+        const seteDias =
+            this.readPeriod(
+                "chart-period-7-dias"
+            );
+
+        const trintaDias =
+            this.readPeriod(
+                "chart-period-30-dias"
+            );
+
+        const historico =
+            this.readPeriod(
+                "chart-period-historico"
+            );
+
         this.periods = {
 
-            hoje: this.readPeriod(
-                "chart-period-hoje-dias",
-                "chart-period-hoje-temperatura",
-                "chart-period-hoje-precipitacao"
-            ),
+            hoje:
+                hoje,
 
-            "7": this.readPeriod(
-                "chart-period-7-dias",
-                "chart-period-7-temperatura",
-                "chart-period-7-precipitacao"
-            ),
+            "7":
+                seteDias,
 
-            "30": this.readPeriod(
-                "chart-period-30-dias",
-                "chart-period-30-temperatura",
-                "chart-period-30-precipitacao"
-            ),
+            "7_dias":
+                seteDias,
 
-            historico: this.readPeriod(
-                "chart-period-historico-dias",
-                "chart-period-historico-temperatura",
-                "chart-period-historico-precipitacao"
-            )
+            "30":
+                trintaDias,
+
+            "30_dias":
+                trintaDias,
+
+            historico:
+                historico
 
         };
+
+        console.info(
+            "[AGROCLIMA] Períodos carregados:",
+            {
+                hoje: this.periods.hoje.dias.length,
+                "7_dias": this.periods["7_dias"].dias.length,
+                "30_dias": this.periods["30_dias"].dias.length,
+                historico: this.periods.historico.dias.length
+            }
+        );
 
 
         /* ==================================================
@@ -2365,17 +2407,26 @@ const ChartController = {
         let initialKey = "hoje";
 
 
-        if (!this.periods[initialKey].dias.length) {
+        if (
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
+        ) {
             initialKey = "7";
         }
 
 
-        if (!this.periods[initialKey].dias.length) {
+        if (
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
+        ) {
             initialKey = "30";
         }
 
 
-        if (!this.periods[initialKey].dias.length) {
+        if (
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
+        ) {
             initialKey = "historico";
         }
 
@@ -2405,6 +2456,14 @@ const ChartController = {
             initialPeriod.precipitacao
         );
 
+        /*
+         * Sincroniza o resumo com o mesmo período apresentado
+         * pelo gráfico.
+         */
+        this.updatePeriodSummary(
+            initialPeriod
+        );
+
 
         this.bindPeriodButtons();
 
@@ -2425,30 +2484,92 @@ const ChartController = {
 
     readPeriod(
         daysId,
-        temperatureId,
-        precipitationId
+        temperatureId = null,
+        precipitationId = null
     ) {
+
+        /* ==================================================
+           FORMATO V3 ATUAL
+
+           O template publica um único json_script por período:
+
+               {
+                   dias: [...],
+                   temperatura: [...],
+                   precipitacao: [...]
+               }
+
+           O controlador consome esse objeto diretamente.
+
+           Nenhuma série é criada, completada ou alterada.
+        ================================================== */
+
+        const bundled =
+            this.readJsonValue(
+                daysId
+            );
+
+        if (
+            bundled &&
+            typeof bundled === "object" &&
+            !Array.isArray(bundled)
+        ) {
+
+            return {
+
+                dias:
+                    Array.isArray(bundled.dias)
+                        ? bundled.dias
+                        : [],
+
+                temperatura:
+                    Array.isArray(bundled.temperatura)
+                        ? bundled.temperatura
+                        : [],
+
+                precipitacao:
+                    Array.isArray(bundled.precipitacao)
+                        ? bundled.precipitacao
+                        : []
+
+            };
+
+        }
+
+        /* ==================================================
+           FORMATO LEGADO
+
+           Mantido apenas para compatibilidade com versões
+           anteriores do template.
+        ================================================== */
 
         return {
 
-            dias: this.readJson(
-                daysId
-            ),
+            dias:
+                Array.isArray(bundled)
+                    ? bundled
+                    : [],
 
-            temperatura: this.readJson(
+            temperatura:
                 temperatureId
-            ),
+                    ? this.readJson(
+                        temperatureId
+                    )
+                    : [],
 
-            precipitacao: this.readJson(
+            precipitacao:
                 precipitationId
-            )
+                    ? this.readJson(
+                        precipitationId
+                    )
+                    : []
 
         };
 
     },
 
 
-    readJson(id) {
+    readJsonValue(id) {
 
         const element =
             document.getElementById(id);
@@ -2456,23 +2577,16 @@ const ChartController = {
 
         if (!element) {
 
-            return [];
+            return null;
 
         }
 
 
         try {
 
-            const value =
-                JSON.parse(
-                    element.textContent
-                );
-
-
-            return Array.isArray(value)
-                ? value
-                : [];
-
+            return JSON.parse(
+                element.textContent
+            );
 
         } catch (error) {
 
@@ -2482,9 +2596,23 @@ const ChartController = {
             );
 
 
-            return [];
+            return null;
 
         }
+
+    },
+
+
+    readJson(id) {
+
+        const value = this.readJsonValue(
+            id
+        );
+
+
+        return Array.isArray(value)
+            ? value
+            : [];
 
     },
 
@@ -2603,6 +2731,17 @@ const ChartController = {
                 safeTemperature
             );
 
+        console.info(
+            "[AGROCLIMA] Dataset final enviado ao Chart.js:",
+            {
+                labels: labels,
+                temperatura: safeTemperature,
+                precipitacao: safePrecipitation
+            }
+        );
+
+
+
 
         const context =
             canvas.getContext("2d");
@@ -2717,19 +2856,25 @@ const ChartController = {
                                     "rgba(79,163,209,0.10)",
 
                                 borderWidth:
-                                    1.6,
+                                    1.8,
 
                                 pointRadius:
-                                    1.5,
+                                    2,
+
+                                pointHoverRadius:
+                                    4,
+
+                                pointBackgroundColor:
+                                    "#4FA3D1",
+
+                                pointBorderColor:
+                                    "#4FA3D1",
 
                                 tension:
-                                    0.25,
+                                    0.2,
 
                                 fill:
                                     false,
-
-                                hidden:
-                                    true,
 
                                 yAxisID:
                                     "precipitation"
@@ -3024,7 +3169,6 @@ const ChartController = {
                                 beginAtZero:
                                     true,
 
-
                                 grid: {
 
                                     drawOnChartArea:
@@ -3035,7 +3179,6 @@ const ChartController = {
 
                                 },
 
-
                                 border: {
 
                                     display:
@@ -3043,11 +3186,30 @@ const ChartController = {
 
                                 },
 
-
                                 ticks: {
 
                                     display:
-                                        false
+                                        true,
+
+                                    color:
+                                        "#4F86A8",
+
+                                    padding:
+                                        6,
+
+                                    callback:
+                                        value =>
+                                            `${value} mm`,
+
+                                    font: {
+
+                                        family:
+                                            "Inter, sans-serif",
+
+                                        size:
+                                            10
+
+                                    }
 
                                 }
 
@@ -3063,6 +3225,211 @@ const ChartController = {
 
         window.weatherChart =
             this.chart;
+
+    },
+
+
+    /* ======================================================
+       RESUMO DO PERÍODO
+
+       Os valores de temperatura e precipitação são agregações
+       da série já fornecida pelo backend. Nenhuma regra de
+       inteligência climática é executada aqui.
+
+       Geadas e tendência permanecem preparados para receber
+       valores periodizados do backend quando esses campos forem
+       publicados no json_script.
+    ====================================================== */
+
+    updatePeriodSummary(
+        period
+    ) {
+
+        if (!period) {
+            return;
+        }
+
+        const summaryItems =
+            document.querySelectorAll(
+                ".chart-summary .summary-item"
+            );
+
+        if (!summaryItems.length) {
+            return;
+        }
+
+        const temperatures =
+            Array.isArray(period.temperatura)
+                ? period.temperatura
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
+
+        const precipitation =
+            Array.isArray(period.precipitacao)
+                ? period.precipitacao
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
+
+        /*
+         * 1 — Temperatura Média
+         */
+        if (
+            summaryItems[0] &&
+            temperatures.length
+        ) {
+
+            const average =
+                temperatures.reduce(
+                    (total, value) =>
+                        total + value,
+                    0
+                ) / temperatures.length;
+
+            const valueElement =
+                summaryItems[0].querySelector(
+                    "strong"
+                );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    `${average.toLocaleString(
+                        "pt-BR",
+                        {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }
+                    )}°C`;
+
+            }
+
+        }
+
+        /*
+         * 2 — Precipitação acumulada do período
+         */
+        if (
+            summaryItems[1] &&
+            precipitation.length
+        ) {
+
+            const total =
+                precipitation.reduce(
+                    (sum, value) =>
+                        sum + value,
+                    0
+                );
+
+            const valueElement =
+                summaryItems[1].querySelector(
+                    "strong"
+                );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    `${total.toLocaleString(
+                        "pt-BR",
+                        {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }
+                    )} mm`;
+
+            }
+
+        }
+
+        /*
+         * 3 — Geadas
+         *
+         * Se o backend futuramente publicar `geadas`
+         * dentro de cada período, o card será atualizado
+         * automaticamente. Enquanto esse campo não existir,
+         * preservamos o valor atual do Dashboard.
+         */
+        if (
+            summaryItems[2] &&
+            Number.isFinite(
+                Number(period.geadas)
+            )
+        ) {
+
+            const valueElement =
+                summaryItems[2].querySelector(
+                    "strong"
+                );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    String(
+                        period.geadas
+                    );
+
+            }
+
+        }
+
+        /*
+         * 4 — Tendência
+         *
+         * A tendência é uma informação analítica e deve ser
+         * fornecida pelo backend/camada de inteligência.
+         * O JavaScript apenas apresenta o valor quando ele
+         * estiver disponível no período.
+         */
+        if (
+            summaryItems[3] &&
+            period.tendencia
+        ) {
+
+            const valueElement =
+                summaryItems[3].querySelector(
+                    "strong"
+                );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    String(
+                        period.tendencia
+                    );
+
+            }
+
+        }
+
+        console.info(
+            "[AGROCLIMA] Resumo do período atualizado:",
+            {
+                temperatura_media:
+                    temperatures.length
+                        ? temperatures.reduce(
+                            (total, value) =>
+                                total + value,
+                            0
+                        ) / temperatures.length
+                        : null,
+
+                precipitacao:
+                    precipitation.length
+                        ? precipitation.reduce(
+                            (sum, value) =>
+                                sum + value,
+                            0
+                        )
+                        : null,
+
+                geadas:
+                    period.geadas ?? null,
+
+                tendencia:
+                    period.tendencia ?? null
+            }
+        );
 
     },
 
@@ -3139,6 +3506,7 @@ const ChartController = {
                          */
                         if (
                             !data ||
+                            !Array.isArray(data.dias) ||
                             !data.dias.length
                         ) {
 
@@ -3165,11 +3533,30 @@ const ChartController = {
                         }
 
 
+                        console.info(
+                            "[AGROCLIMA] Dados do período antes do gráfico:",
+                            period,
+                            {
+                                dias: data.dias,
+                                temperatura: data.temperatura,
+                                precipitacao: data.precipitacao
+                            }
+                        );
+
+
                         this.createChart(
                             canvas,
                             data.dias,
                             data.temperatura,
                             data.precipitacao
+                        );
+
+                        /*
+                         * Mantém os cards-resumo sincronizados
+                         * com o período efetivamente selecionado.
+                         */
+                        this.updatePeriodSummary(
+                            data
                         );
 
 
