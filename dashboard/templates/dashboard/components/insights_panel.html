@@ -18,7 +18,8 @@
 
             <p>
 
-                Informações geradas automaticamente a partir dos indicadores climáticos.
+                Informações geradas automaticamente pelo
+                mecanismo inteligente AgroClima Café.
 
             </p>
 
@@ -36,9 +37,9 @@
 
             {% for insight in insights %}
 
-                <div class="insight {{ insight.level|default:'info' }}">
+                <div class="insight {{ insight.color }}">
 
-                    <i class="bi {{ insight.icon|default:'bi-info-circle-fill' }}"></i>
+                    <i class="bi {{ insight.icon }}"></i>
 
                     <div class="insight-content">
 
@@ -50,9 +51,21 @@
 
                         <p>
 
-                            {{ insight.message }}
+                            {{ insight.description }}
 
                         </p>
+
+                        <small>
+
+                            FRI:
+                            <strong>{{ insight.score }}</strong>
+
+                            &nbsp;|&nbsp;
+
+                            Confiança:
+                            <strong>{{ insight.confidence }}</strong>
+
+                        </small>
 
                     </div>
 
@@ -62,87 +75,22 @@
 
         {% else %}
 
-            <div class="insight success">
+            <div class="insight secondary">
 
-                <i class="bi bi-check-circle-fill"></i>
-
-                <div class="insight-content">
-
-                    <strong>
-
-                        Florada
-
-                    </strong>
-
-                    <p>
-
-                        Temperaturas ideais para o desenvolvimento da florada.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="insight warning">
-
-                <i class="bi bi-exclamation-triangle-fill"></i>
+                <i class="bi bi-info-circle-fill"></i>
 
                 <div class="insight-content">
 
                     <strong>
 
-                        Alerta de Geada
+                        Nenhum Insight Disponível
 
                     </strong>
 
                     <p>
 
-                        Possibilidade de geadas em regiões acima de 1.200 metros.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="insight info">
-
-                <i class="bi bi-cloud-rain-heavy-fill"></i>
-
-                <div class="insight-content">
-
-                    <strong>
-
-                        Precipitação
-
-                    </strong>
-
-                    <p>
-
-                        Precipitação prevista para as próximas 48 horas.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-            <div class="insight primary">
-
-                <i class="bi bi-bar-chart-fill"></i>
-
-                <div class="insight-content">
-
-                    <strong>
-
-                        Índice AgroClima
-
-                    </strong>
-
-                    <p>
-
-                        Índice AgroClima permanece acima da média regional.
+                        A plataforma ainda não possui dados
+                        suficientes para gerar análises.
 
                     </p>
 
@@ -164,7 +112,8 @@
 
             <i class="bi bi-cpu"></i>
 
-            Insights gerados automaticamente pelo mecanismo analítico da plataforma.
+            Inteligência gerada automaticamente pelo
+            Frost Risk Index (FRI).
 
         </small>
 

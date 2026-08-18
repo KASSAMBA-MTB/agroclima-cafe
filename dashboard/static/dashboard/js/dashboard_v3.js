@@ -251,6 +251,38 @@ const MapController = {
 
 
     /* ======================================================
+       ESTILOS DAS CAMADAS CLIMÁTICAS
+
+       Os limites são usados apenas para representação
+       operacional dos dados atuais recebidos pelo backend.
+       Nenhuma inteligência agroclimática é criada aqui.
+    ====================================================== */
+
+    temperatureStyles: {
+
+        veryCold: { color: "#355c7d", weight: 2.0, opacity: 0.90, fillColor: "#dbeafe", fillOpacity: 0.52 },
+        cold: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#e6f2f8", fillOpacity: 0.50 },
+        favorable: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#e8f5ec", fillOpacity: 0.52 },
+        warm: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#fff4d6", fillOpacity: 0.50 },
+        hot: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#fff0e5", fillOpacity: 0.52 },
+        unavailable: { color: "#777777", weight: 1.6, opacity: 0.80, fillColor: "#f0f0f0", fillOpacity: 0.35 }
+
+    },
+
+
+    precipitationStyles: {
+
+        none: { color: "#777777", weight: 1.6, opacity: 0.80, fillColor: "#f0f0f0", fillOpacity: 0.35 },
+        low: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#e6f2f8", fillOpacity: 0.50 },
+        moderate: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#e8f5ec", fillOpacity: 0.52 },
+        high: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#fff4d6", fillOpacity: 0.50 },
+        veryHigh: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#fff0e5", fillOpacity: 0.52 },
+        extreme: { color: "#a52f2f", weight: 2.2, opacity: 0.95, fillColor: "#fde7e7", fillOpacity: 0.55 }
+
+    },
+
+
+    /* ======================================================
        INICIALIZAÇÃO
     ====================================================== */
 
@@ -357,6 +389,7 @@ const MapController = {
 
 
         this.bindLayerButtons();
+        this.updateLegend();
 
 
         this.loadPoints();
@@ -1032,6 +1065,112 @@ const MapController = {
 
 
     /* ======================================================
+       CLASSIFICAÇÃO OPERACIONAL DE TEMPERATURA
+    ====================================================== */
+
+    getTemperatureClass(value) {
+
+        const temperature = Number(value);
+
+        if (!Number.isFinite(temperature)) {
+            return "unavailable";
+        }
+
+        if (temperature <= 1) {
+            return "veryCold";
+        }
+
+        if (temperature < 12) {
+            return "cold";
+        }
+
+        if (temperature < 18) {
+            return "cold";
+        }
+
+        if (temperature <= 22) {
+            return "favorable";
+        }
+
+        if (temperature <= 28) {
+            return "warm";
+        }
+
+        return "hot";
+
+    },
+
+
+    getTemperatureLabel(value) {
+
+        const labels = {
+            veryCold: "Muito fria",
+            cold: "Fria",
+            favorable: "Faixa favorável",
+            warm: "Quente",
+            hot: "Muito quente",
+            unavailable: "Sem dado"
+        };
+
+        return labels[this.getTemperatureClass(value)] || labels.unavailable;
+
+    },
+
+
+    /* ======================================================
+       CLASSIFICAÇÃO OPERACIONAL DE PRECIPITAÇÃO 24H
+    ====================================================== */
+
+    getPrecipitationClass(value) {
+
+        const precipitation = Number(value);
+
+        if (!Number.isFinite(precipitation)) {
+            return "none";
+        }
+
+        if (precipitation <= 0) {
+            return "none";
+        }
+
+        if (precipitation <= 5) {
+            return "low";
+        }
+
+        if (precipitation <= 20) {
+            return "moderate";
+        }
+
+        if (precipitation <= 50) {
+            return "high";
+        }
+
+        if (precipitation <= 80) {
+            return "veryHigh";
+        }
+
+        return "extreme";
+
+    },
+
+
+    getPrecipitationLabel(value) {
+
+        const labels = {
+            none: "Sem chuva",
+            low: "Chuva baixa",
+            moderate: "Chuva moderada",
+            high: "Chuva alta",
+            veryHigh: "Chuva muito alta",
+            extreme: "Chuva extrema"
+        };
+
+        return labels[this.getPrecipitationClass(value)] || "Sem dado";
+
+    },
+
+
+    /* ======================================================
        ESTILO TERRITORIAL
     ====================================================== */
 
@@ -1067,6 +1206,54 @@ const MapController = {
                     severity
                 ] ||
                 this.frostStyles.none
+            );
+
+        }
+
+
+        /* ==================================================
+           CAMADA TEMPERATURA
+        ================================================== */
+
+        if (
+            this.activeLayer ===
+            "temperatura"
+        ) {
+
+            const classification =
+                this.getTemperatureClass(
+                    point && point.temperature
+                );
+
+            return (
+                this.temperatureStyles[
+                    classification
+                ] ||
+                this.temperatureStyles.unavailable
+            );
+
+        }
+
+
+        /* ==================================================
+           CAMADA PRECIPITAÇÃO
+        ================================================== */
+
+        if (
+            this.activeLayer ===
+            "precipitacao"
+        ) {
+
+            const classification =
+                this.getPrecipitationClass(
+                    point && point.precipitation
+                );
+
+            return (
+                this.precipitationStyles[
+                    classification
+                ] ||
+                this.precipitationStyles.none
             );
 
         }
@@ -1291,6 +1478,143 @@ const MapController = {
 
 
     /* ======================================================
+       ATUALIZAR POPUPS CONFORME A CAMADA ATIVA
+    ====================================================== */
+
+    refreshMapPopups() {
+
+        if (
+            this.markerLayer
+        ) {
+
+            this.markerLayer.eachLayer(
+                marker => {
+
+                    if (
+                        marker.__agroclimaPoint
+                    ) {
+
+                        marker.setPopupContent(
+                            this.buildPopup(
+                                marker.__agroclimaPoint
+                            )
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        if (
+            this.territoryLayer
+        ) {
+
+            this.territoryLayer.eachLayer(
+                layer => {
+
+                    const feature =
+                        layer.feature;
+
+                    const point =
+                        this.getPointForTerritoryFeature(
+                            feature
+                        );
+
+                    const name =
+                        this.getTerritoryName(
+                            feature
+                        ) || "Município";
+
+                    const uf =
+                        this.getTerritoryUf(
+                            feature
+                        );
+
+                    layer.setPopupContent(
+                        this.buildTerritoryPopup(
+                            name,
+                            uf,
+                            point
+                        )
+                    );
+
+                }
+            );
+
+        }
+
+    },
+
+
+    /* ======================================================
+       LEGENDA DINÂMICA DO MAPA
+    ====================================================== */
+
+    updateLegend() {
+
+        const container =
+            document.querySelector(
+                ".map-legend .legend-items"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        const legends = {
+
+            municipios: [
+                ["#287a40", "Município monitorado"]
+            ],
+
+            geadas: [
+                ["#287a40", "Baixo"],
+                ["#9a6a00", "Moderado"],
+                ["#a94c17", "Alto"],
+                ["#a52f2f", "Crítico"],
+                ["#777777", "Sem risco"]
+            ],
+
+            temperatura: [
+                ["#4f86a8", "Fria"],
+                ["#287a40", "Faixa favorável"],
+                ["#9a6a00", "Quente"],
+                ["#a94c17", "Muito quente"]
+            ],
+
+            precipitacao: [
+                ["#777777", "Sem chuva"],
+                ["#4f86a8", "Baixa"],
+                ["#287a40", "Moderada"],
+                ["#9a6a00", "Alta"],
+                ["#a52f2f", "Muito alta"]
+            ]
+
+        };
+
+        const items =
+            legends[this.activeLayer] ||
+            legends.municipios;
+
+        container.innerHTML =
+            items
+                .map(
+                    ([color, label]) => `
+                        <span class="legend-item">
+                            <i class="legend-dot" style="background:${color};"></i>
+                            ${label}
+                        </span>
+                    `
+                )
+                .join("");
+
+    },
+
+
+    /* ======================================================
        OCULTAR LOADING
     ====================================================== */
 
@@ -1442,6 +1766,8 @@ const MapController = {
                         }
                     );
 
+
+                marker.__agroclimaPoint = point;
 
                 marker.bindPopup(
                     this.buildPopup(
@@ -1715,6 +2041,9 @@ const MapController = {
                 </div>
 
 
+                ${this.buildLayerIndicator(point)}
+
+
                 <span
                     class="agroclima-popup-risk"
                     style="
@@ -1725,6 +2054,65 @@ const MapController = {
                     ${severityLabel}
                 </span>
 
+            </div>
+        `;
+
+    },
+
+
+    /* ======================================================
+       INDICADOR DA CAMADA ATIVA NO POPUP
+    ====================================================== */
+
+    buildLayerIndicator(point) {
+
+        if (!point) {
+            return "";
+        }
+
+        let label = "Condição atual";
+        let value = "--";
+        let status = "";
+
+        if (this.activeLayer === "geadas") {
+
+            label = "Geada";
+            value = point.frost ? "Ocorrência identificada" : "Sem ocorrência";
+            status = point.frost_occurrences !== null && point.frost_occurrences !== undefined
+                ? `${point.frost_occurrences} ocorrência(s)`
+                : "";
+
+        } else if (this.activeLayer === "temperatura") {
+
+            label = "Temperatura";
+            value = Number.isFinite(Number(point.temperature))
+                ? `${Number(point.temperature).toFixed(1)} °C`
+                : "Sem dado";
+            status = this.getTemperatureLabel(point.temperature);
+
+        } else if (this.activeLayer === "precipitacao") {
+
+            label = "Precipitação 24h";
+            value = Number.isFinite(Number(point.precipitation))
+                ? `${Number(point.precipitation).toFixed(1)} mm`
+                : "Sem dado";
+            status = this.getPrecipitationLabel(point.precipitation);
+
+        } else {
+
+            label = "Monitoramento";
+            value = "Dados agroclimáticos disponíveis";
+            status = point.intelligence_available === false
+                ? "Inteligência indisponível"
+                : "Dados atualizados";
+
+        }
+
+        return `
+            <div class="agroclima-popup-item" style="margin-top:8px;">
+                <span class="agroclima-popup-label">${this.escapeHtml(label)}</span>
+                <span class="agroclima-popup-value">${this.escapeHtml(value)}</span>
+                <span class="agroclima-popup-label">${this.escapeHtml(status)}</span>
             </div>
         `;
 
@@ -1872,7 +2260,7 @@ const MapController = {
                 "CRÍTICO",
 
             none:
-                "SEM CLASSIFICAÇÃO"
+                "SEM RISCO"
 
         };
 
@@ -2066,7 +2454,8 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
-
+            this.refreshMapPopups();
+            this.updateLegend();
 
             return;
 
@@ -2094,7 +2483,8 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
-
+            this.refreshMapPopups();
+            this.updateLegend();
 
             return;
 
@@ -2110,16 +2500,11 @@ const MapController = {
             "temperatura"
         ) {
 
-            console.info(
-                "[AGROCLIMA] Camada de temperatura aguardando indicador climático municipal."
-            );
-
-
             this.markerLayer.eachLayer(
                 marker => {
 
                     marker.setOpacity(
-                        0.45
+                        1
                     );
 
                 }
@@ -2127,7 +2512,8 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
-
+            this.refreshMapPopups();
+            this.updateLegend();
 
             return;
 
@@ -2143,16 +2529,11 @@ const MapController = {
             "precipitacao"
         ) {
 
-            console.info(
-                "[AGROCLIMA] Camada de precipitação aguardando indicador climático municipal."
-            );
-
-
             this.markerLayer.eachLayer(
                 marker => {
 
                     marker.setOpacity(
-                        0.45
+                        1
                     );
 
                 }
@@ -2160,7 +2541,8 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
-
+            this.refreshMapPopups();
+            this.updateLegend();
 
             return;
 
@@ -2496,7 +2878,13 @@ const ChartController = {
                {
                    dias: [...],
                    temperatura: [...],
-                   precipitacao: [...]
+                   precipitacao: [...],
+                   resumo: {
+                       temperatura_media: ...,
+                       precipitacao: ...,
+                       geadas: ...,
+                       tendencia: ...
+                   }
                }
 
            O controlador consome esse objeto diretamente.
@@ -2530,7 +2918,14 @@ const ChartController = {
                 precipitacao:
                     Array.isArray(bundled.precipitacao)
                         ? bundled.precipitacao
-                        : []
+                        : [],
+
+                resumo:
+                    bundled.resumo &&
+                    typeof bundled.resumo === "object" &&
+                    !Array.isArray(bundled.resumo)
+                        ? bundled.resumo
+                        : {}
 
             };
 
@@ -2562,7 +2957,9 @@ const ChartController = {
                     ? this.readJson(
                         precipitationId
                     )
-                    : []
+                    : [],
+
+            resumo: {}
 
         };
 
@@ -3232,13 +3629,16 @@ const ChartController = {
     /* ======================================================
        RESUMO DO PERÍODO
 
-       Os valores de temperatura e precipitação são agregações
-       da série já fornecida pelo backend. Nenhuma regra de
-       inteligência climática é executada aqui.
+       O resumo é fornecido pelo backend dentro de cada
+       período do DashboardService/ChartService.
 
-       Geadas e tendência permanecem preparados para receber
-       valores periodizados do backend quando esses campos forem
-       publicados no json_script.
+       O JavaScript apenas apresenta os valores recebidos.
+       Não recalcula geadas ou tendência e não cria valores
+       estáticos no frontend.
+
+       Como fallback de compatibilidade, temperatura e
+       precipitação podem ser calculadas a partir das séries
+       quando o campo correspondente do resumo não existir.
     ====================================================== */
 
     updatePeriodSummary(
@@ -3258,6 +3658,12 @@ const ChartController = {
             return;
         }
 
+        const summary =
+            period.resumo &&
+            typeof period.resumo === "object"
+                ? period.resumo
+                : {};
+
         const temperatures =
             Array.isArray(period.temperatura)
                 ? period.temperatura
@@ -3273,19 +3679,35 @@ const ChartController = {
                 : [];
 
         /*
-         * 1 — Temperatura Média
+         * ==================================================
+         * 1 — TEMPERATURA MÉDIA
+         *
+         * Prioridade absoluta para o valor consolidado pelo
+         * backend. O cálculo da série é somente fallback.
+         * ==================================================
          */
+
+        let temperatureAverage =
+            Number(summary.temperatura_media);
+
         if (
-            summaryItems[0] &&
-            temperatures.length
+            !Number.isFinite(
+                temperatureAverage
+            )
         ) {
 
-            const average =
-                temperatures.reduce(
-                    (total, value) =>
-                        total + value,
-                    0
-                ) / temperatures.length;
+            temperatureAverage =
+                temperatures.length
+                    ? temperatures.reduce(
+                        (total, value) =>
+                            total + value,
+                        0
+                    ) / temperatures.length
+                    : null;
+
+        }
+
+        if (summaryItems[0]) {
 
             const valueElement =
                 summaryItems[0].querySelector(
@@ -3295,32 +3717,52 @@ const ChartController = {
             if (valueElement) {
 
                 valueElement.textContent =
-                    `${average.toLocaleString(
-                        "pt-BR",
-                        {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
-                        }
-                    )}°C`;
+                    Number.isFinite(
+                        temperatureAverage
+                    )
+                        ? `${temperatureAverage.toLocaleString(
+                            "pt-BR",
+                            {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1
+                            }
+                        )}°C`
+                        : "--";
 
             }
 
         }
 
         /*
-         * 2 — Precipitação acumulada do período
+         * ==================================================
+         * 2 — PRECIPITAÇÃO ACUMULADA
+         *
+         * Prioridade absoluta para o valor consolidado pelo
+         * backend. O cálculo da série é somente fallback.
+         * ==================================================
          */
+
+        let precipitationTotal =
+            Number(summary.precipitacao);
+
         if (
-            summaryItems[1] &&
-            precipitation.length
+            !Number.isFinite(
+                precipitationTotal
+            )
         ) {
 
-            const total =
-                precipitation.reduce(
-                    (sum, value) =>
-                        sum + value,
-                    0
-                );
+            precipitationTotal =
+                precipitation.length
+                    ? precipitation.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    )
+                    : null;
+
+        }
+
+        if (summaryItems[1]) {
 
             const valueElement =
                 summaryItems[1].querySelector(
@@ -3330,32 +3772,37 @@ const ChartController = {
             if (valueElement) {
 
                 valueElement.textContent =
-                    `${total.toLocaleString(
-                        "pt-BR",
-                        {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
-                        }
-                    )} mm`;
+                    Number.isFinite(
+                        precipitationTotal
+                    )
+                        ? `${precipitationTotal.toLocaleString(
+                            "pt-BR",
+                            {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1
+                            }
+                        )} mm`
+                        : "--";
 
             }
 
         }
 
         /*
-         * 3 — Geadas
+         * ==================================================
+         * 3 — GEADAS
          *
-         * Se o backend futuramente publicar `geadas`
-         * dentro de cada período, o card será atualizado
-         * automaticamente. Enquanto esse campo não existir,
-         * preservamos o valor atual do Dashboard.
+         * O valor deve vir exclusivamente do resumo
+         * produzido pelo backend.
+         *
+         * Não existe valor estático ou fallback inventado.
+         * ==================================================
          */
-        if (
-            summaryItems[2] &&
-            Number.isFinite(
-                Number(period.geadas)
-            )
-        ) {
+
+        const frostValue =
+            Number(summary.geadas);
+
+        if (summaryItems[2]) {
 
             const valueElement =
                 summaryItems[2].querySelector(
@@ -3365,26 +3812,27 @@ const ChartController = {
             if (valueElement) {
 
                 valueElement.textContent =
-                    String(
-                        period.geadas
-                    );
+                    Number.isFinite(
+                        frostValue
+                    )
+                        ? String(
+                            summary.geadas
+                        )
+                        : "--";
 
             }
 
         }
 
         /*
-         * 4 — Tendência
+         * ==================================================
+         * 4 — TENDÊNCIA
          *
-         * A tendência é uma informação analítica e deve ser
-         * fornecida pelo backend/camada de inteligência.
-         * O JavaScript apenas apresenta o valor quando ele
-         * estiver disponível no período.
+         * Também é fornecida pelo backend.
+         * ==================================================
          */
-        if (
-            summaryItems[3] &&
-            period.tendencia
-        ) {
+
+        if (summaryItems[3]) {
 
             const valueElement =
                 summaryItems[3].querySelector(
@@ -3394,9 +3842,11 @@ const ChartController = {
             if (valueElement) {
 
                 valueElement.textContent =
-                    String(
-                        period.tendencia
-                    );
+                    summary.tendencia
+                        ? String(
+                            summary.tendencia
+                        )
+                        : "--";
 
             }
 
@@ -3406,30 +3856,139 @@ const ChartController = {
             "[AGROCLIMA] Resumo do período atualizado:",
             {
                 temperatura_media:
-                    temperatures.length
-                        ? temperatures.reduce(
-                            (total, value) =>
-                                total + value,
-                            0
-                        ) / temperatures.length
+                    Number.isFinite(
+                        temperatureAverage
+                    )
+                        ? temperatureAverage
                         : null,
 
                 precipitacao:
-                    precipitation.length
-                        ? precipitation.reduce(
-                            (sum, value) =>
-                                sum + value,
-                            0
-                        )
+                    Number.isFinite(
+                        precipitationTotal
+                    )
+                        ? precipitationTotal
                         : null,
 
                 geadas:
-                    period.geadas ?? null,
+                    Number.isFinite(
+                        frostValue
+                    )
+                        ? summary.geadas
+                        : null,
 
                 tendencia:
-                    period.tendencia ?? null
+                    summary.tendencia ?? null
+
             }
         );
+
+    },
+
+
+    /* ======================================================
+       RESOLVER PERÍODO DO BOTÃO
+
+       O atributo data-period é a fonte funcional preferencial.
+       A leitura do texto permanece apenas como fallback de
+       compatibilidade com o template legado.
+
+       Contrato recomendado no template:
+
+           data-period="hoje"
+           data-period="7"
+           data-period="30"
+           data-period="historico"
+
+       Dessa forma, alteração de copy, tradução ou identidade
+       visual não altera o comportamento do controlador.
+    ====================================================== */
+
+    getPeriodFromButton(
+        button
+    ) {
+
+        if (!button) {
+
+            return "7";
+
+        }
+
+
+        const dataPeriod =
+            button.dataset
+                ? button.dataset.period
+                : null;
+
+
+        if (dataPeriod) {
+
+            const normalized =
+                String(dataPeriod)
+                    .trim()
+                    .toLowerCase();
+
+            const aliases = {
+                hoje: "hoje",
+                "7": "7",
+                "7_dias": "7",
+                "7-dias": "7",
+                "30": "30",
+                "30_dias": "30",
+                "30-dias": "30",
+                historico: "historico",
+                "histórico": "historico"
+            };
+
+
+            if (aliases[normalized]) {
+
+                return aliases[normalized];
+
+            }
+
+        }
+
+
+        /*
+         * Compatibilidade com o template anterior.
+         * Este caminho será removido somente quando o template
+         * estiver definitivamente migrado para data-period.
+         */
+        const label =
+            button.textContent
+                .trim()
+                .toLowerCase();
+
+
+        if (label === "hoje") {
+
+            return "hoje";
+
+        }
+
+
+        if (label === "7 dias") {
+
+            return "7";
+
+        }
+
+
+        if (label === "30 dias") {
+
+            return "30";
+
+        }
+
+
+        if (label === "histórico" || label === "historico") {
+
+            return "historico";
+
+        }
+
+
+        return "7";
 
     },
 
@@ -3452,45 +4011,37 @@ const ChartController = {
         buttons.forEach(
             button => {
 
+                /*
+                 * Materializa o contrato funcional no DOM quando
+                 * o template ainda não fornece data-period.
+                 * Em templates novos, o valor declarado pelo HTML
+                 * é preservado.
+                 */
+                const period =
+                    this.getPeriodFromButton(
+                        button
+                    );
+
+
+                if (
+                    button.dataset &&
+                    !button.dataset.period
+                ) {
+
+                    button.dataset.period =
+                        period;
+
+                }
+
+
                 button.addEventListener(
                     "click",
                     () => {
 
-                        const label =
-                            button.textContent
-                                .trim()
-                                .toLowerCase();
-
-                        let period =
-                            "7";
-
-
-                        if (label === "hoje") {
-
-                            period = "hoje";
-
-
-                        } else if (
-                            label === "7 dias"
-                        ) {
-
-                            period = "7";
-
-
-                        } else if (
-                            label === "30 dias"
-                        ) {
-
-                            period = "30";
-
-
-                        } else if (
-                            label === "histórico"
-                        ) {
-
-                            period = "historico";
-
-                        }
+                        const period =
+                            this.getPeriodFromButton(
+                                button
+                            );
 
 
                         const data =
@@ -3618,42 +4169,10 @@ const ChartController = {
                 );
 
 
-                const label =
-                    button.textContent
-                        .trim()
-                        .toLowerCase();
-
-
-                let buttonPeriod =
-                    "7";
-
-
-                if (label === "hoje") {
-
-                    buttonPeriod = "hoje";
-
-
-                } else if (
-                    label === "7 dias"
-                ) {
-
-                    buttonPeriod = "7";
-
-
-                } else if (
-                    label === "30 dias"
-                ) {
-
-                    buttonPeriod = "30";
-
-
-                } else if (
-                    label === "histórico"
-                ) {
-
-                    buttonPeriod = "historico";
-
-                }
+                const buttonPeriod =
+                    this.getPeriodFromButton(
+                        button
+                    );
 
 
                 if (

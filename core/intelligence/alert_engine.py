@@ -10,7 +10,7 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.7
+Versão..........: 3.8
 """
 
 from datetime import datetime
@@ -19,6 +19,11 @@ from datetime import datetime
 class AlertEngine:
     """
     Converte recomendações em alertas estruturados.
+
+    Recomendações com severity="none" permanecem como
+    recomendações, mas não são tratadas como alertas.
+
+    Somente low, medium, high e critical geram alertas ativos.
     """
 
     PRIORITY = {
@@ -45,23 +50,50 @@ class AlertEngine:
         "none": "success",
     }
 
+    LABELS = {
+        "critical": "Crítico",
+        "high": "Alto",
+        "medium": "Moderado",
+        "low": "Baixo",
+        "none": "Normal",
+    }
+
+    ACTIVE_SEVERITIES = {
+        "low",
+        "medium",
+        "high",
+        "critical",
+    }
+
     # ==========================================================
     # GERAÇÃO DE ALERTAS
     # ==========================================================
 
     def generate(self, recommendations):
         """
-        Gera alertas ordenados por prioridade.
+        Gera somente alertas ativos, ordenados por prioridade.
+
+        A recomendação "none" continua disponível na camada
+        RecommendationEngine, mas não entra na coleção alerts.
         """
 
         alerts = []
 
         for recommendation in recommendations:
 
-            severity = recommendation.get(
-                "severity",
-                "none"
-            )
+            severity = str(
+                recommendation.get(
+                    "severity",
+                    "none"
+                )
+            ).lower()
+
+            # --------------------------------------------------
+            # SITUAÇÃO NORMAL NÃO É ALERTA
+            # --------------------------------------------------
+
+            if severity not in self.ACTIVE_SEVERITIES:
+                continue
 
             alerts.append(
                 {
@@ -82,6 +114,11 @@ class AlertEngine:
                     ),
 
                     "severity": severity,
+
+                    "severity_label": self.LABELS.get(
+                        severity,
+                        "Desconhecido"
+                    ),
 
                     "priority": self.PRIORITY.get(
                         severity,
@@ -113,14 +150,14 @@ class AlertEngine:
                         []
                     ),
 
-                    "active": severity != "none",
+                    "active": True,
 
                     "created_at": datetime.now(),
                 }
             )
 
         # ------------------------------------------------------
-        # Ordenação
+        # ORDENAÇÃO
         # ------------------------------------------------------
 
         alerts.sort(
@@ -131,4 +168,3 @@ class AlertEngine:
         )
 
         return alerts
-    

@@ -1,7 +1,16 @@
 """
 ==========================================================
+AgroClima Café
+
 Cache Service
 
+Gerencia o cache das respostas dos provedores climáticos.
+
+Autor:
+Walter Junio Pontes Teixeira
+
+Curso:
+Ciência de Dados - UNIVESP
 ==========================================================
 """
 
@@ -11,8 +20,17 @@ from clima.models import ClimateCache
 
 
 class CacheService:
+    """
+    Serviço responsável pelo gerenciamento do cache
+    das consultas aos provedores climáticos.
+    """
 
     def get(self, municipio, provider):
+        """
+        Retorna o cache válido para um município/provedor.
+
+        Caso o cache esteja expirado, ele é removido.
+        """
 
         try:
 
@@ -24,31 +42,28 @@ class CacheService:
 
             )
 
-            if cache.expires_at > timezone.now():
+        except ClimateCache.DoesNotExist:
 
-                return cache.payload
+            return None
+
+        if cache.expires_at <= timezone.now():
 
             cache.delete()
 
-        except ClimateCache.DoesNotExist:
+            return None
 
-            pass
-
-        return None
+        return cache.payload
 
     def save(
-
         self,
-
         municipio,
-
         provider,
-
         payload,
-
         expires_at
-
     ):
+        """
+        Cria ou atualiza o cache.
+        """
 
         ClimateCache.objects.update_or_create(
 
@@ -60,10 +75,60 @@ class CacheService:
 
                 "payload": payload,
 
+                "collected_at": timezone.now(),
+
                 "expires_at": expires_at,
 
-                "collected_at": timezone.now()
-
-            }
+            },
 
         )
+
+    def clear(self, municipio=None, provider=None):
+        """
+        Remove registros do cache.
+
+        Pode remover:
+
+        • todo o cache;
+        • apenas de um município;
+        • apenas de um provedor;
+        • município + provedor.
+        """
+
+        queryset = ClimateCache.objects.all()
+
+        if municipio is not None:
+
+            queryset = queryset.filter(
+
+                municipio=municipio
+
+            )
+
+        if provider is not None:
+
+            queryset = queryset.filter(
+
+                provider=provider
+
+            )
+
+        deleted, _ = queryset.delete()
+
+        return deleted
+
+    def cleanup_expired(self):
+        """
+        Remove automaticamente todos os registros
+        expirados do cache.
+        """
+
+        queryset = ClimateCache.objects.filter(
+
+            expires_at__lte=timezone.now()
+
+        )
+
+        deleted, _ = queryset.delete()
+
+        return deleted

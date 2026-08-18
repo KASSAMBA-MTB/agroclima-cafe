@@ -18,11 +18,16 @@ Responsabilidades:
     - suportar períodos de 7 dias;
     - suportar períodos de 30 dias;
     - suportar histórico completo disponível;
+    - identificar ocorrências históricas de geada;
     - preservar lacunas quando não existirem dados.
 
 IMPORTANTE
 ----------
 Nenhum valor histórico é inventado, replicado ou estimado.
+
+Uma ocorrência histórica de geada é identificada exclusivamente
+quando a temperatura mínima observada registrada em
+HistoricalWeatherDaily é menor ou igual a 0 °C.
 
 A camada de inteligência não pertence a este serviço.
 ==========================================================
@@ -30,7 +35,7 @@ A camada de inteligência não pertence a este serviço.
 
 from datetime import timedelta
 
-from django.db.models import Avg, Sum
+from django.db.models import Avg, Sum, Min
 from django.utils import timezone
 
 from clima.models import (
@@ -47,6 +52,8 @@ class HistoryService:
     Serviço responsável pelo acesso aos dados históricos
     meteorológicos persistidos.
     """
+
+    FROST_THRESHOLD = 0.0
 
     def __init__(self):
 
@@ -100,9 +107,6 @@ class HistoryService:
         """
         Obtém ou cria a estação meteorológica associada
         ao município.
-
-        Mantém compatibilidade com estruturas onde o campo
-        municipio da estação seja ForeignKey ou texto.
         """
 
         municipio_field = (
@@ -170,12 +174,6 @@ class HistoryService:
         """
         Monta o filtro utilizado para localizar os dados
         históricos.
-
-        municipio=None:
-            considera todas as estações ativas do provedor.
-
-        municipio informado:
-            considera somente o município solicitado.
         """
 
         filters = {
@@ -184,6 +182,7 @@ class HistoryService:
         }
 
         if municipio is None:
+
             return filters
 
         municipio_field = (
@@ -252,6 +251,9 @@ class HistoryService:
         days:
             Quantidade de dias.
 
+            1:
+                dia atual.
+
             7:
                 últimos 7 dias.
 
@@ -272,15 +274,17 @@ class HistoryService:
             "dias": [...],
             "temperatura": [...],
             "precipitacao": [...],
-            "umidade": [...]
+            "umidade": [...],
+            "geadas": 0
         }
 
-        IMPORTANTE
-        ----------
-        Quando days=None, NÃO é aplicado o padrão de 7 dias.
+        GEADAS
+        ------
+        Uma ocorrência histórica é contabilizada quando a menor
+        temperatura observada no dia é <= 0 °C.
 
-        O histórico completo é determinado diretamente pelos
-        registros persistidos em HistoricalWeatherDaily.
+        Na consolidação regional, cada data é contabilizada
+        apenas uma vez.
         """
 
         # ======================================================
@@ -356,9 +360,11 @@ class HistoryService:
                 primeiro_registro is None
                 or ultimo_registro is None
             ):
+
                 return self._empty()
 
             data_inicio = primeiro_registro
+
             data_fim = ultimo_registro
 
         else:
@@ -384,11 +390,17 @@ class HistoryService:
             )
             .values("data")
             .annotate(
+
                 temperatura_media_regiao=Avg(
                     "temperatura_media"
                 ),
+
                 precipitacao_total_regiao=Sum(
                     "precipitacao"
+                ),
+
+                temperatura_minima_regiao=Min(
+                    "temperatura_minima"
                 ),
             )
             .order_by("data")
@@ -402,9 +414,12 @@ class HistoryService:
 
         for record in historical:
 
-            data = record.get("data")
+            data = record.get(
+                "data"
+            )
 
             if data is None:
+
                 continue
 
             temperatura = (
@@ -419,17 +434,46 @@ class HistoryService:
                 )
             )
 
+            temperatura_minima = (
+                record.get(
+                    "temperatura_minima_regiao"
+                )
+            )
+
+            frost = False
+
+            if temperatura_minima is not None:
+
+                frost = (
+                    float(
+                        temperatura_minima
+                    )
+                    <= self.FROST_THRESHOLD
+                )
+
             daily_data[data] = {
+
                 "temperatura": (
                     float(temperatura)
                     if temperatura is not None
                     else None
                 ),
+
                 "precipitacao": (
                     float(precipitacao)
                     if precipitacao is not None
                     else None
                 ),
+
+                "temperatura_minima": (
+                    float(
+                        temperatura_minima
+                    )
+                    if temperatura_minima is not None
+                    else None
+                ),
+
+                "geada": frost,
             }
 
         # ======================================================
@@ -437,9 +481,14 @@ class HistoryService:
         # ======================================================
 
         dias = []
+
         temperatura = []
+
         precipitacao = []
+
         umidade = []
+
+        geadas = 0
 
         if days is None:
 
@@ -447,7 +496,7 @@ class HistoryService:
 
             while data_atual <= data_fim:
 
-                self._append_day(
+                frost = self._append_day(
                     data_atual,
                     daily_data,
                     dias,
@@ -455,6 +504,10 @@ class HistoryService:
                     precipitacao,
                     umidade,
                 )
+
+                if frost:
+
+                    geadas += 1
 
                 data_atual += timedelta(
                     days=1
@@ -471,7 +524,7 @@ class HistoryService:
                     )
                 )
 
-                self._append_day(
+                frost = self._append_day(
                     data,
                     daily_data,
                     dias,
@@ -480,15 +533,25 @@ class HistoryService:
                     umidade,
                 )
 
+                if frost:
+
+                    geadas += 1
+
         # ======================================================
         # RETORNO
         # ======================================================
 
         return {
+
             "dias": dias,
+
             "temperatura": temperatura,
+
             "precipitacao": precipitacao,
+
             "umidade": umidade,
+
+            "geadas": geadas,
         }
 
     # ==========================================================
@@ -506,6 +569,10 @@ class HistoryService:
     ):
         """
         Adiciona um dia à série mantendo lacunas como None.
+
+        Retorna:
+            True  -> ocorrência de geada;
+            False -> sem ocorrência de geada.
         """
 
         dias.append(
@@ -532,7 +599,7 @@ class HistoryService:
                 None
             )
 
-            return
+            return False
 
         temperatura.append(
             record.get(
@@ -548,8 +615,16 @@ class HistoryService:
 
         # HistoricalWeatherDaily ainda não fornece
         # umidade diária consolidada.
+
         umidade.append(
             None
+        )
+
+        return bool(
+            record.get(
+                "geada",
+                False,
+            )
         )
 
     # ==========================================================
@@ -560,8 +635,14 @@ class HistoryService:
     def _empty():
 
         return {
+
             "dias": [],
+
             "temperatura": [],
+
             "precipitacao": [],
+
             "umidade": [],
+
+            "geadas": 0,
         }

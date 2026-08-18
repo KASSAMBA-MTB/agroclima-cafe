@@ -1001,6 +1001,7 @@
 
 /* ==========================================================
    25. RANKING
+   REFACTOR VISUAL — IDENTIDADE + DIAGNÓSTICO
 ========================================================== */
 
 .ranking-list {
@@ -1018,47 +1019,281 @@
 
     display: grid;
 
+    /*
+       Estrutura visual:
+       posição | identidade do município | grupo de indicadores.
+
+       FRI, risco e confiança são agrupados semanticamente
+       em .ranking-metrics para formar uma unidade de diagnóstico.
+    */
     grid-template-columns:
-        44px minmax(0, 1fr) 70px 80px;
+        48px minmax(0, 1fr) auto;
 
     align-items: center;
 
-    gap: 12px;
+    gap: 18px;
 
-    padding: 11px 12px;
+    width: 100%;
 
-    border-radius: 10px;
+    min-width: 0;
+
+    padding: 10px 14px;
+
+    border-radius: 12px;
 
     border: 1px solid var(--border-light);
 
     background: #FFFFFF;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        transform .2s ease;
+
+}
+
+
+.ranking-item:hover {
+
+    border-color: var(--border);
+
+    box-shadow: var(--shadow-sm);
+
+    transform: translateY(-1px);
 
 }
 
 
 .ranking-position {
 
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 48px;
+
+    min-width: 48px;
+
+    height: 48px;
+
+    border-radius: 50%;
+
+    background: #18130F;
+
+    color: #FFFFFF;
+
     font-weight: 700;
 
     font-size: 15px;
 
+    line-height: 1;
+
 }
 
 
-.ranking-score {
+.ranking-city {
 
-    text-align: center;
+    min-width: 0;
+
+    overflow: hidden;
+
+}
+
+
+.ranking-city strong {
+
+    display: block;
+
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    color: var(--text-dark);
+
+    font-size: 15px;
+
+    line-height: 1.3;
 
     font-weight: 700;
 
 }
 
 
+.ranking-city span {
+
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--text-light);
+
+    font-size: 12px;
+
+    line-height: 1.2;
+
+}
+
+
+.ranking-metrics {
+
+    display: grid;
+
+    grid-template-columns:
+        78px 104px 102px;
+
+    align-items: center;
+
+    width: 284px;
+
+    min-width: 284px;
+
+    border-left: 1px solid var(--border-light);
+
+}
+
+
+.ranking-score,
+.ranking-classification,
 .ranking-trend {
 
-    text-align: right;
+    min-width: 0;
 
-    font-weight: 600;
+    min-height: 38px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 0 8px;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+}
+
+
+.ranking-score + .ranking-classification,
+.ranking-classification + .ranking-trend {
+
+    border-left: 1px solid var(--border-light);
+
+}
+
+
+.ranking-score h4 {
+
+    margin: 0;
+
+    color: var(--text-dark);
+
+    font-size: 19px;
+
+    line-height: 1.05;
+
+    font-weight: 800;
+
+}
+
+
+.ranking-score small,
+.ranking-classification-label,
+.ranking-trend-label {
+
+    display: block;
+
+    margin: 3px 0 0;
+
+    color: var(--text-light);
+
+    font-size: 10px;
+
+    line-height: 1.1;
+
+    font-weight: 700;
+
+    letter-spacing: .04em;
+
+    text-transform: uppercase;
+
+    white-space: nowrap;
+
+    text-align: center;
+
+}
+
+
+.ranking-classification .badge {
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+
+    padding: 4px 9px;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+
+    line-height: 1.1;
+
+    font-weight: 800;
+
+    letter-spacing: .03em;
+
+}
+
+
+.ranking-trend small {
+
+    margin: 3px 0 0;
+
+    color: var(--text-dark);
+
+    font-size: 13px;
+
+    line-height: 1.1;
+
+    font-weight: 700;
+
+}
+
+
+/* ----------------------------------------------------------
+   ESTADOS DOS PRIMEIROS COLOCADOS
+----------------------------------------------------------- */
+
+.ranking-item:nth-child(1) .ranking-position {
+
+    background: #18130F;
+
+}
+
+
+.ranking-item:nth-child(2) .ranking-position {
+
+    background: #18130F;
+
+}
+
+
+.ranking-item:nth-child(3) .ranking-position {
+
+    background: #18130F;
 
 }
 
@@ -1472,14 +1707,66 @@
     .ranking-item {
 
         grid-template-columns:
-            40px minmax(0, 1fr) 65px;
+            40px minmax(0, 1fr);
+
+        gap: 12px;
+
+        padding: 9px 10px;
+
+    }
+
+
+    .ranking-position {
+
+        width: 40px;
+
+        min-width: 40px;
+
+        height: 40px;
+
+        font-size: 13px;
+
+    }
+
+
+    .ranking-metrics {
+
+        grid-column: 2;
+
+        grid-template-columns:
+            70px 85px 85px;
+
+        min-width: 240px;
+
+        width: 100%;
+
+        margin-top: 2px;
+
+        border-left: none;
+
+        border-top: 1px solid var(--border-light);
+
+        padding-top: 6px;
+
+    }
+
+
+    .ranking-score,
+    .ranking-classification,
+    .ranking-trend {
+
+        min-height: 34px;
+
+        padding: 0 6px;
+
+        overflow: hidden;
 
     }
 
 
     .ranking-trend {
 
-        display: none;
+        display: flex;
 
     }
 
@@ -1552,4 +1839,603 @@
 
 /* ==========================================================
    FIM DO DASHBOARD V3
+========================================================== */
+
+
+/* ==========================================================
+   AGROCLIMA CAFÉ — ALERTAS V3.10
+   APRESENTAÇÃO SEM ALTERAR A ESTRUTURA EXISTENTE
+========================================================== */
+
+.dashboard-alerts-module {
+    width: 100%;
+    min-width: 0;
+}
+
+.dashboard-alerts-module .dashboard-panel {
+    width: 100%;
+    min-width: 0;
+}
+
+.dashboard-alerts-module .alert-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: #F8FAF8;
+}
+
+.dashboard-alerts-module .alert-summary-count {
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.dashboard-alerts-module .alert-summary-label {
+    color: var(--text-light);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.dashboard-alerts-module .alert-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 15px;
+    border-radius: 11px;
+}
+
+.dashboard-alerts-module .alert-content {
+    min-width: 0;
+}
+
+.dashboard-alerts-module .alert-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dashboard-alerts-module .alert-title-row strong {
+    color: var(--text-dark);
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.dashboard-alerts-module .alert-severity-badge {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 4px 9px;
+    border: 1px solid rgba(38, 50, 56, .10);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .75);
+    color: var(--text);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.dashboard-alerts-module .alert-message {
+    margin: 7px 0 10px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.dashboard-alerts-module .alert-metadata {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px 15px;
+    color: var(--text-light);
+    font-size: 11px;
+}
+
+.dashboard-alerts-module .alert-metadata span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dashboard-alerts-module .alert-factors {
+    margin-top: 11px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(38, 50, 56, .08);
+}
+
+.dashboard-alerts-module .alert-factors-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dashboard-alerts-module .alert-factors ul {
+    margin: 6px 0 0 17px;
+    padding: 0;
+    color: var(--text-light);
+    font-size: 11px;
+}
+
+.dashboard-alerts-module .alert-factors li {
+    margin-bottom: 3px;
+}
+
+.dashboard-alerts-module .alert-time {
+    min-width: 58px;
+    padding-top: 2px;
+    color: var(--text-light);
+    font-size: 11px;
+    text-align: right;
+}
+
+.dashboard-alerts-module .alert-time span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dashboard-alerts-module .alert-empty {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    background: #F8FAF8;
+}
+
+.dashboard-alerts-module .alert-empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 50%;
+    background: #E9F6ED;
+    color: var(--success);
+}
+
+.dashboard-alerts-module .alert-empty strong {
+    color: var(--text-dark);
+    font-size: 13px;
+}
+
+.dashboard-alerts-module .alert-empty p {
+    margin: 3px 0 0;
+    color: var(--text-light);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+@media (max-width: 768px) {
+
+    .dashboard-alerts-module .alert-card {
+        grid-template-columns: 42px minmax(0, 1fr);
+    }
+
+    .dashboard-alerts-module .alert-time {
+        grid-column: 2;
+        min-width: 0;
+        padding-top: 0;
+        text-align: left;
+    }
+
+    .dashboard-alerts-module .alert-metadata {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+/* ==========================================================
+   AGROCLIMA CAFÉ — RANKING DE RISCO DE GEADAS
+   IMPLEMENTAÇÃO FINAL DA REFERÊNCIA VISUAL APROVADA
+   BASE: dashboard_v3.css atual
+   REGRA: somente estilização; HTML/JS/dados preservados
+========================================================== */
+
+/* ---------- Painel / cabeçalho ---------- */
+
+.dashboard-panel:has(.ranking-list) .panel-header h2 {
+    color: var(--primary-dark);
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -.25px;
+}
+
+.dashboard-panel:has(.ranking-list) .panel-header p {
+    color: var(--text-light);
+    font-size: 13px;
+}
+
+.dashboard-panel:has(.ranking-list) .panel-actions {
+    gap: 8px;
+}
+
+.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel {
+    min-height: 36px;
+    padding: 7px 14px;
+    border-radius: 9px;
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel:hover,
+.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel.active {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #FFFFFF;
+}
+
+/* ---------- Lista ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 28px;
+}
+
+/* ---------- Linha / grade ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 300px;
+    align-items: center;
+    column-gap: 18px;
+    width: 100%;
+    min-width: 0;
+    min-height: 58px;
+    padding: 8px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 11px;
+    background: #FFFFFF;
+    box-sizing: border-box;
+    box-shadow: none;
+    transform: none;
+    transition:
+        border-color .18s ease,
+        box-shadow .18s ease;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:hover {
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+    transform: none;
+}
+
+/* ---------- Posição ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-position {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #18130F;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+/* Medalhas continuam sendo controladas pelo HTML/JS existente. */
+.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(1) .ranking-position,
+.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(2) .ranking-position,
+.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(3) .ranking-position {
+    background: #18130F;
+}
+
+/* ---------- Município ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-city {
+    min-width: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-city strong {
+    display: block;
+    color: var(--text-dark);
+    font-size: 14px;
+    line-height: 1.25;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-city span {
+    display: block;
+    margin-top: 3px;
+    color: var(--text-light);
+    font-size: 11px;
+    line-height: 1.15;
+}
+
+/* ---------- Área de indicadores ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-metrics {
+    display: grid;
+    grid-template-columns: 80px 110px 110px;
+    align-items: stretch;
+    width: 300px;
+    min-width: 300px;
+    min-height: 42px;
+    border-left: 1px solid var(--border-light);
+    box-sizing: border-box;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-score,
+.dashboard-panel:has(.ranking-list) .ranking-classification,
+.dashboard-panel:has(.ranking-list) .ranking-trend {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    min-height: 42px;
+    padding: 4px 12px;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-score + .ranking-classification,
+.dashboard-panel:has(.ranking-list) .ranking-classification + .ranking-trend {
+    border-left: 1px solid var(--border-light);
+}
+
+/* ---------- Cabeçalhos das colunas ----------
+   Os rótulos são posicionados acima dos dados sem alterar o HTML.
+*/
+
+.dashboard-panel:has(.ranking-list) .ranking-position,
+.dashboard-panel:has(.ranking-list) .ranking-city,
+.dashboard-panel:has(.ranking-list) .ranking-score {
+    position: relative;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before,
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before,
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before,
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before,
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
+    position: absolute;
+    top: -28px;
+    left: 0;
+    color: var(--primary-dark);
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before {
+    content: "POS.";
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before {
+    content: "MUNICÍPIO";
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before {
+    content: "FRI   ⓘ";
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before {
+    content: "RISCO";
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
+    content: "CONFIANÇA   ⓘ";
+}
+
+/* ---------- FRI ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-score small {
+    order: 0;
+    width: auto;
+    margin: 0 0 3px;
+    color: var(--text-light);
+    font-size: 0;
+    line-height: 1;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-score h4 {
+    order: 1;
+    margin: 0;
+    color: var(--primary);
+    font-size: 19px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+/* ---------- Risco ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-classification-label {
+    width: auto;
+    margin: 0 0 4px;
+    color: var(--text-light);
+    font-size: 0;
+    line-height: 1;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-classification .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 44px;
+    max-width: 100%;
+    padding: 4px 10px;
+    border-radius: 999px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    font-size: 9px;
+    line-height: 1.1;
+    font-weight: 800;
+}
+
+/* ---------- Confiança ---------- */
+
+.dashboard-panel:has(.ranking-list) .ranking-trend-label {
+    width: auto;
+    margin: 0 0 4px;
+    color: var(--text-light);
+    font-size: 0;
+    line-height: 1;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-trend small {
+    margin: 0;
+    color: var(--text-dark);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+/* Escudo visual da referência, sem alterar o conteúdo dos dados. */
+.dashboard-panel:has(.ranking-list) .ranking-trend::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    width: 16px;
+    height: 19px;
+    transform: translateY(-38%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--primary);
+    border-radius: 45% 45% 50% 50% / 35% 35% 65% 65%;
+    color: var(--primary);
+    font-size: 8px;
+    font-weight: 800;
+    box-sizing: border-box;
+}
+
+/* ---------- Rodapé ---------- */
+
+.dashboard-panel:has(.ranking-list) .panel-footer {
+    margin-top: 14px;
+    padding-top: 11px;
+    border-top-color: var(--border-light);
+    color: var(--text-light);
+    font-size: 11px;
+}
+
+/* ---------- Responsividade ---------- */
+
+@media (max-width: 768px) {
+
+    .dashboard-panel:has(.ranking-list) .ranking-list {
+        padding-top: 24px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-item {
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 12px;
+        padding: 8px 10px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-position {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        font-size: 13px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-metrics {
+        grid-column: 2;
+        grid-template-columns: 1fr 1fr 1fr;
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        margin-top: 3px;
+        border-left: none;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-score,
+    .dashboard-panel:has(.ranking-list) .ranking-classification,
+    .dashboard-panel:has(.ranking-list) .ranking-trend {
+        min-height: 42px;
+        padding: 5px 6px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before,
+    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before,
+    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before,
+    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before,
+    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
+        top: -24px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-trend::after {
+        right: 5px;
+    }
+}
+
+@media (max-width: 520px) {
+
+    .dashboard-panel:has(.ranking-list) .panel-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-panel:has(.ranking-list) .panel-actions .btn-panel {
+        width: 100%;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-list {
+        padding-top: 22px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-item {
+        grid-template-columns: 36px minmax(0, 1fr);
+        gap: 9px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-position {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        font-size: 12px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-city strong {
+        font-size: 13px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-city span {
+        font-size: 10px;
+    }
+
+    .dashboard-panel:has(.ranking-list) .ranking-metrics {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+}
+
+/* ==========================================================
+   FIM — RANKING DE RISCO DE GEADAS
 ========================================================== */

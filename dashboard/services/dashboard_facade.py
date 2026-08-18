@@ -10,7 +10,7 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.4
+Versão..........: 3.5
 """
 
 from django.utils import timezone
@@ -349,6 +349,26 @@ class DashboardFacade:
 
                 enriched["frost_factors"] = []
 
+                # Mantém o contrato territorial estável mesmo
+                # quando a Inteligência não puder processar
+                # determinado município.
+                enriched["insights"] = []
+                enriched["recommendations"] = []
+                enriched["alerts"] = []
+                enriched["explainability"] = {}
+                enriched["insight"] = {}
+                enriched["insight_title"] = None
+                enriched["insight_description"] = None
+                enriched["recommendation"] = {}
+                enriched["recommendation_title"] = None
+                enriched["recommendation_message"] = None
+                enriched["alert"] = {}
+                enriched["alert_active"] = False
+                enriched["alert_title"] = None
+                enriched["alert_message"] = None
+                enriched["alert_severity"] = None
+                enriched["alert_severity_label"] = None
+
                 enriched["intelligence_available"] = False
 
                 enriched["intelligence_error"] = (
@@ -404,6 +424,157 @@ class DashboardFacade:
                 frost.get(
                     "factors",
                     []
+                )
+            )
+
+            # ==================================================
+            # INTELIGÊNCIA MUNICIPAL COMPLETA
+            #
+            # O IntelligenceEngine já produz:
+            # - insights;
+            # - recomendações;
+            # - alertas;
+            # - explicabilidade.
+            #
+            # Estes resultados são apenas transportados para
+            # o respectivo ponto geográfico. Nenhuma regra de
+            # risco é implementada nesta camada.
+            # ==================================================
+
+            municipal_insights = result.get(
+                "insights",
+                []
+            )
+
+            municipal_recommendations = result.get(
+                "recommendations",
+                []
+            )
+
+            municipal_alerts = result.get(
+                "alerts",
+                []
+            )
+
+            municipal_explainability = result.get(
+                "explainability",
+                {}
+            )
+
+            enriched["insights"] = (
+                municipal_insights
+            )
+
+            enriched["recommendations"] = (
+                municipal_recommendations
+            )
+
+            enriched["alerts"] = (
+                municipal_alerts
+            )
+
+            enriched["explainability"] = (
+                municipal_explainability
+            )
+
+            # ==================================================
+            # INSIGHT PRINCIPAL
+            #
+            # O primeiro Insight corresponde ao resultado da
+            # regra municipal registrada atualmente.
+            # ==================================================
+
+            primary_insight = (
+                municipal_insights[0]
+                if municipal_insights
+                else {}
+            )
+
+            enriched["insight"] = (
+                primary_insight
+            )
+
+            enriched["insight_title"] = (
+                primary_insight.get(
+                    "title"
+                )
+            )
+
+            enriched["insight_description"] = (
+                primary_insight.get(
+                    "description"
+                )
+            )
+
+            # ==================================================
+            # RECOMENDAÇÃO PRINCIPAL
+            # ==================================================
+
+            primary_recommendation = (
+                municipal_recommendations[0]
+                if municipal_recommendations
+                else {}
+            )
+
+            enriched["recommendation"] = (
+                primary_recommendation
+            )
+
+            enriched["recommendation_title"] = (
+                primary_recommendation.get(
+                    "title"
+                )
+            )
+
+            enriched["recommendation_message"] = (
+                primary_recommendation.get(
+                    "recommendation"
+                )
+            )
+
+            # ==================================================
+            # ALERTA ATIVO PRINCIPAL
+            #
+            # AlertEngine não cria alerta para severity="none".
+            # Portanto, quando não houver alerta ativo, o campo
+            # permanece como dicionário vazio.
+            # ==================================================
+
+            primary_alert = (
+                municipal_alerts[0]
+                if municipal_alerts
+                else {}
+            )
+
+            enriched["alert"] = (
+                primary_alert
+            )
+
+            enriched["alert_active"] = bool(
+                primary_alert
+            )
+
+            enriched["alert_title"] = (
+                primary_alert.get(
+                    "title"
+                )
+            )
+
+            enriched["alert_message"] = (
+                primary_alert.get(
+                    "message"
+                )
+            )
+
+            enriched["alert_severity"] = (
+                primary_alert.get(
+                    "severity"
+                )
+            )
+
+            enriched["alert_severity_label"] = (
+                primary_alert.get(
+                    "severity_label"
                 )
             )
 

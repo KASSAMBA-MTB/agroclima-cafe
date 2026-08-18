@@ -16,11 +16,20 @@ Descrição.......:
 Serviço responsável por consolidar todos os dados estruturados
 da Dashboard Principal.
 
-Versão..........: 3.4
+Responsabilidades:
+    • Consolidar KPIs, gráficos, ranking, eventos e mapa.
+    • Enriquecer os pontos geográficos com dados meteorológicos.
+    • Disponibilizar ocorrências históricas reais de geada.
+    • Não executar regras de Inteligência.
+
+Versão..........: 3.5
 ===============================================================================
 """
 
-from clima.models import WeatherObservation
+from clima.models import (
+    HistoricalWeatherDaily,
+    WeatherObservation,
+)
 
 from dashboard.services.kpi_service import KPIService
 from dashboard.services.chart_service import ChartService
@@ -162,14 +171,34 @@ class DashboardService:
         map_points,
     ):
         """
-        Adiciona aos pontos geográficos os dados da última
-        observação meteorológica disponível para cada município.
+        Adiciona aos pontos geográficos os dados estruturados
+        disponíveis para cada município.
 
-        Este método fornece somente dados estruturados.
+        Dados meteorológicos:
+            • temperatura;
+            • umidade;
+            • vento;
+            • cobertura de nuvens;
+            • precipitação;
+            • horário da observação.
 
-        Não calcula FRI.
-        Não classifica risco.
-        Não executa regras de inteligência.
+        Dados históricos de geada:
+            • ocorrência;
+            • quantidade de ocorrências;
+            • última data de ocorrência;
+            • temperatura mínima da última ocorrência.
+
+        Critério objetivo para ocorrência histórica de geada:
+
+            temperatura_minima <= 0 °C
+
+        Este método NÃO:
+            • calcula FRI;
+            • classifica risco;
+            • calcula confiança;
+            • gera alertas;
+            • gera recomendações;
+            • executa regras de Inteligência.
         """
 
         if not map_points:
@@ -185,6 +214,10 @@ class DashboardService:
         if not municipality_names:
 
             return map_points
+
+        # ======================================================
+        # ÚLTIMA OBSERVAÇÃO METEOROLÓGICA
+        # ======================================================
 
         observations = (
             WeatherObservation.objects
@@ -222,6 +255,77 @@ class DashboardService:
             latest_by_municipality[
                 municipality
             ] = observation
+
+        # ======================================================
+        # HISTÓRICO REAL DE GEADAS
+        #
+        # Fonte:
+        # HistoricalWeatherDaily
+        #
+        # Somente registros persistidos são considerados.
+        # Não utiliza previsão.
+        # ======================================================
+
+        frost_records = (
+            HistoricalWeatherDaily.objects
+            .select_related(
+                "station",
+                "station__municipio",
+            )
+            .filter(
+                station__municipio__nome__in=(
+                    municipality_names
+                ),
+                temperatura_minima__isnull=False,
+                temperatura_minima__lte=0,
+            )
+            .order_by(
+                "station__municipio__nome",
+                "-data",
+            )
+        )
+
+        frost_by_municipality = {}
+
+        for record in frost_records:
+
+            municipality = (
+                record.station
+                .municipio
+                .nome
+            )
+
+            summary = frost_by_municipality.setdefault(
+                municipality,
+                {
+                    "occurrences": 0,
+                    "last_date": None,
+                    "last_minimum": None,
+                },
+            )
+
+            summary["occurrences"] += 1
+
+            # O queryset está ordenado da ocorrência mais
+            # recente para a mais antiga. Portanto, o primeiro
+            # registro representa a última ocorrência registrada.
+            if summary["last_date"] is None:
+
+                summary["last_date"] = (
+                    record.data.isoformat()
+                    if record.data
+                    else None
+                )
+
+                summary["last_minimum"] = (
+                    self._to_float(
+                        record.temperatura_minima
+                    )
+                )
+
+        # ======================================================
+        # ENRIQUECIMENTO DOS PONTOS
+        # ======================================================
 
         enriched_points = []
 
@@ -300,6 +404,42 @@ class DashboardService:
                         .observation_time
                         .isoformat()
                     )
+
+            # ==================================================
+            # GEADA HISTÓRICA REAL
+            # ==================================================
+
+            frost = frost_by_municipality.get(
+                municipality
+            )
+
+            if frost is None:
+
+                enriched["frost"] = False
+
+                enriched["frost_occurrences"] = 0
+
+                enriched["frost_last_date"] = None
+
+                enriched[
+                    "frost_temperature_minimum"
+                ] = None
+
+            else:
+
+                enriched["frost"] = True
+
+                enriched["frost_occurrences"] = (
+                    frost["occurrences"]
+                )
+
+                enriched["frost_last_date"] = (
+                    frost["last_date"]
+                )
+
+                enriched[
+                    "frost_temperature_minimum"
+                ] = frost["last_minimum"]
 
             enriched_points.append(
                 enriched

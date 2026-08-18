@@ -8,10 +8,6 @@ Projeto.........: AgroClima Café
 Módulo..........: Dashboard
 Arquivo.........: chart_service.py
 
-Autor...........: Walter Junio Pontes Teixeira
-Polo............: São João da Boa Vista - SP
-Ano.............: 2026
-
 Descrição.......:
 Serviço responsável pelo fornecimento dos dados utilizados pelos gráficos
 do Dashboard Principal.
@@ -20,10 +16,11 @@ Responsabilidades:
 - Consolidar os períodos do gráfico;
 - Preservar os dados fornecidos pelo HistoryService;
 - Preparar o resumo correspondente a cada período;
-- Não executar regras de inteligência climática;
-- Não inventar ocorrências históricas de geada.
+- Preservar ocorrências reais de geada;
+- Não inventar ocorrências históricas de geada;
+- Não executar regras de inteligência climática.
 
-Versão..........: 2.3
+Versão..........: 2.4
 ===============================================================================
 """
 
@@ -144,6 +141,11 @@ class ChartService:
 
         Além das séries utilizadas pelo gráfico, prepara um
         resumo correspondente exatamente ao período consultado.
+
+        Importante:
+        O valor de geadas fornecido pelo HistoryService é
+        preservado. O valor zero é considerado ocorrência
+        válida de "nenhuma geada", e não ausência de informação.
         """
 
         if not data:
@@ -180,10 +182,15 @@ class ChartService:
             [],
         )
 
+        geadas = data.get(
+            "geadas",
+            None,
+        )
+
         return {
 
             # ==================================================
-            # SÉRIES DO GRÁFICO
+            # SÉRIES
             # ==================================================
 
             "dias": dias,
@@ -199,18 +206,25 @@ class ChartService:
             "indice_agroclima": indice_agroclima,
 
             # ==================================================
+            # OCORRÊNCIAS DE GEADA
+            # ==================================================
+
+            "geadas": geadas,
+
+            # ==================================================
             # RESUMO DO PERÍODO
             # ==================================================
 
             "resumo": cls._build_summary(
                 temperatura=temperatura,
                 precipitacao=precipitacao,
+                geadas=geadas,
             ),
 
         }
 
     # ==========================================================
-    # RESUMO DO PERÍODO
+    # RESUMO
     # ==========================================================
 
     @classmethod
@@ -218,40 +232,33 @@ class ChartService:
         cls,
         temperatura,
         precipitacao,
+        geadas=None,
     ):
         """
         Consolida os indicadores disponíveis na série.
 
-        Temperatura:
-            média dos valores válidos do período.
+        Regras:
 
-        Precipitação:
-            acumulado dos valores válidos do período.
+        - temperatura média é calculada somente com valores reais;
+        - precipitação é acumulada somente com valores reais;
+        - geadas preserva exatamente o valor fornecido pelo
+          HistoryService;
+        - geadas=0 é um valor válido e significa que não houve
+          ocorrência de geada no período;
+        - geadas=None significa ausência de informação;
+        - tendência é derivada exclusivamente da série de
+          temperatura disponível.
 
-        Geadas:
-            permanece None enquanto o HistoryService não possuir
-            uma fonte histórica real de ocorrências de geada.
-
-        Tendência:
-            classificação descritiva baseada na série de
-            temperatura disponível.
+        Não são criadas ocorrências artificiais de geada.
         """
 
-        temperaturas_validas = (
-            cls._valid_numbers(
-                temperatura
-            )
+        temperaturas_validas = cls._valid_numbers(
+            temperatura
         )
 
-        precipitacoes_validas = (
-            cls._valid_numbers(
-                precipitacao
-            )
+        precipitacoes_validas = cls._valid_numbers(
+            precipitacao
         )
-
-        # ======================================================
-        # TEMPERATURA MÉDIA
-        # ======================================================
 
         temperatura_media = None
 
@@ -263,10 +270,6 @@ class ChartService:
                 ),
                 1,
             )
-
-        # ======================================================
-        # PRECIPITAÇÃO ACUMULADA
-        # ======================================================
 
         precipitacao_total = None
 
@@ -280,8 +283,23 @@ class ChartService:
             )
 
         # ======================================================
-        # RESUMO
+        # GEADAS
+        #
+        # Não utilizar:
+        #
+        #     geadas or None
+        #
+        # pois isso converteria 0 em None.
+        #
+        # O zero possui significado real:
+        # nenhuma ocorrência registrada no período.
         # ======================================================
+
+        geadas_resumo = None
+
+        if geadas is not None:
+
+            geadas_resumo = geadas
 
         return {
 
@@ -293,22 +311,16 @@ class ChartService:
                 precipitacao_total
             ),
 
-            # --------------------------------------------------
-            # Não inventar ocorrência histórica.
-            #
-            # O modelo histórico atual não fornece esse dado.
-            # --------------------------------------------------
+            "geadas": (
+                geadas_resumo
+            ),
 
-            "geadas": None,
+            # ==================================================
+            # TENDÊNCIA
+            # ==================================================
 
-            # --------------------------------------------------
-            # Tendência da temperatura.
-            # --------------------------------------------------
-
-            "tendencia": (
-                cls._temperature_trend(
-                    temperaturas_validas
-                )
+            "tendencia": cls._temperature_trend(
+                temperaturas_validas
             ),
 
         }
@@ -324,19 +336,14 @@ class ChartService:
         """
         Classifica a tendência da série de temperatura.
 
-        Critério atual:
+        A classificação é exclusivamente descritiva e baseada
+        na diferença entre o primeiro e o último valor válido.
 
-            diferença < 0,5 °C
-                Estável
-
-            diferença >= 0,5 °C
-                Alta
-
-            diferença <= -0,5 °C
-                Queda
-
-        A comparação é feita entre o primeiro e o último
-        valor válido da série.
+        Retorno:
+            "Alta"
+            "Queda"
+            "Estável"
+            None
         """
 
         if not values:
@@ -353,25 +360,17 @@ class ChartService:
 
         diferenca = ultimo - primeiro
 
-        # ======================================================
-        # ESTÁVEL
-        # ======================================================
+        # ------------------------------------------------------
+        # Faixa de estabilidade
+        # ------------------------------------------------------
 
         if abs(diferenca) < 0.5:
 
             return "Estável"
 
-        # ======================================================
-        # ALTA
-        # ======================================================
-
         if diferenca > 0:
 
             return "Alta"
-
-        # ======================================================
-        # QUEDA
-        # ======================================================
 
         return "Queda"
 
@@ -436,6 +435,8 @@ class ChartService:
             "vento": [],
 
             "indice_agroclima": [],
+
+            "geadas": None,
 
             "resumo": {
 
