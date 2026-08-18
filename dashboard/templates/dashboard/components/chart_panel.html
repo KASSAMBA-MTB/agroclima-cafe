@@ -9,17 +9,12 @@
         <div>
 
             <h2>
-
                 <i class="bi bi-graph-up-arrow"></i>
-
                 Evolução Climática
-
             </h2>
 
             <p>
-
                 Temperatura • Precipitação • Geadas • Granizo
-
             </p>
 
         </div>
@@ -30,36 +25,28 @@
                 type="button"
                 class="btn-panel active"
                 data-period="hoje">
-
                 Hoje
-
             </button>
 
             <button
                 type="button"
                 class="btn-panel"
                 data-period="7_dias">
-
                 7 dias
-
             </button>
 
             <button
                 type="button"
                 class="btn-panel"
                 data-period="30_dias">
-
                 30 dias
-
             </button>
 
             <button
                 type="button"
                 class="btn-panel"
                 data-period="historico">
-
                 Histórico
-
             </button>
 
         </div>
@@ -68,11 +55,13 @@
 
 
     <!-- ==========================================================
-         RESUMO DO PERÍODO ATIVO
+         RESUMO DINÂMICO
 
-         O backend fornece chart_periods.*.resumo através do
-         ChartService. O JavaScript atualiza os valores quando
-         o período é alterado.
+         Os valores pertencem ao período atualmente selecionado.
+         O JavaScript deve atualizá-los a partir de:
+             chart_periods[periodo].resumo
+
+         Não há valores climáticos fixos no HTML.
     =========================================================== -->
 
     <div class="chart-summary">
@@ -83,20 +72,8 @@
                 Temperatura Média
             </span>
 
-            <strong
-                data-summary="temperatura_media"
-            >
-
-                {% if chart_periods.hoje.resumo.temperatura_media is not None %}
-
-                    {{ chart_periods.hoje.resumo.temperatura_media|floatformat:1 }}°C
-
-                {% else %}
-
-                    --
-
-                {% endif %}
-
+            <strong id="chart-summary-temperature">
+                --
             </strong>
 
         </div>
@@ -108,20 +85,8 @@
                 Precipitação
             </span>
 
-            <strong
-                data-summary="precipitacao"
-            >
-
-                {% if chart_periods.hoje.resumo.precipitacao is not None %}
-
-                    {{ chart_periods.hoje.resumo.precipitacao|floatformat:1 }} mm
-
-                {% else %}
-
-                    --
-
-                {% endif %}
-
+            <strong id="chart-summary-precipitation">
+                --
             </strong>
 
         </div>
@@ -133,20 +98,8 @@
                 Geadas
             </span>
 
-            <strong
-                data-summary="geadas"
-            >
-
-                {% if chart_periods.hoje.resumo.geadas is not None %}
-
-                    {{ chart_periods.hoje.resumo.geadas }}
-
-                {% else %}
-
-                    --
-
-                {% endif %}
-
+            <strong id="chart-summary-frost">
+                --
             </strong>
 
         </div>
@@ -159,26 +112,9 @@
             </span>
 
             <strong
-                data-summary="tendencia"
-                {% if chart_periods.hoje.resumo.tendencia == "Alta" %}
-                    class="text-danger"
-                {% elif chart_periods.hoje.resumo.tendencia == "Queda" %}
-                    class="text-primary"
-                {% elif chart_periods.hoje.resumo.tendencia == "Estável" %}
-                    class="text-success"
-                {% endif %}
-            >
-
-                {% if chart_periods.hoje.resumo.tendencia %}
-
-                    {{ chart_periods.hoje.resumo.tendencia }}
-
-                {% else %}
-
-                    --
-
-                {% endif %}
-
+                id="chart-summary-trend"
+                class="text-secondary">
+                --
             </strong>
 
         </div>
@@ -191,9 +127,7 @@
     =========================================================== -->
 
     <div class="chart-container">
-
         <canvas id="weatherChart"></canvas>
-
     </div>
 
 
@@ -204,11 +138,8 @@
     <div class="chart-footer">
 
         <small>
-
             <i class="bi bi-info-circle"></i>
-
             Dados provenientes do DashboardService e integrados ao Open-Meteo.
-
         </small>
 
     </div>
@@ -220,8 +151,10 @@
      DADOS DO DASHBOARDSERVICE
      PERÍODOS DO GRÁFICO
 
-     Cada objeto contém as séries e o resumo correspondente
-     ao próprio período.
+     IMPORTANTE:
+     Os dados NÃO devem ser gravados manualmente neste arquivo.
+     O Django publica o contrato real entregue pelo
+     DashboardService/ChartService através de json_script.
 =========================================================== -->
 
 {{ chart_periods.hoje|json_script:"chart-period-hoje" }}
@@ -234,7 +167,14 @@
 
 
 <!-- ==========================================================
-     COMPATIBILIDADE COM A ESTRUTURA EXISTENTE
+     COMPATIBILIDADE COM A ESTRUTURA LEGADA
+
+     Mantida somente para módulos antigos que ainda possam
+     consultar esses IDs.
+
+     O ChartController V3 NÃO deve utilizar estes elementos
+     para preencher os períodos Hoje / 7 dias / 30 dias /
+     Histórico.
 =========================================================== -->
 
 {{ chart.dias|json_script:"chart-dias" }}

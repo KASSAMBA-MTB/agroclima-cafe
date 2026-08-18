@@ -1,138 +1,206 @@
-<section class="dashboard-panel">
+<!-- ==========================================================
+     AGROCLIMA CAFÉ
+     COMPONENTE — ALERTAS METEOROLÓGICOS V3.10
 
-    <!-- ==========================================================
-         CABEÇALHO
-    =========================================================== -->
+     Fonte única:
+         context["alerts"]
+
+     Este componente não cria regras de inteligência.
+=========================================================== -->
+
+<section class="dashboard-panel">
 
     <div class="panel-header">
 
         <div>
 
             <h2>
-
                 <i class="bi bi-exclamation-triangle-fill"></i>
-
                 Alertas Meteorológicos
-
             </h2>
 
             <p>
-
-                Alertas gerados automaticamente pelo
-                mecanismo inteligente AgroClima Café.
-
+                Situações que exigem atenção identificadas pela
+                camada de Inteligência do AgroClima Café.
             </p>
+
+        </div>
+
+        <div class="alert-summary">
+
+            <span class="alert-summary-count">
+                {{ alerts|length }}
+            </span>
+
+            <span class="alert-summary-label">
+                alerta{{ alerts|length|pluralize }} ativo{{ alerts|length|pluralize }}
+            </span>
 
         </div>
 
     </div>
 
-    <!-- ==========================================================
-         ALERTAS
-    =========================================================== -->
 
     <div class="alerts-list">
 
-        {% if alerts %}
+        {% for alert in alerts %}
 
-            {% for alert in alerts %}
+            <article
+                class="alert-card
+                    {% if alert.severity == 'critical' %}
+                        danger
+                    {% elif alert.severity == 'high' %}
+                        warning
+                    {% elif alert.severity == 'medium' %}
+                        warning
+                    {% else %}
+                        info
+                    {% endif %}"
+            >
 
-                <div class="alert-card {{ alert.color }}">
+                <div class="alert-icon">
 
-                    <div class="alert-icon">
-
-                        <i class="bi {{ alert.icon }}"></i>
-
-                    </div>
-
-                    <div class="alert-content">
-
-                        <strong>
-
-                            {{ alert.title }}
-
-                        </strong>
-
-                        <p>
-
-                            {{ alert.message }}
-
-                        </p>
-
-                        <small>
-
-                            Severidade:
-
-                            <strong>
-
-                                {{ alert.severity|upper }}
-
-                            </strong>
-
-                            &nbsp;&nbsp;
-
-                            FRI:
-
-                            <strong>
-
-                                {{ alert.score }}
-
-                            </strong>
-
-                            &nbsp;&nbsp;
-
-                            Confiança:
-
-                            <strong>
-
-                                {{ alert.confidence }}
-
-                            </strong>
-
-                        </small>
-
-                    </div>
+                    <i class="bi {{ alert.icon|default:'bi-info-circle-fill' }}"></i>
 
                 </div>
 
-            {% endfor %}
 
-        {% else %}
+                <div class="alert-content">
 
-            <div class="alert-card success">
+                    <div class="alert-title-row">
 
-                <div class="alert-icon">
+                        <strong>
+                            {{ alert.title|default:"Alerta climático" }}
+                        </strong>
+
+                        <span class="alert-severity-badge">
+                            {{ alert.severity_label|default:alert.severity|default:"Desconhecido" }}
+                        </span>
+
+                    </div>
+
+
+                    <p class="alert-message">
+
+                        {{ alert.message|default:"Condição climática que requer atenção." }}
+
+                    </p>
+
+
+                    <div class="alert-metadata">
+
+                        <span>
+                            <i class="bi bi-tag"></i>
+
+                            Tipo:
+
+                            {% if alert.engine == 'frost' %}
+                                Geada
+                            {% elif alert.engine %}
+                                {{ alert.engine }}
+                            {% else %}
+                                Agroclimático
+                            {% endif %}
+
+                        </span>
+
+
+                        <span>
+                            <i class="bi bi-speedometer2"></i>
+
+                            FRI:
+                            {{ alert.score|default:"0" }}
+
+                        </span>
+
+
+                        <span>
+                            <i class="bi bi-shield-check"></i>
+
+                            Confiança:
+                            {{ alert.confidence|default:"0" }}
+
+                        </span>
+
+                    </div>
+
+
+                    {% if alert.factors %}
+
+                        <div class="alert-factors">
+
+                            <span class="alert-factors-label">
+
+                                <i class="bi bi-diagram-3"></i>
+
+                                Fatores que sustentam a análise
+
+                            </span>
+
+
+                            <ul>
+
+                                {% for factor in alert.factors %}
+
+                                    <li>
+                                        {{ factor }}
+                                    </li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+                <div class="alert-time">
+
+                    <span>
+
+                        <i class="bi bi-circle-fill"></i>
+
+                        Ativo
+
+                    </span>
+
+                </div>
+
+            </article>
+
+        {% empty %}
+
+            <div class="alert-empty">
+
+                <div class="alert-empty-icon">
 
                     <i class="bi bi-check-circle-fill"></i>
 
                 </div>
 
-                <div class="alert-content">
+
+                <div>
 
                     <strong>
-
-                        Nenhum Alerta Ativo
-
+                        Nenhum alerta ativo
                     </strong>
 
                     <p>
-
-                        Não existem alertas meteorológicos
-                        ativos neste momento.
-
+                        Não foram identificadas condições que,
+                        no momento, exijam alerta.
                     </p>
 
                 </div>
 
             </div>
 
-        {% endif %}
+        {% endfor %}
 
     </div>
 
-    <!-- ==========================================================
-         RODAPÉ
-    =========================================================== -->
 
     <div class="panel-footer">
 
@@ -140,8 +208,9 @@
 
             <i class="bi bi-shield-check"></i>
 
-            Alertas priorizados automaticamente pelo
-            Frost Risk Index (FRI).
+            Os alertas são provenientes da camada de Inteligência.
+            Severidade, FRI, confiança e fatores são apresentados
+            sem alteração dos dados produzidos pelo sistema.
 
         </small>
 
