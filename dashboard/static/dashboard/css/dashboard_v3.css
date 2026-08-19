@@ -2116,6 +2116,48 @@
         box-shadow .18s ease;
 }
 
+/*
+   COMPATIBILIDADE COM A ESTRUTURA HTML ATUAL
+   O ranking atual pode entregar FRI, RISCO e CONFIANÇA
+   diretamente dentro de .ranking-item, sem .ranking-metrics.
+   Nesse caso, o grid precisa reservar uma coluna para cada
+   indicador. A estrutura agrupada em .ranking-metrics continua
+   suportada sem alteração.
+*/
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) {
+    grid-template-columns:
+        48px minmax(0, 1fr) 80px 110px 110px;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-metrics) {
+    grid-template-columns:
+        48px minmax(0, 1fr) 300px;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-position {
+    grid-column: 1;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-city {
+    grid-column: 2;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-score {
+    grid-column: 3;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-classification {
+    grid-column: 4;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-trend {
+    grid-column: 5;
+}
+
+.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-metrics) > .ranking-metrics {
+    grid-column: 3;
+}
+
 .dashboard-panel:has(.ranking-list) .ranking-item:hover {
     border-color: var(--border);
     box-shadow: var(--shadow-sm);
@@ -2355,6 +2397,16 @@
         grid-template-columns: 40px minmax(0, 1fr);
         gap: 12px;
         padding: 8px 10px;
+    }
+
+    /*
+       Em telas pequenas, os três indicadores voltam para
+       a segunda linha quando estão diretamente no item.
+    */
+    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-score,
+    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-classification,
+    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-trend {
+        grid-column: 2;
     }
 
     .dashboard-panel:has(.ranking-list) .ranking-position {
