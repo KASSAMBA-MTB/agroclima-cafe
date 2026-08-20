@@ -41,6 +41,7 @@ from django.utils import timezone
 from clima.models import (
     HistoricalWeatherDaily,
     Provider,
+    WeatherObservation,
     WeatherStation,
 )
 
@@ -475,6 +476,130 @@ class HistoryService:
 
                 "geada": frost,
             }
+
+        # ======================================================
+        # INTEGRAÇÃO DE OBSERVAÇÕES RECENTES
+        # ======================================================
+        #
+        # HistoricalWeatherDaily é a fonte histórica principal.
+        # Quando uma data do período ainda não possui registro
+        # diário consolidado, dados meteorológicos reais persistidos
+        # em WeatherObservation podem preencher somente essa lacuna.
+        #
+        # Registro histórico existente tem prioridade.
+        # Ausência real continua None. Nenhum None vira zero.
+        # O dia atual será posteriormente alinhado ao KPI pelo
+        # ChartService.
+        # ======================================================
+
+        if days is not None and data_inicio <= data_fim:
+            recent_observations = (
+                WeatherObservation.objects
+                .filter(
+                    observation_time__date__gte=data_inicio,
+                    observation_time__date__lte=data_fim,
+                    station__provider=provider,
+                    station__ativa=True,
+                )
+                .values(
+                    "observation_time",
+                    "temperatura",
+                    "precipitacao",
+                )
+                .order_by(
+                    "observation_time",
+                )
+            )
+
+            observation_by_date = {}
+
+            for observation in recent_observations:
+                observation_time = observation.get(
+                    "observation_time",
+                )
+
+                if observation_time is None:
+                    continue
+
+                if timezone.is_aware(observation_time):
+                    observation_date = timezone.localtime(
+                        observation_time
+                    ).date()
+                else:
+                    observation_date = observation_time.date()
+
+                entry = observation_by_date.setdefault(
+                    observation_date,
+                    {
+                        "temperaturas": [],
+                        "precipitacoes": [],
+                    },
+                )
+
+                temperatura_observada = observation.get(
+                    "temperatura",
+                )
+                precipitacao_observada = observation.get(
+                    "precipitacao",
+                )
+
+                if temperatura_observada is not None:
+                    entry["temperaturas"].append(
+                        float(temperatura_observada)
+                    )
+
+                if precipitacao_observada is not None:
+                    entry["precipitacoes"].append(
+                        float(precipitacao_observada)
+                    )
+
+            for observation_date, values in observation_by_date.items():
+                existing = daily_data.get(
+                    observation_date,
+                    {},
+                )
+
+                temperatura_historica = existing.get(
+                    "temperatura",
+                )
+                precipitacao_historica = existing.get(
+                    "precipitacao",
+                )
+
+                temperatura_fallback = None
+                if values["temperaturas"]:
+                    temperatura_fallback = round(
+                        sum(values["temperaturas"])
+                        / len(values["temperaturas"]),
+                        1,
+                    )
+
+                precipitacao_fallback = None
+                if values["precipitacoes"]:
+                    precipitacao_fallback = round(
+                        sum(values["precipitacoes"]),
+                        1,
+                    )
+
+                daily_data[observation_date] = {
+                    "temperatura": (
+                        temperatura_historica
+                        if temperatura_historica is not None
+                        else temperatura_fallback
+                    ),
+                    "precipitacao": (
+                        precipitacao_historica
+                        if precipitacao_historica is not None
+                        else precipitacao_fallback
+                    ),
+                    "temperatura_minima": existing.get(
+                        "temperatura_minima",
+                    ),
+                    "geada": existing.get(
+                        "geada",
+                        False,
+                    ),
+                }
 
         # ======================================================
         # CONSTRUÇÃO DA SÉRIE

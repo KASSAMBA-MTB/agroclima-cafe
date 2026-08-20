@@ -107,7 +107,9 @@ class DashboardService:
         # ======================================================
 
         context["chart_periods"] = (
-            self.chart_service.get_chart_periods()
+            self.chart_service.get_chart_periods(
+                current_kpis=kpis
+            )
         )
 
         # ======================================================

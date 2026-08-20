@@ -2790,24 +2790,27 @@ const ChartController = {
 
 
         if (
-            !this.periods[initialKey] ||
-            !this.periods[initialKey].dias.length
+            !this.hasUsablePeriodData(
+                this.periods[initialKey]
+            )
         ) {
             initialKey = "7";
         }
 
 
         if (
-            !this.periods[initialKey] ||
-            !this.periods[initialKey].dias.length
+            !this.hasUsablePeriodData(
+                this.periods[initialKey]
+            )
         ) {
             initialKey = "30";
         }
 
 
         if (
-            !this.periods[initialKey] ||
-            !this.periods[initialKey].dias.length
+            !this.hasUsablePeriodData(
+                this.periods[initialKey]
+            )
         ) {
             initialKey = "historico";
         }
@@ -2817,7 +2820,7 @@ const ChartController = {
             this.periods[initialKey];
 
 
-        if (!initialPeriod.dias.length) {
+        if (!this.hasUsablePeriodData(initialPeriod)) {
 
             console.warn(
                 "[AGROCLIMA] Nenhum dado de evolução climática disponível."
@@ -2962,6 +2965,42 @@ const ChartController = {
             resumo: {}
 
         };
+
+    },
+
+
+    hasUsablePeriodData(period) {
+
+        if (
+            !period ||
+            !Array.isArray(period.dias) ||
+            !period.dias.length
+        ) {
+
+            return false;
+
+        }
+
+
+        const temperature =
+            Array.isArray(period.temperatura)
+                ? period.temperatura
+                : [];
+
+        const precipitation =
+            Array.isArray(period.precipitacao)
+                ? period.precipitacao
+                : [];
+
+
+        return (
+            temperature.some(
+                value => this.normalizeNumber(value) !== null
+            ) ||
+            precipitation.some(
+                value => this.normalizeNumber(value) !== null
+            )
+        );
 
     },
 
@@ -3205,6 +3244,13 @@ const ChartController = {
                                 label:
                                     "Média móvel (7 dias)",
 
+                                /*
+                                 * Em Hoje existe apenas o registro do dia.
+                                 * A média móvel de 7 dias não deve ser exibida.
+                                 */
+                                hidden:
+                                    this.activePeriod === "hoje",
+
                                 data:
                                     movingAverage,
 
@@ -3362,6 +3408,19 @@ const ChartController = {
 
                                     padding:
                                         16,
+
+                                    /*
+                                     * Em Hoje, a média móvel não possui
+                                     * representação válida para o período.
+                                     * O item correspondente também é removido
+                                     * da legenda.
+                                     */
+                                    filter:
+                                        legendItem =>
+                                            !(
+                                                this.activePeriod === "hoje" &&
+                                                legendItem.text === "Média móvel (7 dias)"
+                                            ),
 
 
                                     font: {
@@ -3629,16 +3688,15 @@ const ChartController = {
     /* ======================================================
        RESUMO DO PERÍODO
 
-       O resumo é fornecido pelo backend dentro de cada
-       período do DashboardService/ChartService.
+       REGRA DE ACEITE:
+       O resumo visual utiliza EXCLUSIVAMENTE period.resumo.
 
-       O JavaScript apenas apresenta os valores recebidos.
-       Não recalcula geadas ou tendência e não cria valores
-       estáticos no frontend.
+       null / undefined / "" = "--"
+       0 = valor válido e deve ser exibido como 0
+       valor numérico = exibido normalmente
 
-       Como fallback de compatibilidade, temperatura e
-       precipitação podem ser calculadas a partir das séries
-       quando o campo correspondente do resumo não existir.
+       NÃO recalcular temperatura ou precipitação a partir das
+       séries. Isso impediria distinguir "sem dado" de "zero".
     ====================================================== */
 
     updatePeriodSummary(
@@ -3649,6 +3707,12 @@ const ChartController = {
             return;
         }
 
+        const summary =
+            period.resumo &&
+            typeof period.resumo === "object"
+                ? period.resumo
+                : {};
+
         const summaryItems =
             document.querySelectorAll(
                 ".chart-summary .summary-item"
@@ -3658,227 +3722,258 @@ const ChartController = {
             return;
         }
 
-        const summary =
-            period.resumo &&
-            typeof period.resumo === "object"
-                ? period.resumo
-                : {};
+        const getElement = (
+            id,
+            index
+        ) => {
 
-        const temperatures =
-            Array.isArray(period.temperatura)
-                ? period.temperatura
-                    .map(value => Number(value))
-                    .filter(Number.isFinite)
-                : [];
+            const byId =
+                document.getElementById(id);
+
+            if (byId) {
+                return byId;
+            }
+
+            if (
+                summaryItems[index]
+            ) {
+                return summaryItems[index].querySelector(
+                    "strong"
+                );
+            }
+
+            return null;
+
+        };
+
+        const temperatureElement =
+            getElement(
+                "chart-summary-temperature",
+                0
+            );
+
+        const precipitationElement =
+            getElement(
+                "chart-summary-precipitation",
+                1
+            );
+
+        const frostElement =
+            getElement(
+                "chart-summary-frost",
+                2
+            );
+
+        const trendElement =
+            getElement(
+                "chart-summary-trend",
+                3
+            );
+
+        /*
+         * ==================================================
+         * TEMPERATURA MÉDIA DO PERÍODO
+         *
+         * Calculada exclusivamente com os valores válidos da série.
+         * null/undefined/vazio = ausência; 0 = valor válido.
+         * Sem valores válidos, o resultado permanece null.
+         * ==================================================
+         */
+
+
+        const validTemperatures = Array.isArray(period.temperatura) ? period.temperatura.filter(value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value))).map(value => Number(value)) : [];
+        const temperature = validTemperatures.length ? validTemperatures.reduce((total, value) => total + value, 0) / validTemperatures.length : null;
+
+        /*
+         * ==================================================
+         * PRECIPITAÇÃO
+         *
+         * O backend é a única fonte.
+         * Não existe fallback para a série.
+         * ==================================================
+         */
 
         const precipitation =
-            Array.isArray(period.precipitacao)
-                ? period.precipitacao
-                    .map(value => Number(value))
-                    .filter(Number.isFinite)
-                : [];
+            this.normalizeNumber(
+                summary.precipitacao
+            );
 
         /*
          * ==================================================
-         * 1 — TEMPERATURA MÉDIA
+         * GEADAS
          *
-         * Prioridade absoluta para o valor consolidado pelo
-         * backend. O cálculo da série é somente fallback.
+         * Zero é valor válido.
          * ==================================================
          */
 
-        let temperatureAverage =
-            Number(summary.temperatura_media);
+        let frost = null;
 
         if (
-            !Number.isFinite(
-                temperatureAverage
-            )
+            summary.geadas !== null &&
+            summary.geadas !== undefined &&
+            summary.geadas !== ""
         ) {
 
-            temperatureAverage =
-                temperatures.length
-                    ? temperatures.reduce(
-                        (total, value) =>
-                            total + value,
-                        0
-                    ) / temperatures.length
+            const numericFrost =
+                Number(
+                    summary.geadas
+                );
+
+            frost =
+                Number.isFinite(
+                    numericFrost
+                )
+                    ? numericFrost
                     : null;
 
         }
 
-        if (summaryItems[0]) {
-
-            const valueElement =
-                summaryItems[0].querySelector(
-                    "strong"
-                );
-
-            if (valueElement) {
-
-                valueElement.textContent =
-                    Number.isFinite(
-                        temperatureAverage
-                    )
-                        ? `${temperatureAverage.toLocaleString(
-                            "pt-BR",
-                            {
-                                minimumFractionDigits: 1,
-                                maximumFractionDigits: 1
-                            }
-                        )}°C`
-                        : "--";
-
-            }
-
-        }
-
         /*
          * ==================================================
-         * 2 — PRECIPITAÇÃO ACUMULADA
-         *
-         * Prioridade absoluta para o valor consolidado pelo
-         * backend. O cálculo da série é somente fallback.
+         * TENDÊNCIA
          * ==================================================
          */
 
-        let precipitationTotal =
-            Number(summary.precipitacao);
+        let trend = null;
 
         if (
-            !Number.isFinite(
-                precipitationTotal
-            )
+            summary.tendencia !== null &&
+            summary.tendencia !== undefined &&
+            summary.tendencia !== ""
         ) {
 
-            precipitationTotal =
-                precipitation.length
-                    ? precipitation.reduce(
-                        (sum, value) =>
-                            sum + value,
-                        0
-                    )
-                    : null;
-
-        }
-
-        if (summaryItems[1]) {
-
-            const valueElement =
-                summaryItems[1].querySelector(
-                    "strong"
-                );
-
-            if (valueElement) {
-
-                valueElement.textContent =
-                    Number.isFinite(
-                        precipitationTotal
-                    )
-                        ? `${precipitationTotal.toLocaleString(
-                            "pt-BR",
-                            {
-                                minimumFractionDigits: 1,
-                                maximumFractionDigits: 1
-                            }
-                        )} mm`
-                        : "--";
-
-            }
-
-        }
-
-        /*
-         * ==================================================
-         * 3 — GEADAS
-         *
-         * O valor deve vir exclusivamente do resumo
-         * produzido pelo backend.
-         *
-         * Não existe valor estático ou fallback inventado.
-         * ==================================================
-         */
-
-        const frostValue =
-            Number(summary.geadas);
-
-        if (summaryItems[2]) {
-
-            const valueElement =
-                summaryItems[2].querySelector(
-                    "strong"
-                );
-
-            if (valueElement) {
-
-                valueElement.textContent =
-                    Number.isFinite(
-                        frostValue
-                    )
-                        ? String(
-                            summary.geadas
-                        )
-                        : "--";
-
-            }
-
-        }
-
-        /*
-         * ==================================================
-         * 4 — TENDÊNCIA
-         *
-         * Também é fornecida pelo backend.
-         * ==================================================
-         */
-
-        if (summaryItems[3]) {
-
-            const valueElement =
-                summaryItems[3].querySelector(
-                    "strong"
-                );
-
-            if (valueElement) {
-
-                valueElement.textContent =
+            trend =
+                String(
                     summary.tendencia
-                        ? String(
-                            summary.tendencia
-                        )
-                        : "--";
+                );
+
+        }
+
+        /*
+         * ==================================================
+         * RENDERIZAÇÃO
+         * ==================================================
+         */
+
+        if (temperatureElement) {
+
+            temperatureElement.textContent =
+                temperature !== null
+                    ? `${temperature.toLocaleString(
+                        "pt-BR",
+                        {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }
+                    )}°C`
+                    : "--";
+
+        }
+
+        if (precipitationElement) {
+
+            precipitationElement.textContent =
+                precipitation !== null
+                    ? `${precipitation.toLocaleString(
+                        "pt-BR",
+                        {
+                            minimumFractionDigits: 1,
+                            maximumFractionDigits: 1
+                        }
+                    )} mm`
+                    : "--";
+
+        }
+
+        if (frostElement) {
+
+            frostElement.textContent =
+                frost !== null
+                    ? String(
+                        Number.isInteger(frost)
+                            ? frost
+                            : frost.toLocaleString(
+                                "pt-BR",
+                                {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 1
+                                }
+                            )
+                    )
+                    : "--";
+
+        }
+
+        if (trendElement) {
+
+            trendElement.textContent =
+                trend || "--";
+
+            trendElement.classList.remove(
+                "text-success",
+                "text-warning",
+                "text-danger",
+                "text-primary",
+                "text-secondary"
+            );
+
+            if (trend === "Alta") {
+
+                trendElement.classList.add(
+                    "text-warning"
+                );
+
+            } else if (trend === "Queda") {
+
+                trendElement.classList.add(
+                    "text-danger"
+                );
+
+            } else if (trend === "Estável") {
+
+                trendElement.classList.add(
+                    "text-success"
+                );
+
+            } else {
+
+                trendElement.classList.add(
+                    "text-secondary"
+                );
 
             }
 
         }
 
         console.info(
-            "[AGROCLIMA] Resumo do período atualizado:",
+            "[AGROCLIMA] Resumo visual atualizado:",
             {
                 temperatura_media:
-                    Number.isFinite(
-                        temperatureAverage
-                    )
-                        ? temperatureAverage
-                        : null,
-
+                    temperature,
                 precipitacao:
-                    Number.isFinite(
-                        precipitationTotal
-                    )
-                        ? precipitationTotal
-                        : null,
-
+                    precipitation,
                 geadas:
-                    Number.isFinite(
-                        frostValue
-                    )
-                        ? summary.geadas
-                        : null,
-
+                    frost,
                 tendencia:
-                    summary.tendencia ?? null
-
+                    trend,
+                elementos_encontrados: {
+                    temperatura:
+                        Boolean(
+                            temperatureElement
+                        ),
+                    precipitacao:
+                        Boolean(
+                            precipitationElement
+                        ),
+                    geadas:
+                        Boolean(
+                            frostElement
+                        ),
+                    tendencia:
+                        Boolean(
+                            trendElement
+                        )
+                }
             }
         );
 
@@ -3995,8 +4090,17 @@ const ChartController = {
 
     bindPeriodButtons() {
 
+        const chartPanel =
+            document.getElementById("weatherChart")
+                ? document.getElementById("weatherChart").closest(".dashboard-panel")
+                : null;
+
+        if (!chartPanel) {
+            return;
+        }
+
         const buttons =
-            document.querySelectorAll(
+            chartPanel.querySelectorAll(
                 ".panel-actions .btn-panel"
             );
 
@@ -4095,6 +4199,15 @@ const ChartController = {
                         );
 
 
+                        /*
+                         * O período ativo deve ser atualizado ANTES da
+                         * criação do gráfico, pois createChart() utiliza
+                         * esse estado para controlar as séries específicas
+                         * do período selecionado.
+                         */
+                        this.activePeriod = period;
+
+
                         this.createChart(
                             canvas,
                             data.dias,
@@ -4109,9 +4222,6 @@ const ChartController = {
                         this.updatePeriodSummary(
                             data
                         );
-
-
-                        this.activePeriod = period;
 
 
                         this.setActivePeriodButton(
@@ -4148,8 +4258,17 @@ const ChartController = {
         period
     ) {
 
+        const chartPanel =
+            document.getElementById("weatherChart")
+                ? document.getElementById("weatherChart").closest(".dashboard-panel")
+                : null;
+
+        if (!chartPanel) {
+            return;
+        }
+
         const buttons =
-            document.querySelectorAll(
+            chartPanel.querySelectorAll(
                 ".panel-actions .btn-panel"
             );
 
@@ -4208,6 +4327,143 @@ const ChartController = {
 
 
 /* ==========================================================
+   AGROCLIMA CAFÉ
+   DASHBOARD V3
+   RANKING CONTROLLER — FASE FINAL
+
+   Responsabilidades:
+   - Controlar Top 10 / Todos do Ranking.
+   - Preservar integralmente a ordenação entregue pelo backend.
+   - Não calcular FRI, severidade ou confiança.
+   - Não interferir nos botões do gráfico.
+========================================================== */
+
+const RankingController = {
+
+    initialized: false,
+
+    init() {
+
+        if (this.initialized) {
+            return;
+        }
+
+        const panel =
+            document.querySelector(".ranking-panel");
+
+        if (!panel) {
+            return;
+        }
+
+        const list =
+            panel.querySelector(".ranking-list");
+
+        if (!list) {
+            return;
+        }
+
+        const rows = Array.from(
+            list.querySelectorAll(".ranking-item")
+        );
+
+        /*
+         * O Ranking é apresentado em ordem decrescente de FRI.
+         * O valor é apenas lido do backend; nenhuma regra de
+         * inteligência é recalculada no frontend.
+         */
+        rows.sort((a, b) => {
+            const scoreA = Number(a.dataset.rankingScore);
+            const scoreB = Number(b.dataset.rankingScore);
+
+            const safeA = Number.isFinite(scoreA) ? scoreA : -Infinity;
+            const safeB = Number.isFinite(scoreB) ? scoreB : -Infinity;
+
+            return safeB - safeA;
+        });
+
+        rows.forEach((row, index) => {
+            list.appendChild(row);
+
+            const position =
+                row.querySelector(".ranking-position");
+
+            if (position) {
+                if (index === 0) {
+                    position.textContent = "🥇";
+                } else if (index === 1) {
+                    position.textContent = "🥈";
+                } else if (index === 2) {
+                    position.textContent = "🥉";
+                } else {
+                    position.textContent = `${index + 1}º`;
+                }
+            }
+        });
+
+        const buttons = Array.from(
+            panel.querySelectorAll(
+                "[data-ranking-filter]"
+            )
+        );
+
+        if (!buttons.length) {
+            return;
+        }
+
+        const applyFilter = filter => {
+
+            const limit =
+                filter === "top10"
+                    ? 10
+                    : rows.length;
+
+            rows.forEach(
+                (row, index) => {
+                    row.hidden = index >= limit;
+                }
+            );
+
+            buttons.forEach(
+                button => {
+                    const active =
+                        button.dataset.rankingFilter === filter;
+
+                    button.classList.toggle(
+                        "active",
+                        active
+                    );
+
+                    button.setAttribute(
+                        "aria-pressed",
+                        active ? "true" : "false"
+                    );
+                }
+            );
+
+            panel.dataset.rankingFilter = filter;
+        };
+
+        buttons.forEach(
+            button => {
+                button.addEventListener(
+                    "click",
+                    () => {
+                        applyFilter(
+                            button.dataset.rankingFilter === "all"
+                                ? "all"
+                                : "top10"
+                        );
+                    }
+                );
+            }
+        );
+
+        applyFilter("top10");
+        this.initialized = true;
+    }
+};
+
+/* ==========================================================
    REDIMENSIONAMENTO
 ========================================================== */
 
@@ -4232,6 +4488,8 @@ document.addEventListener(
         MapController.init();
 
         ChartController.init();
+
+        RankingController.init();
 
     }
 );
