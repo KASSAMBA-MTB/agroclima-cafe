@@ -16,6 +16,7 @@
    - Exibir FRI, confiança e classificação
    - Controlar a camada Municípios
    - Controlar a camada Geadas
+   - Exibir superfície interpolada de FRI na camada Geadas
    - Preparar as camadas futuras de Temperatura
      e Precipitação
 
@@ -47,6 +48,12 @@ const MapController = {
     territoryLayer: null,
 
     territoryLoaded: false,
+
+    territoryGeoJson: null,
+
+    friSurfaceLayer: null,
+
+    friSurfacePoints: [],
 
     points: [],
 
@@ -163,7 +170,7 @@ const MapController = {
                 "#e8f5ec",
 
             fillOpacity:
-                0.45
+                0.00
 
         },
 
@@ -183,7 +190,7 @@ const MapController = {
                 "#fff4d6",
 
             fillOpacity:
-                0.45
+                0.00
 
         },
 
@@ -203,7 +210,7 @@ const MapController = {
                 "#fff0e5",
 
             fillOpacity:
-                0.50
+                0.00
 
         },
 
@@ -223,7 +230,7 @@ const MapController = {
                 "#fde7e7",
 
             fillOpacity:
-                0.55
+                0.00
 
         },
 
@@ -243,7 +250,7 @@ const MapController = {
                 "#f0f0f0",
 
             fillOpacity:
-                0.35
+                0.00
 
         }
 
@@ -260,11 +267,11 @@ const MapController = {
 
     temperatureStyles: {
 
-        veryCold: { color: "#355c7d", weight: 2.0, opacity: 0.90, fillColor: "#dbeafe", fillOpacity: 0.52 },
-        cold: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#e6f2f8", fillOpacity: 0.50 },
-        favorable: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#e8f5ec", fillOpacity: 0.52 },
-        warm: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#fff4d6", fillOpacity: 0.50 },
-        hot: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#fff0e5", fillOpacity: 0.52 },
+        veryCold: { color: "#355c7d", weight: 2.0, opacity: 0.90, fillColor: "#355c7d", fillOpacity: 0.25 },
+        cold: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#4f86a8", fillOpacity: 0.25 },
+        favorable: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#287a40", fillOpacity: 0.25 },
+        warm: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#9a6a00", fillOpacity: 0.25 },
+        hot: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#a94c17", fillOpacity: 0.25 },
         unavailable: { color: "#777777", weight: 1.6, opacity: 0.80, fillColor: "#f0f0f0", fillOpacity: 0.35 }
 
     },
@@ -273,11 +280,11 @@ const MapController = {
     precipitationStyles: {
 
         none: { color: "#777777", weight: 1.6, opacity: 0.80, fillColor: "#f0f0f0", fillOpacity: 0.35 },
-        low: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#e6f2f8", fillOpacity: 0.50 },
-        moderate: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#e8f5ec", fillOpacity: 0.52 },
-        high: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#fff4d6", fillOpacity: 0.50 },
-        veryHigh: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#fff0e5", fillOpacity: 0.52 },
-        extreme: { color: "#a52f2f", weight: 2.2, opacity: 0.95, fillColor: "#fde7e7", fillOpacity: 0.55 }
+        low: { color: "#4f86a8", weight: 2.0, opacity: 0.90, fillColor: "#4f86a8", fillOpacity: 0.25 },
+        moderate: { color: "#287a40", weight: 2.0, opacity: 0.90, fillColor: "#287a40", fillOpacity: 0.25 },
+        high: { color: "#9a6a00", weight: 2.0, opacity: 0.90, fillColor: "#9a6a00", fillOpacity: 0.25 },
+        veryHigh: { color: "#a94c17", weight: 2.0, opacity: 0.90, fillColor: "#a94c17", fillOpacity: 0.25 },
+        extreme: { color: "#a52f2f", weight: 2.2, opacity: 0.95, fillColor: "#a52f2f", fillOpacity: 0.25 }
 
     },
 
@@ -350,7 +357,21 @@ const MapController = {
         this.map.getPane(
             "territoryPane"
         ).style.zIndex =
-            450;
+            470;
+
+
+        /* ==================================================
+           SUPERFÍCIE FRI
+        ================================================== */
+
+        this.map.createPane(
+            "friSurfacePane"
+        );
+
+        this.map.getPane(
+            "friSurfacePane"
+        ).style.zIndex =
+            460;
 
 
         /* ==================================================
@@ -382,6 +403,9 @@ const MapController = {
                 .addTo(
                     this.map
                 );
+
+
+        this.createFRISurfaceLayer();
 
 
         this.initialized =
@@ -620,6 +644,16 @@ const MapController = {
             }
 
 
+            this.territoryGeoJson = {
+
+                type:
+                    "FeatureCollection",
+
+                features:
+                    geojson.features
+            };
+
+
             /* ==================================================
                DIAGNÓSTICO DA FONTE
             ================================================== */
@@ -846,6 +880,7 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
+            this.refreshFRISurface();
 
 
             /* ==================================================
@@ -1201,12 +1236,32 @@ const MapController = {
                     : "none";
 
 
-            return (
+            const baseStyle =
                 this.frostStyles[
                     severity
                 ] ||
-                this.frostStyles.none
-            );
+                this.frostStyles.none;
+
+
+            /* ==================================================
+               FASE 1 — SUPERFÍCIE FRI
+
+               Os polígonos municipais permanecem apenas como
+               limites territoriais. O preenchimento da camada
+               Geadas é removido para que a superfície FRI
+               interpolada fique visualmente exposta.
+
+               Os dados FRI/severity permanecem inalterados.
+            ================================================== */
+
+            return {
+
+                ...baseStyle,
+
+                fillOpacity:
+                    0
+
+            };
 
         }
 
@@ -1347,7 +1402,7 @@ const MapController = {
                         fillOpacity:
                             this.activeLayer ===
                             "geadas"
-                                ? 0.65
+                                ? 0.03
                                 : 0.55
 
                     });
@@ -1578,7 +1633,16 @@ const MapController = {
                 ["#777777", "Sem risco"]
             ],
 
+            fri: [
+                ["#355c7d", "FRI 0–20"],
+                ["#4f86a8", "FRI 20–40"],
+                ["#287a40", "FRI 40–60"],
+                ["#9a6a00", "FRI 60–80"],
+                ["#a52f2f", "FRI 80–100"]
+            ],
+
             temperatura: [
+                ["#355c7d", "Muito fria"],
                 ["#4f86a8", "Fria"],
                 ["#287a40", "Faixa favorável"],
                 ["#9a6a00", "Quente"],
@@ -1590,7 +1654,8 @@ const MapController = {
                 ["#4f86a8", "Baixa"],
                 ["#287a40", "Moderada"],
                 ["#9a6a00", "Alta"],
-                ["#a52f2f", "Muito alta"]
+                ["#a94c17", "Muito alta"],
+                ["#a52f2f", "Extrema"]
             ]
 
         };
@@ -1598,6 +1663,57 @@ const MapController = {
         const items =
             legends[this.activeLayer] ||
             legends.municipios;
+
+
+        if (
+            this.activeLayer === "geadas"
+        ) {
+
+            const friItems =
+                legends.fri;
+
+            container.innerHTML = `
+                <span
+                    class="legend-group-label"
+                    style="display:block;width:100%;margin-bottom:4px;font-weight:600;"
+                >
+                    Superfície de risco — FRI
+                </span>
+
+                ${friItems
+                    .map(
+                        ([color, label]) => `
+                            <span class="legend-item">
+                                <i class="legend-dot" style="background:${color};"></i>
+                                ${label}
+                            </span>
+                        `
+                    )
+                    .join("")}
+
+                <span
+                    class="legend-group-label"
+                    style="display:block;width:100%;margin:6px 0 4px;font-weight:600;"
+                >
+                    Marcadores — severidade
+                </span>
+
+                ${items
+                    .map(
+                        ([color, label]) => `
+                            <span class="legend-item">
+                                <i class="legend-dot" style="background:${color};"></i>
+                                ${label}
+                            </span>
+                        `
+                    )
+                    .join("")}
+            `;
+
+            return;
+
+        }
+
 
         container.innerHTML =
             items
@@ -1673,6 +1789,9 @@ const MapController = {
                 "[AGROCLIMA] Nenhum município disponível para o mapa."
             );
 
+            this.friSurfacePoints = [];
+            this.hideFRISurface();
+
             return;
 
         }
@@ -1736,15 +1855,9 @@ const MapController = {
                 }
 
 
-                const severity =
-                    this.normalizeSeverity(
-                        point.severity
-                    );
-
-
                 const icon =
                     this.createMarkerIcon(
-                        severity
+                        point
                     );
 
 
@@ -1797,6 +1910,9 @@ const MapController = {
         );
 
 
+        this.refreshFRISurface();
+
+
         if (
             !this.territoryLoaded
         ) {
@@ -1838,17 +1954,1581 @@ const MapController = {
 
 
     /* ======================================================
+       SUPERFÍCIE DE RISCO FRI — GEADAS
+
+       A superfície utiliza exclusivamente os valores FRI
+       recebidos do backend e as coordenadas reais dos
+       municípios monitorados.
+
+       Não há geração de valores climáticos fictícios.
+       A interpolação é uma representação espacial estimada
+       entre os pontos reais por ponderação IDW.
+
+       A máscara territorial utilizada é o GeoJSON municipal
+       carregado pelo próprio MapController. Caso a fonte
+       territorial seja alterada para uma geometria específica
+       da Mantiqueira Vulcânica, a mesma máscara será utilizada
+       sem alterar a lógica de interpolação.
+    ====================================================== */
+
+    createFRISurfaceLayer() {
+
+        if (
+            this.friSurfaceLayer ||
+            typeof L === "undefined"
+        ) {
+
+            return;
+
+        }
+
+
+        const controller =
+            this;
+
+
+        const FRISurfaceLayer =
+            L.Layer.extend({
+
+                onAdd(map) {
+
+                    this._map =
+                        map;
+
+                    this._canvas =
+                        L.DomUtil.create(
+                            "canvas",
+                            "agroclima-fri-surface"
+                        );
+
+                    this._canvas.style.position =
+                        "absolute";
+
+                    this._canvas.style.pointerEvents =
+                        "none";
+
+                    this._canvas.style.display =
+                        "block";
+
+                    this._canvas.style.zIndex =
+                        "0";
+
+                    map.getPane(
+                        "friSurfacePane"
+                    ).appendChild(
+                        this._canvas
+                    );
+
+                    map.on(
+                        "moveend zoomend resize",
+                        this._redraw,
+                        this
+                    );
+
+                    this._redraw();
+
+                },
+
+
+                onRemove(map) {
+
+                    map.off(
+                        "moveend zoomend resize",
+                        this._redraw,
+                        this
+                    );
+
+                    if (
+                        this._canvas &&
+                        this._canvas.parentNode
+                    ) {
+
+                        this._canvas.parentNode.removeChild(
+                            this._canvas
+                        );
+
+                    }
+
+                    this._canvas =
+                        null;
+
+                    this._map =
+                        null;
+
+                },
+
+
+                _redraw() {
+
+                    if (
+                        this._map &&
+                        this._canvas
+                    ) {
+
+                        controller.drawFRISurface(
+                            this._canvas
+                        );
+
+                    }
+
+                }
+
+            });
+
+
+        this.friSurfaceLayer =
+            new FRISurfaceLayer();
+
+    },
+
+
+    refreshFRISurface() {
+
+        if (
+            this.activeLayer !== "geadas"
+        ) {
+
+            this.hideFRISurface();
+            return;
+
+        }
+
+
+        if (
+            !this.map ||
+            !this.territoryLoaded ||
+            !this.territoryGeoJson
+        ) {
+
+            return;
+
+        }
+
+
+        const validPoints =
+            this.points
+                .map(point => ({
+                    point,
+                    latitude: Number(point.latitude),
+                    longitude: Number(point.longitude),
+                    fri: Number(point.fri)
+                }))
+                .filter(item =>
+                    Number.isFinite(item.latitude) &&
+                    Number.isFinite(item.longitude) &&
+                    Number.isFinite(item.fri)
+                );
+
+
+        this.friSurfacePoints =
+            validPoints;
+
+
+        if (
+            validPoints.length < 2
+        ) {
+
+            console.warn(
+                "[AGROCLIMA] Superfície FRI não criada: são necessários pelo menos 2 pontos FRI válidos."
+            );
+
+            this.hideFRISurface();
+            return;
+
+        }
+
+
+        if (
+            !this.friSurfaceLayer
+        ) {
+
+            this.createFRISurfaceLayer();
+
+        }
+
+
+        if (
+            !this.map.hasLayer(
+                this.friSurfaceLayer
+            )
+        ) {
+
+            this.friSurfaceLayer.addTo(
+                this.map
+            );
+
+        }
+
+
+        this.friSurfaceLayer._redraw();
+
+    },
+
+
+    hideFRISurface() {
+
+        if (
+            this.map &&
+            this.friSurfaceLayer &&
+            this.map.hasLayer(
+                this.friSurfaceLayer
+            )
+        ) {
+
+            this.map.removeLayer(
+                this.friSurfaceLayer
+            );
+
+        }
+
+    },
+
+
+    drawFRISurface(canvas) {
+
+        /*
+         * ==========================================================
+         * FASE 1 — CORREÇÃO DEFINITIVA DA SUPERFÍCIE FRI
+         *
+         * DIAGNÓSTICO:
+         *
+         * A implementação anterior interpolava o FRI em escala de
+         * cinza, convertia imediatamente para RGB, aplicava blur
+         * sobre a imagem colorida e somente depois recortava pela
+         * máscara territorial.
+         *
+         * Em Canvas, esse processo mistura as cores já convertidas
+         * com pixels transparentes/pretos das bordas. O resultado
+         * pode produzir uma massa escura/cinza e não uma superfície
+         * cromática contínua coerente com a escala FRI.
+         *
+         * ESTRUTURA CORRIGIDA:
+         *
+         *     FRI REAL
+         *        ↓
+         *     IDW
+         *        ↓
+         *     CAMPO ESCALAR FRI 0–100
+         *        ↓
+         *     SUPERSAMPLING
+         *        ↓
+         *     SUAVIZAÇÃO DO VALOR FRI
+         *        ↓
+         *     MÁSCARA TERRITORIAL
+         *        ↓
+         *     GRADIENTE FRI
+         *        ↓
+         *     OPACIDADE
+         *        ↓
+         *     CANVAS
+         *
+         * A cor somente é criada depois que a superfície já está
+         * interpolada, suavizada e mascarada.
+         *
+         * NENHUM valor de this.friSurfacePoints é alterado.
+         * NENHUM valor de point.fri é recalculado.
+         * NENHUMA regra do backend é criada neste bloco.
+         * ==========================================================
+         */
+
+        if (
+            !this.map ||
+            !canvas ||
+            this.activeLayer !== "geadas" ||
+            !this.territoryGeoJson ||
+            !Array.isArray(
+                this.territoryGeoJson.features
+            ) ||
+            !Array.isArray(
+                this.friSurfacePoints
+            ) ||
+            !this.friSurfacePoints.length
+        ) {
+
+            if (canvas) {
+
+                const context =
+                    canvas.getContext(
+                        "2d"
+                    );
+
+                if (context) {
+
+                    context.clearRect(
+                        0,
+                        0,
+                        canvas.width || 0,
+                        canvas.height || 0
+                    );
+
+                }
+
+            }
+
+            return;
+
+        }
+
+
+        /* ==========================================================
+           DIMENSÕES DO MAPA
+        ========================================================== */
+
+        const size =
+            this.map.getSize();
+
+
+        const origin =
+            this.map.containerPointToLayerPoint(
+                [0, 0]
+            );
+
+
+        const width =
+            Math.max(
+                1,
+                Math.ceil(
+                    size.x
+                )
+            );
+
+
+        const height =
+            Math.max(
+                1,
+                Math.ceil(
+                    size.y
+                )
+            );
+
+
+        const dpr =
+            Math.min(
+                window.devicePixelRatio || 1,
+                2
+            );
+
+
+        canvas.width =
+            Math.ceil(
+                width * dpr
+            );
+
+
+        canvas.height =
+            Math.ceil(
+                height * dpr
+            );
+
+
+        canvas.style.width =
+            `${width}px`;
+
+
+        canvas.style.height =
+            `${height}px`;
+
+
+        L.DomUtil.setPosition(
+            canvas,
+            origin
+        );
+
+
+        const context =
+            canvas.getContext(
+                "2d"
+            );
+
+
+        if (!context) {
+
+            return;
+
+        }
+
+
+        context.setTransform(
+            dpr,
+            0,
+            0,
+            dpr,
+            0,
+            0
+        );
+
+
+        context.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+        /* ==========================================================
+           EXTENSÃO TERRITORIAL
+
+           A região de cálculo é determinada exclusivamente pelas
+           geometrias territoriais monitoradas.
+        ========================================================== */
+
+        let minX =
+            width;
+
+
+        let minY =
+            height;
+
+
+        let maxX =
+            0;
+
+
+        let maxY =
+            0;
+
+
+        let hasTerritory =
+            false;
+
+
+        const appendRingToBounds =
+            ring => {
+
+                if (
+                    !Array.isArray(
+                        ring
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                ring.forEach(
+                    coordinate => {
+
+                        if (
+                            !Array.isArray(
+                                coordinate
+                            ) ||
+                            coordinate.length < 2
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const lng =
+                            Number(
+                                coordinate[0]
+                            );
+
+
+                        const lat =
+                            Number(
+                                coordinate[1]
+                            );
+
+
+                        if (
+                            !Number.isFinite(
+                                lng
+                            ) ||
+                            !Number.isFinite(
+                                lat
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const point =
+                            this.map.latLngToContainerPoint(
+                                [
+                                    lat,
+                                    lng
+                                ]
+                            );
+
+
+                        minX =
+                            Math.min(
+                                minX,
+                                point.x
+                            );
+
+
+                        minY =
+                            Math.min(
+                                minY,
+                                point.y
+                            );
+
+
+                        maxX =
+                            Math.max(
+                                maxX,
+                                point.x
+                            );
+
+
+                        maxY =
+                            Math.max(
+                                maxY,
+                                point.y
+                            );
+
+
+                        hasTerritory =
+                            true;
+
+                    }
+                );
+
+            };
+
+
+        this.territoryGeoJson.features.forEach(
+            feature => {
+
+                const geometry =
+                    feature &&
+                    feature.geometry;
+
+
+                if (!geometry) {
+
+                    return;
+
+                }
+
+
+                if (
+                    geometry.type ===
+                    "Polygon"
+                ) {
+
+                    geometry.coordinates.forEach(
+                        appendRingToBounds
+                    );
+
+                } else if (
+                    geometry.type ===
+                    "MultiPolygon"
+                ) {
+
+                    geometry.coordinates.forEach(
+                        polygon =>
+                            polygon.forEach(
+                                appendRingToBounds
+                            )
+                    );
+
+                }
+
+            }
+        );
+
+
+        if (!hasTerritory) {
+
+            return;
+
+        }
+
+
+        /*
+         * A margem existe apenas para que a interpolação possa
+         * chegar suavemente à borda antes do recorte final.
+         */
+        const margin =
+            30;
+
+
+        minX =
+            Math.max(
+                0,
+                Math.floor(
+                    minX
+                ) - margin
+            );
+
+
+        minY =
+            Math.max(
+                0,
+                Math.floor(
+                    minY
+                ) - margin
+            );
+
+
+        maxX =
+            Math.min(
+                width,
+                Math.ceil(
+                    maxX
+                ) + margin
+            );
+
+
+        maxY =
+            Math.min(
+                height,
+                Math.ceil(
+                    maxY
+                ) + margin
+            );
+
+
+        const regionWidth =
+            Math.max(
+                1,
+                maxX - minX
+            );
+
+
+        const regionHeight =
+            Math.max(
+                1,
+                maxY - minY
+            );
+
+
+        /* ==========================================================
+           CAMPO ESCALAR FRI — IDW
+
+           A grade é uma estrutura matemática intermediária.
+           Nenhuma célula é enviada diretamente para o mapa.
+        ========================================================== */
+
+        const sampleStep =
+            3;
+
+
+        const sampleWidth =
+            Math.max(
+                2,
+                Math.ceil(
+                    regionWidth /
+                    sampleStep
+                )
+            );
+
+
+        const sampleHeight =
+            Math.max(
+                2,
+                Math.ceil(
+                    regionHeight /
+                    sampleStep
+                )
+            );
+
+
+        const scalarCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        scalarCanvas.width =
+            sampleWidth;
+
+
+        scalarCanvas.height =
+            sampleHeight;
+
+
+        const scalarContext =
+            scalarCanvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!scalarContext) {
+
+            return;
+
+        }
+
+
+        const scalarImage =
+            scalarContext.createImageData(
+                sampleWidth,
+                sampleHeight
+            );
+
+
+        const scalarData =
+            scalarImage.data;
+
+
+        const points =
+            this.friSurfacePoints;
+
+
+        const power =
+            2;
+
+
+        for (
+            let sy = 0;
+            sy < sampleHeight;
+            sy += 1
+        ) {
+
+            for (
+                let sx = 0;
+                sx < sampleWidth;
+                sx += 1
+            ) {
+
+                const x =
+                    minX +
+                    (
+                        sx + 0.5
+                    ) *
+                    sampleStep;
+
+
+                const y =
+                    minY +
+                    (
+                        sy + 0.5
+                    ) *
+                    sampleStep;
+
+
+                const latLng =
+                    this.map.containerPointToLatLng(
+                        [
+                            x,
+                            y
+                        ]
+                    );
+
+
+                let weightedSum =
+                    0;
+
+
+                let weightTotal =
+                    0;
+
+
+                let exactValue =
+                    null;
+
+
+                points.forEach(
+                    item => {
+
+                        const fri =
+                            Number(
+                                item.fri
+                            );
+
+
+                        if (
+                            !Number.isFinite(
+                                fri
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const dx =
+                            latLng.lng -
+                            Number(
+                                item.longitude
+                            );
+
+
+                        const dy =
+                            latLng.lat -
+                            Number(
+                                item.latitude
+                            );
+
+
+                        const distanceSquared =
+                            (
+                                dx * dx
+                            ) +
+                            (
+                                dy * dy
+                            );
+
+
+                        if (
+                            distanceSquared <
+                            0.000000000001
+                        ) {
+
+                            exactValue =
+                                Math.max(
+                                    0,
+                                    Math.min(
+                                        100,
+                                        fri
+                                    )
+                                );
+
+                            return;
+
+                        }
+
+
+                        const distance =
+                            Math.sqrt(
+                                distanceSquared
+                            );
+
+
+                        const weight =
+                            1 /
+                            Math.pow(
+                                distance,
+                                power
+                            );
+
+
+                        weightedSum +=
+                            fri *
+                            weight;
+
+
+                        weightTotal +=
+                            weight;
+
+                    }
+                );
+
+
+                let value =
+                    exactValue !== null
+                        ? exactValue
+                        : weightTotal > 0
+                            ? (
+                                weightedSum /
+                                weightTotal
+                            )
+                            : 0;
+
+
+                value =
+                    Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            value
+                        )
+                    );
+
+
+                const index =
+                    (
+                        sy *
+                        sampleWidth +
+                        sx
+                    ) *
+                    4;
+
+
+                /*
+                 * Escala monocromática:
+                 *
+                 *     0   = preto
+                 *     255 = branco
+                 *
+                 * Esta imagem ainda não representa a cor final.
+                 */
+                const intensity =
+                    Math.round(
+                        (
+                            value /
+                            100
+                        ) *
+                        255
+                    );
+
+
+                scalarData[index] =
+                    intensity;
+
+
+                scalarData[index + 1] =
+                    intensity;
+
+
+                scalarData[index + 2] =
+                    intensity;
+
+
+                scalarData[index + 3] =
+                    255;
+
+            }
+
+        }
+
+
+        scalarContext.putImageData(
+            scalarImage,
+            0,
+            0
+        );
+
+
+        /* ==========================================================
+           SUPERSAMPLING
+
+           Amplia a grade para a resolução do território sem
+           desenhar retângulos. A interpolação de imagem ocorre
+           enquanto o pixel ainda representa apenas FRI.
+        ========================================================== */
+
+        const fieldCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        fieldCanvas.width =
+            regionWidth;
+
+
+        fieldCanvas.height =
+            regionHeight;
+
+
+        const fieldContext =
+            fieldCanvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!fieldContext) {
+
+            return;
+
+        }
+
+
+        fieldContext.imageSmoothingEnabled =
+            true;
+
+
+        fieldContext.imageSmoothingQuality =
+            "high";
+
+
+        fieldContext.drawImage(
+            scalarCanvas,
+            0,
+            0,
+            sampleWidth,
+            sampleHeight,
+            0,
+            0,
+            regionWidth,
+            regionHeight
+        );
+
+
+        /* ==========================================================
+           SUAVIZAÇÃO DO CAMPO FRI
+
+           IMPORTANTE:
+           O blur acontece AGORA, antes da conversão para RGB.
+           Portanto não existe mistura de verde + cinza + azul
+           para formar a antiga massa escura.
+        ========================================================== */
+
+        const smoothedCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        smoothedCanvas.width =
+            regionWidth;
+
+
+        smoothedCanvas.height =
+            regionHeight;
+
+
+        const smoothedContext =
+            smoothedCanvas.getContext(
+                "2d",
+                {
+                    willReadFrequently:
+                        true
+                }
+            );
+
+
+        if (!smoothedContext) {
+
+            return;
+
+        }
+
+
+        smoothedContext.imageSmoothingEnabled =
+            true;
+
+
+        smoothedContext.imageSmoothingQuality =
+            "high";
+
+
+        smoothedContext.filter =
+            "blur(10px)";
+
+
+        smoothedContext.drawImage(
+            fieldCanvas,
+            0,
+            0
+        );
+
+
+        smoothedContext.filter =
+            "none";
+
+
+        /* ==========================================================
+           MÁSCARA TERRITORIAL
+
+           A máscara é aplicada enquanto a imagem ainda representa
+           FRI escalar. Assim pixels externos ficam transparentes
+           antes da conversão cromática.
+        ========================================================== */
+
+        const maskCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        maskCanvas.width =
+            regionWidth;
+
+
+        maskCanvas.height =
+            regionHeight;
+
+
+        const maskContext =
+            maskCanvas.getContext(
+                "2d"
+            );
+
+
+        if (!maskContext) {
+
+            return;
+
+        }
+
+
+        maskContext.fillStyle =
+            "#ffffff";
+
+
+        maskContext.beginPath();
+
+
+        const drawRing =
+            ring => {
+
+                if (
+                    !Array.isArray(
+                        ring
+                    ) ||
+                    !ring.length
+                ) {
+
+                    return;
+
+                }
+
+
+                ring.forEach(
+                    (
+                        coordinate,
+                        index
+                    ) => {
+
+                        if (
+                            !Array.isArray(
+                                coordinate
+                            ) ||
+                            coordinate.length < 2
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const lng =
+                            Number(
+                                coordinate[0]
+                            );
+
+
+                        const lat =
+                            Number(
+                                coordinate[1]
+                            );
+
+
+                        if (
+                            !Number.isFinite(
+                                lng
+                            ) ||
+                            !Number.isFinite(
+                                lat
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const point =
+                            this.map.latLngToContainerPoint(
+                                [
+                                    lat,
+                                    lng
+                                ]
+                            );
+
+
+                        const x =
+                            point.x -
+                            minX;
+
+
+                        const y =
+                            point.y -
+                            minY;
+
+
+                        if (
+                            index === 0
+                        ) {
+
+                            maskContext.moveTo(
+                                x,
+                                y
+                            );
+
+                        } else {
+
+                            maskContext.lineTo(
+                                x,
+                                y
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                maskContext.closePath();
+
+            };
+
+
+        this.territoryGeoJson.features.forEach(
+            feature => {
+
+                const geometry =
+                    feature &&
+                    feature.geometry;
+
+
+                if (!geometry) {
+
+                    return;
+
+                }
+
+
+                if (
+                    geometry.type ===
+                    "Polygon"
+                ) {
+
+                    geometry.coordinates.forEach(
+                        drawRing
+                    );
+
+                } else if (
+                    geometry.type ===
+                    "MultiPolygon"
+                ) {
+
+                    geometry.coordinates.forEach(
+                        polygon =>
+                            polygon.forEach(
+                                drawRing
+                            )
+                    );
+
+                }
+
+            }
+        );
+
+
+        maskContext.fill(
+            "evenodd"
+        );
+
+
+        smoothedContext.globalCompositeOperation =
+            "destination-in";
+
+
+        smoothedContext.drawImage(
+            maskCanvas,
+            0,
+            0
+        );
+
+
+        smoothedContext.globalCompositeOperation =
+            "source-over";
+
+
+        /* ==========================================================
+           CONVERSÃO FRI → COR
+
+           SOMENTE AGORA o valor escalar é transformado em cor.
+           Portanto o gradiente é contínuo e não sofre mistura RGB
+           durante o blur.
+        ========================================================== */
+
+        const fieldImage =
+            smoothedContext.getImageData(
+                0,
+                0,
+                regionWidth,
+                regionHeight
+            );
+
+
+        const fieldData =
+            fieldImage.data;
+
+
+        for (
+            let index = 0;
+            index < fieldData.length;
+            index += 4
+        ) {
+
+            if (
+                fieldData[index + 3] === 0
+            ) {
+
+                continue;
+
+            }
+
+
+            const value =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        (
+                            fieldData[index] /
+                            255
+                        ) *
+                        100
+                    )
+                );
+
+
+            const color =
+                this.getFRIGradientColor(
+                    value
+                );
+
+
+            const rgb =
+                this.hexToRgb(
+                    color
+                );
+
+
+            fieldData[index] =
+                rgb.r;
+
+
+            fieldData[index + 1] =
+                rgb.g;
+
+
+            fieldData[index + 2] =
+                rgb.b;
+
+
+            /*
+             * A superfície é translúcida para preservar a
+             * cartografia e os limites municipais.
+             */
+            fieldData[index + 3] =
+                180;
+
+        }
+
+
+        smoothedContext.putImageData(
+            fieldImage,
+            0,
+            0
+        );
+
+
+        /* ==========================================================
+           RENDERIZAÇÃO FINAL
+        ========================================================== */
+
+        context.globalAlpha =
+            1;
+
+
+        context.imageSmoothingEnabled =
+            true;
+
+
+        context.imageSmoothingQuality =
+            "high";
+
+
+        context.drawImage(
+            smoothedCanvas,
+            minX,
+            minY,
+            regionWidth,
+            regionHeight
+        );
+
+
+        context.globalAlpha =
+            1;
+
+    },
+
+    hexToRgb(
+        hex
+    ) {
+
+        const normalized =
+            String(hex || "")
+                .replace(
+                    "#",
+                    ""
+                );
+
+        if (
+            normalized.length !== 6
+        ) {
+
+            return {
+                r: 0,
+                g: 0,
+                b: 0
+            };
+
+        }
+
+        return {
+            r: parseInt(
+                normalized.slice(0, 2),
+                16
+            ),
+            g: parseInt(
+                normalized.slice(2, 4),
+                16
+            ),
+            b: parseInt(
+                normalized.slice(4, 6),
+                16
+            )
+        };
+
+    },
+
+
+    getFRIGradientColor(
+        value
+    ) {
+
+        const stops = [
+
+            [0, "#355c7d"],
+            [20, "#4f86a8"],
+            [40, "#287a40"],
+            [60, "#9a6a00"],
+            [80, "#a94c17"],
+            [100, "#a52f2f"]
+
+        ];
+
+        const numeric =
+            Math.max(
+                0,
+                Math.min(
+                    100,
+                    Number(value)
+                )
+            );
+
+        for (
+            let index = 1;
+            index < stops.length;
+            index += 1
+        ) {
+
+            const previous =
+                stops[index - 1];
+
+            const current =
+                stops[index];
+
+            if (
+                numeric <= current[0]
+            ) {
+
+                const ratio =
+                    (
+                        numeric -
+                        previous[0]
+                    ) /
+                    (
+                        current[0] -
+                        previous[0]
+                    );
+
+                return this.interpolateHexColor(
+                    previous[1],
+                    current[1],
+                    ratio
+                );
+
+            }
+
+        }
+
+        return stops[
+            stops.length - 1
+        ][1];
+
+    },
+
+
+    interpolateHexColor(
+        start,
+        end,
+        ratio
+    ) {
+
+        const parse =
+            hex => {
+
+                const value =
+                    hex.replace(
+                        "#",
+                        ""
+                    );
+
+                return [
+                    parseInt(
+                        value.slice(0, 2),
+                        16
+                    ),
+                    parseInt(
+                        value.slice(2, 4),
+                        16
+                    ),
+                    parseInt(
+                        value.slice(4, 6),
+                        16
+                    )
+                ];
+
+            };
+
+        const a =
+            parse(start);
+
+        const b =
+            parse(end);
+
+        const mix =
+            channel =>
+                Math.round(
+                    channel[0] +
+                    (
+                        channel[1] -
+                        channel[0]
+                    ) * ratio
+                );
+
+        return `#${[mix([a[0], b[0]]), mix([a[1], b[1]]), mix([a[2], b[2]])].map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+
+    },
+
+
+    /* ======================================================
        CRIAR ÍCONE DO MARCADOR
     ====================================================== */
 
     createMarkerIcon(
-        severity
+        point
     ) {
+
+        const severity =
+            this.normalizeSeverity(
+                point && point.severity
+            );
 
         const iconClass =
             severity ||
             "none";
 
+        const markerStyle =
+            this.getMarkerStyle(
+                point
+            );
 
         return L.divIcon({
 
@@ -1858,6 +3538,7 @@ const MapController = {
             html: `
                 <div
                     class="agroclima-marker ${iconClass}"
+                    style="background:${markerStyle.color};"
                     aria-label="Indicador climático"
                     title="Indicador climático">
 
@@ -1886,6 +3567,98 @@ const MapController = {
 
         });
 
+    },
+
+
+    /* ======================================================
+       COR DO MARCADOR CONFORME A CAMADA ATIVA
+
+       A legenda e o marcador devem representar a mesma
+       variável visual. O popup continua exibindo a
+       severidade separadamente.
+    ====================================================== */
+
+    getMarkerStyle(
+        point
+    ) {
+
+        if (!point) {
+            return { color: "#777777" };
+        }
+
+        if (this.activeLayer === "precipitacao") {
+            const classification =
+                this.getPrecipitationClass(
+                    point.precipitation
+                );
+
+            return (
+                this.precipitationStyles[
+                    classification
+                ] ||
+                this.precipitationStyles.none
+            );
+        }
+
+        if (this.activeLayer === "temperatura") {
+            const classification =
+                this.getTemperatureClass(
+                    point.temperature
+                );
+
+            return (
+                this.temperatureStyles[
+                    classification
+                ] ||
+                this.temperatureStyles.unavailable
+            );
+        }
+
+        if (this.activeLayer === "geadas") {
+            const severity =
+                this.normalizeSeverity(
+                    point.severity
+                );
+
+            return (
+                this.frostStyles[
+                    severity
+                ] ||
+                this.frostStyles.none
+            );
+        }
+
+        return {
+            color: this.territoryStyle.color
+        };
+    },
+
+
+    /* ======================================================
+       ATUALIZAR CORES DOS MARCADORES
+    ====================================================== */
+
+    refreshMarkerIcons() {
+
+        if (!this.markerLayer) {
+            return;
+        }
+
+        this.markerLayer.eachLayer(
+            marker => {
+
+                if (!marker.__agroclimaPoint) {
+                    return;
+                }
+
+                marker.setIcon(
+                    this.createMarkerIcon(
+                        marker.__agroclimaPoint
+                    )
+                );
+
+            }
+        );
     },
 
 
@@ -2433,6 +4206,15 @@ const MapController = {
         }
 
 
+        if (
+            layer !== "geadas"
+        ) {
+
+            this.hideFRISurface();
+
+        }
+
+
         /* ==================================================
            MUNICÍPIOS
         ================================================== */
@@ -2454,6 +4236,7 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
+            this.refreshMarkerIcons();
             this.refreshMapPopups();
             this.updateLegend();
 
@@ -2483,8 +4266,10 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
+            this.refreshMarkerIcons();
             this.refreshMapPopups();
             this.updateLegend();
+            this.refreshFRISurface();
 
             return;
 
@@ -2512,6 +4297,7 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
+            this.refreshMarkerIcons();
             this.refreshMapPopups();
             this.updateLegend();
 
@@ -2541,6 +4327,7 @@ const MapController = {
 
 
             this.updateTerritoryStyle();
+            this.refreshMarkerIcons();
             this.refreshMapPopups();
             this.updateLegend();
 
@@ -2790,27 +4577,24 @@ const ChartController = {
 
 
         if (
-            !this.hasUsablePeriodData(
-                this.periods[initialKey]
-            )
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
         ) {
             initialKey = "7";
         }
 
 
         if (
-            !this.hasUsablePeriodData(
-                this.periods[initialKey]
-            )
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
         ) {
             initialKey = "30";
         }
 
 
         if (
-            !this.hasUsablePeriodData(
-                this.periods[initialKey]
-            )
+            !this.periods[initialKey] ||
+            !this.periods[initialKey].dias.length
         ) {
             initialKey = "historico";
         }
@@ -2820,7 +4604,7 @@ const ChartController = {
             this.periods[initialKey];
 
 
-        if (!this.hasUsablePeriodData(initialPeriod)) {
+        if (!initialPeriod.dias.length) {
 
             console.warn(
                 "[AGROCLIMA] Nenhum dado de evolução climática disponível."
@@ -2965,42 +4749,6 @@ const ChartController = {
             resumo: {}
 
         };
-
-    },
-
-
-    hasUsablePeriodData(period) {
-
-        if (
-            !period ||
-            !Array.isArray(period.dias) ||
-            !period.dias.length
-        ) {
-
-            return false;
-
-        }
-
-
-        const temperature =
-            Array.isArray(period.temperatura)
-                ? period.temperatura
-                : [];
-
-        const precipitation =
-            Array.isArray(period.precipitacao)
-                ? period.precipitacao
-                : [];
-
-
-        return (
-            temperature.some(
-                value => this.normalizeNumber(value) !== null
-            ) ||
-            precipitation.some(
-                value => this.normalizeNumber(value) !== null
-            )
-        );
 
     },
 
@@ -3244,13 +4992,6 @@ const ChartController = {
                                 label:
                                     "Média móvel (7 dias)",
 
-                                /*
-                                 * Em Hoje existe apenas o registro do dia.
-                                 * A média móvel de 7 dias não deve ser exibida.
-                                 */
-                                hidden:
-                                    this.activePeriod === "hoje",
-
                                 data:
                                     movingAverage,
 
@@ -3408,19 +5149,6 @@ const ChartController = {
 
                                     padding:
                                         16,
-
-                                    /*
-                                     * Em Hoje, a média móvel não possui
-                                     * representação válida para o período.
-                                     * O item correspondente também é removido
-                                     * da legenda.
-                                     */
-                                    filter:
-                                        legendItem =>
-                                            !(
-                                                this.activePeriod === "hoje" &&
-                                                legendItem.text === "Média móvel (7 dias)"
-                                            ),
 
 
                                     font: {
@@ -3688,15 +5416,16 @@ const ChartController = {
     /* ======================================================
        RESUMO DO PERÍODO
 
-       REGRA DE ACEITE:
-       O resumo visual utiliza EXCLUSIVAMENTE period.resumo.
+       O resumo é fornecido pelo backend dentro de cada
+       período do DashboardService/ChartService.
 
-       null / undefined / "" = "--"
-       0 = valor válido e deve ser exibido como 0
-       valor numérico = exibido normalmente
+       O JavaScript apenas apresenta os valores recebidos.
+       Não recalcula geadas ou tendência e não cria valores
+       estáticos no frontend.
 
-       NÃO recalcular temperatura ou precipitação a partir das
-       séries. Isso impediria distinguir "sem dado" de "zero".
+       Como fallback de compatibilidade, temperatura e
+       precipitação podem ser calculadas a partir das séries
+       quando o campo correspondente do resumo não existir.
     ====================================================== */
 
     updatePeriodSummary(
@@ -3707,12 +5436,6 @@ const ChartController = {
             return;
         }
 
-        const summary =
-            period.resumo &&
-            typeof period.resumo === "object"
-                ? period.resumo
-                : {};
-
         const summaryItems =
             document.querySelectorAll(
                 ".chart-summary .summary-item"
@@ -3722,258 +5445,227 @@ const ChartController = {
             return;
         }
 
-        const getElement = (
-            id,
-            index
-        ) => {
+        const summary =
+            period.resumo &&
+            typeof period.resumo === "object"
+                ? period.resumo
+                : {};
 
-            const byId =
-                document.getElementById(id);
-
-            if (byId) {
-                return byId;
-            }
-
-            if (
-                summaryItems[index]
-            ) {
-                return summaryItems[index].querySelector(
-                    "strong"
-                );
-            }
-
-            return null;
-
-        };
-
-        const temperatureElement =
-            getElement(
-                "chart-summary-temperature",
-                0
-            );
-
-        const precipitationElement =
-            getElement(
-                "chart-summary-precipitation",
-                1
-            );
-
-        const frostElement =
-            getElement(
-                "chart-summary-frost",
-                2
-            );
-
-        const trendElement =
-            getElement(
-                "chart-summary-trend",
-                3
-            );
-
-        /*
-         * ==================================================
-         * TEMPERATURA MÉDIA DO PERÍODO
-         *
-         * Calculada exclusivamente com os valores válidos da série.
-         * null/undefined/vazio = ausência; 0 = valor válido.
-         * Sem valores válidos, o resultado permanece null.
-         * ==================================================
-         */
-
-
-        const validTemperatures = Array.isArray(period.temperatura) ? period.temperatura.filter(value => value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value))).map(value => Number(value)) : [];
-        const temperature = validTemperatures.length ? validTemperatures.reduce((total, value) => total + value, 0) / validTemperatures.length : null;
-
-        /*
-         * ==================================================
-         * PRECIPITAÇÃO
-         *
-         * O backend é a única fonte.
-         * Não existe fallback para a série.
-         * ==================================================
-         */
+        const temperatures =
+            Array.isArray(period.temperatura)
+                ? period.temperatura
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
 
         const precipitation =
-            this.normalizeNumber(
-                summary.precipitacao
-            );
+            Array.isArray(period.precipitacao)
+                ? period.precipitacao
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
 
         /*
          * ==================================================
-         * GEADAS
+         * 1 — TEMPERATURA MÉDIA
          *
-         * Zero é valor válido.
+         * Prioridade absoluta para o valor consolidado pelo
+         * backend. O cálculo da série é somente fallback.
          * ==================================================
          */
 
-        let frost = null;
+        let temperatureAverage =
+            Number(summary.temperatura_media);
 
         if (
-            summary.geadas !== null &&
-            summary.geadas !== undefined &&
-            summary.geadas !== ""
+            !Number.isFinite(
+                temperatureAverage
+            )
         ) {
 
-            const numericFrost =
-                Number(
-                    summary.geadas
-                );
-
-            frost =
-                Number.isFinite(
-                    numericFrost
-                )
-                    ? numericFrost
+            temperatureAverage =
+                temperatures.length
+                    ? temperatures.reduce(
+                        (total, value) =>
+                            total + value,
+                        0
+                    ) / temperatures.length
                     : null;
 
         }
 
+        if (summaryItems[0]) {
+
+            const valueElement =
+                summaryItems[0].querySelector(
+                    "strong"
+                );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    Number.isFinite(
+                        temperatureAverage
+                    )
+                        ? `${temperatureAverage.toLocaleString(
+                            "pt-BR",
+                            {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1
+                            }
+                        )}°C`
+                        : "--";
+
+            }
+
+        }
+
         /*
          * ==================================================
-         * TENDÊNCIA
+         * 2 — PRECIPITAÇÃO ACUMULADA
+         *
+         * Prioridade absoluta para o valor consolidado pelo
+         * backend. O cálculo da série é somente fallback.
          * ==================================================
          */
 
-        let trend = null;
+        let precipitationTotal =
+            Number(summary.precipitacao);
 
         if (
-            summary.tendencia !== null &&
-            summary.tendencia !== undefined &&
-            summary.tendencia !== ""
+            !Number.isFinite(
+                precipitationTotal
+            )
         ) {
 
-            trend =
-                String(
-                    summary.tendencia
+            precipitationTotal =
+                precipitation.length
+                    ? precipitation.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    )
+                    : null;
+
+        }
+
+        if (summaryItems[1]) {
+
+            const valueElement =
+                summaryItems[1].querySelector(
+                    "strong"
                 );
+
+            if (valueElement) {
+
+                valueElement.textContent =
+                    Number.isFinite(
+                        precipitationTotal
+                    )
+                        ? `${precipitationTotal.toLocaleString(
+                            "pt-BR",
+                            {
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 1
+                            }
+                        )} mm`
+                        : "--";
+
+            }
 
         }
 
         /*
          * ==================================================
-         * RENDERIZAÇÃO
+         * 3 — GEADAS
+         *
+         * O valor deve vir exclusivamente do resumo
+         * produzido pelo backend.
+         *
+         * Não existe valor estático ou fallback inventado.
          * ==================================================
          */
 
-        if (temperatureElement) {
+        const frostValue =
+            Number(summary.geadas);
 
-            temperatureElement.textContent =
-                temperature !== null
-                    ? `${temperature.toLocaleString(
-                        "pt-BR",
-                        {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
-                        }
-                    )}°C`
-                    : "--";
+        if (summaryItems[2]) {
 
-        }
+            const valueElement =
+                summaryItems[2].querySelector(
+                    "strong"
+                );
 
-        if (precipitationElement) {
+            if (valueElement) {
 
-            precipitationElement.textContent =
-                precipitation !== null
-                    ? `${precipitation.toLocaleString(
-                        "pt-BR",
-                        {
-                            minimumFractionDigits: 1,
-                            maximumFractionDigits: 1
-                        }
-                    )} mm`
-                    : "--";
-
-        }
-
-        if (frostElement) {
-
-            frostElement.textContent =
-                frost !== null
-                    ? String(
-                        Number.isInteger(frost)
-                            ? frost
-                            : frost.toLocaleString(
-                                "pt-BR",
-                                {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 1
-                                }
-                            )
+                valueElement.textContent =
+                    Number.isFinite(
+                        frostValue
                     )
-                    : "--";
+                        ? String(
+                            summary.geadas
+                        )
+                        : "--";
+
+            }
 
         }
 
-        if (trendElement) {
+        /*
+         * ==================================================
+         * 4 — TENDÊNCIA
+         *
+         * Também é fornecida pelo backend.
+         * ==================================================
+         */
 
-            trendElement.textContent =
-                trend || "--";
+        if (summaryItems[3]) {
 
-            trendElement.classList.remove(
-                "text-success",
-                "text-warning",
-                "text-danger",
-                "text-primary",
-                "text-secondary"
-            );
-
-            if (trend === "Alta") {
-
-                trendElement.classList.add(
-                    "text-warning"
+            const valueElement =
+                summaryItems[3].querySelector(
+                    "strong"
                 );
 
-            } else if (trend === "Queda") {
+            if (valueElement) {
 
-                trendElement.classList.add(
-                    "text-danger"
-                );
-
-            } else if (trend === "Estável") {
-
-                trendElement.classList.add(
-                    "text-success"
-                );
-
-            } else {
-
-                trendElement.classList.add(
-                    "text-secondary"
-                );
+                valueElement.textContent =
+                    summary.tendencia
+                        ? String(
+                            summary.tendencia
+                        )
+                        : "--";
 
             }
 
         }
 
         console.info(
-            "[AGROCLIMA] Resumo visual atualizado:",
+            "[AGROCLIMA] Resumo do período atualizado:",
             {
                 temperatura_media:
-                    temperature,
+                    Number.isFinite(
+                        temperatureAverage
+                    )
+                        ? temperatureAverage
+                        : null,
+
                 precipitacao:
-                    precipitation,
+                    Number.isFinite(
+                        precipitationTotal
+                    )
+                        ? precipitationTotal
+                        : null,
+
                 geadas:
-                    frost,
+                    Number.isFinite(
+                        frostValue
+                    )
+                        ? summary.geadas
+                        : null,
+
                 tendencia:
-                    trend,
-                elementos_encontrados: {
-                    temperatura:
-                        Boolean(
-                            temperatureElement
-                        ),
-                    precipitacao:
-                        Boolean(
-                            precipitationElement
-                        ),
-                    geadas:
-                        Boolean(
-                            frostElement
-                        ),
-                    tendencia:
-                        Boolean(
-                            trendElement
-                        )
-                }
+                    summary.tendencia ?? null
+
             }
         );
 
@@ -4199,15 +5891,6 @@ const ChartController = {
                         );
 
 
-                        /*
-                         * O período ativo deve ser atualizado ANTES da
-                         * criação do gráfico, pois createChart() utiliza
-                         * esse estado para controlar as séries específicas
-                         * do período selecionado.
-                         */
-                        this.activePeriod = period;
-
-
                         this.createChart(
                             canvas,
                             data.dias,
@@ -4222,6 +5905,9 @@ const ChartController = {
                         this.updatePeriodSummary(
                             data
                         );
+
+
+                        this.activePeriod = period;
 
 
                         this.setActivePeriodButton(
