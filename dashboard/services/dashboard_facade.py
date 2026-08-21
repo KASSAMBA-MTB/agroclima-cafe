@@ -116,6 +116,36 @@ class DashboardFacade:
             ),
 
             # --------------------------------------------------
+            # EVIDÊNCIA HISTÓRICA REAL DE GEADAS
+            #
+            # Estes campos já são produzidos pelo
+            # DashboardService e utilizados pela inteligência
+            # territorial. Nesta etapa, eles também passam a
+            # atravessar o contexto principal da Inteligência,
+            # sem qualquer transformação.
+            # --------------------------------------------------
+
+            "historical_total_days": kpis.get(
+                "historical_total_days"
+            ),
+
+            "historical_frost_days": kpis.get(
+                "historical_frost_days"
+            ),
+
+            "historical_frost_frequency": kpis.get(
+                "historical_frost_frequency"
+            ),
+
+            "historical_frost_episodes": kpis.get(
+                "historical_frost_episodes"
+            ),
+
+            "historical_min_temperature": kpis.get(
+                "historical_min_temperature"
+            ),
+
+            # --------------------------------------------------
             # A data do KPI tem prioridade somente quando
             # realmente existe.
             #
@@ -312,6 +342,30 @@ class DashboardFacade:
 
                 "historical_frost": point.get(
                     "historical_frost"
+                ),
+
+                # Evidência histórica real de geadas.
+                # Estes campos são produzidos pelo DashboardService
+                # a partir de HistoricalWeatherDaily e seguem para
+                # a FrostRule sem transformação.
+                "historical_total_days": point.get(
+                    "historical_total_days"
+                ),
+
+                "historical_frost_days": point.get(
+                    "historical_frost_days"
+                ),
+
+                "historical_frost_frequency": point.get(
+                    "historical_frost_frequency"
+                ),
+
+                "historical_frost_episodes": point.get(
+                    "historical_frost_episodes"
+                ),
+
+                "historical_min_temperature": point.get(
+                    "historical_min_temperature"
                 ),
 
                 "analysis_date": (

@@ -153,7 +153,7 @@ class ChartService:
             return data
 
         dias = data.get("dias", [])
-        hoje = timezone.localdate().strftime("%d/%m")
+        hoje = timezone.localdate().isoformat()
 
         if hoje not in dias:
             return data
@@ -205,7 +205,7 @@ class ChartService:
 
         if current_kpis is not None:
             return {
-                "dias": [hoje.strftime("%d/%m")],
+                "dias": [hoje.isoformat()],
                 "temperatura": [
                     current_kpis.get("temperatura_media")
                 ],
@@ -322,7 +322,7 @@ class ChartService:
 
         return {
             "dias": [
-                hoje.strftime("%d/%m"),
+                hoje.isoformat(),
             ],
             "temperatura": [
                 temperature_value,

@@ -21,13 +21,14 @@ WeatherDTO. O KPIService utiliza os nomes de atributos definidos pelo DTO
 e disponibiliza também os campos estruturados utilizados pela camada
 de Inteligência.
 
-Versão..........: 2.3
+Versão..........: 2.4
 ===============================================================================
 """
 
 from django.utils import timezone
 
 from core.intelligence.agroclima_index import AgroClimaIndex
+from clima.models import HistoricalWeatherDaily
 from clima.services.weather_service import WeatherService
 from municipios.models import Municipio
 
@@ -161,6 +162,26 @@ class KPIService:
         )
 
         # ======================================================
+        # HISTÓRICO REAL DE GEADAS
+        #
+        # Fonte exclusiva:
+        #     HistoricalWeatherDaily
+        #
+        # Critério objetivo:
+        #     temperatura_minima <= 0 °C
+        #
+        # O histórico é calculado para o mesmo município utilizado
+        # pelo KPIService como contexto principal. Nenhum dado
+        # fictício, previsão ou valor decorativo é introduzido.
+        # ======================================================
+
+        historical = (
+            self._get_historical_frost_context(
+                municipio
+            )
+        )
+
+        # ======================================================
         # CONTEXTO CONSOLIDADO
         # ======================================================
 
@@ -190,9 +211,6 @@ class KPIService:
 
             # ==================================================
             # GEADAS / GRANIZO
-            #
-            # Os módulos históricos correspondentes ainda não
-            # estão integrados ao KPIService.
             # ==================================================
 
             "geadas": 0,
@@ -271,10 +289,31 @@ class KPIService:
 
             "analysis_date": analysis_date,
 
-            # Histórico observado de geadas ainda não está
-            # disponível no modelo atual.
+            # ==================================================
+            # EVIDÊNCIA HISTÓRICA REAL DE GEADAS
+            # ==================================================
 
-            "historical_frost": None,
+            "historical_frost": historical["historical_frost"],
+
+            "historical_total_days": (
+                historical["historical_total_days"]
+            ),
+
+            "historical_frost_days": (
+                historical["historical_frost_days"]
+            ),
+
+            "historical_frost_frequency": (
+                historical["historical_frost_frequency"]
+            ),
+
+            "historical_frost_episodes": (
+                historical["historical_frost_episodes"]
+            ),
+
+            "historical_min_temperature": (
+                historical["historical_min_temperature"]
+            ),
 
             # ==================================================
             # ÍNDICE AGROCLIMA
@@ -282,6 +321,140 @@ class KPIService:
 
             "scores": indice["scores"],
         }
+
+    # ==========================================================
+    # HISTÓRICO REAL DE GEADAS
+    # ==========================================================
+
+    def _get_historical_frost_context(
+        self,
+        municipio,
+    ):
+        """
+        Consolida a evidência histórica real de geadas para o
+        município utilizado pelo contexto principal do KPIService.
+
+        Fonte:
+            HistoricalWeatherDaily
+
+        Critério de geada:
+            temperatura_minima <= 0 °C
+
+        Regras:
+            - considera somente registros persistidos;
+            - não utiliza previsão meteorológica;
+            - mantém a contagem total de registros;
+            - calcula frequência a partir de dias de geada / total;
+            - calcula episódios por continuidade diária;
+            - preserva a mínima histórica real;
+            - ausência de registros não é convertida em ocorrência.
+        """
+
+        records = (
+            HistoricalWeatherDaily.objects
+            .filter(
+                station__municipio=municipio
+            )
+            .order_by(
+                "data"
+            )
+        )
+
+        total_days = 0
+        frost_days = 0
+        frost_dates = []
+        minimum_temperature = None
+
+        for record in records:
+            total_days += 1
+
+            minimum = self._to_float(
+                record.temperatura_minima
+            )
+
+            if minimum is None:
+                continue
+
+            if (
+                minimum_temperature is None
+                or minimum < minimum_temperature
+            ):
+                minimum_temperature = minimum
+
+            # Critério real e único de geada.
+            if minimum <= 0:
+                frost_days += 1
+
+                if record.data is not None:
+                    frost_dates.append(
+                        record.data
+                    )
+
+        frequency = (
+            frost_days / total_days
+            if total_days > 0
+            else 0.0
+        )
+
+        return {
+            "historical_frost": (
+                frost_days > 0
+            ),
+
+            "historical_total_days": (
+                total_days
+            ),
+
+            "historical_frost_days": (
+                frost_days
+            ),
+
+            "historical_frost_frequency": (
+                frequency
+            ),
+
+            "historical_frost_episodes": (
+                self._count_frost_episodes(
+                    frost_dates
+                )
+            ),
+
+            "historical_min_temperature": (
+                minimum_temperature
+            ),
+        }
+
+    @staticmethod
+    def _count_frost_episodes(
+        frost_dates,
+    ):
+        """
+        Conta episódios distintos de geada.
+
+        Datas consecutivas pertencem ao mesmo episódio.
+        Uma nova ocorrência após uma lacuna de pelo menos
+        um dia inicia novo episódio.
+        """
+
+        if not frost_dates:
+            return 0
+
+        unique_dates = sorted(
+            set(frost_dates)
+        )
+
+        episodes = 1
+
+        for previous, current in zip(
+            unique_dates,
+            unique_dates[1:],
+        ):
+            if (
+                current - previous
+            ).days > 1:
+                episodes += 1
+
+        return episodes
 
     # ==========================================================
     # CONVERSÃO NUMÉRICA
@@ -395,7 +568,21 @@ class KPIService:
 
             "analysis_date": now,
 
-            "historical_frost": None,
+            # ==================================================
+            # HISTÓRICO REAL DE GEADAS
+            # ==================================================
+
+            "historical_frost": False,
+
+            "historical_total_days": 0,
+
+            "historical_frost_days": 0,
+
+            "historical_frost_frequency": 0.0,
+
+            "historical_frost_episodes": 0,
+
+            "historical_min_temperature": None,
 
             # ==================================================
             # ÍNDICE AGROCLIMA

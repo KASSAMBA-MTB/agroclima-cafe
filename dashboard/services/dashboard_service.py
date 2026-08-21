@@ -20,11 +20,15 @@ Responsabilidades:
     • Consolidar KPIs, gráficos, ranking, eventos e mapa.
     • Enriquecer os pontos geográficos com dados meteorológicos.
     • Disponibilizar ocorrências históricas reais de geada.
+    • Disponibilizar indicadores históricos estruturados para a
+      camada de Inteligência.
     • Não executar regras de Inteligência.
 
-Versão..........: 3.5
+Versão..........: 3.6
 ===============================================================================
 """
+
+from datetime import timedelta
 
 from clima.models import (
     HistoricalWeatherDaily,
@@ -187,8 +191,12 @@ class DashboardService:
         Dados históricos de geada:
             • ocorrência;
             • quantidade de ocorrências;
+            • quantidade total de registros históricos;
+            • frequência histórica de geada;
+            • quantidade de episódios de geada;
             • última data de ocorrência;
-            • temperatura mínima da última ocorrência.
+            • temperatura mínima da última ocorrência;
+            • menor temperatura registrada em ocorrência de geada.
 
         Critério objetivo para ocorrência histórica de geada:
 
@@ -201,6 +209,9 @@ class DashboardService:
             • gera alertas;
             • gera recomendações;
             • executa regras de Inteligência.
+
+        Os indicadores históricos adicionados aqui constituem
+        evidência estruturada para a etapa posterior da FrostRule.
         """
 
         if not map_points:
@@ -268,7 +279,7 @@ class DashboardService:
         # Não utiliza previsão.
         # ======================================================
 
-        frost_records = (
+        historical_records = (
             HistoricalWeatherDaily.objects
             .select_related(
                 "station",
@@ -279,17 +290,16 @@ class DashboardService:
                     municipality_names
                 ),
                 temperatura_minima__isnull=False,
-                temperatura_minima__lte=0,
             )
             .order_by(
                 "station__municipio__nome",
-                "-data",
+                "data",
             )
         )
 
-        frost_by_municipality = {}
+        historical_by_municipality = {}
 
-        for record in frost_records:
+        for record in historical_records:
 
             municipality = (
                 record.station
@@ -297,33 +307,52 @@ class DashboardService:
                 .nome
             )
 
-            summary = frost_by_municipality.setdefault(
+            summary = historical_by_municipality.setdefault(
                 municipality,
                 {
-                    "occurrences": 0,
+                    "total_records": 0,
+                    "frost_records": 0,
+                    "frost_dates": [],
                     "last_date": None,
                     "last_minimum": None,
+                    "minimum_temperature": None,
                 },
             )
 
-            summary["occurrences"] += 1
+            summary["total_records"] += 1
 
-            # O queryset está ordenado da ocorrência mais
-            # recente para a mais antiga. Portanto, o primeiro
-            # registro representa a última ocorrência registrada.
-            if summary["last_date"] is None:
+            minimum = self._to_float(
+                record.temperatura_minima
+            )
 
+            if minimum is None:
+                continue
+
+            if (
+                summary["minimum_temperature"] is None
+                or minimum < summary["minimum_temperature"]
+            ):
+                summary["minimum_temperature"] = minimum
+
+            # Critério real de geada.
+            if minimum <= 0:
+
+                summary["frost_records"] += 1
+
+                if record.data:
+                    summary["frost_dates"].append(
+                        record.data
+                    )
+
+                # O queryset está em ordem crescente; portanto,
+                # o último registro de geada é o mais recente.
                 summary["last_date"] = (
                     record.data.isoformat()
                     if record.data
                     else None
                 )
 
-                summary["last_minimum"] = (
-                    self._to_float(
-                        record.temperatura_minima
-                    )
-                )
+                summary["last_minimum"] = minimum
 
         # ======================================================
         # ENRIQUECIMENTO DOS PONTOS
@@ -408,46 +437,106 @@ class DashboardService:
                     )
 
             # ==================================================
-            # GEADA HISTÓRICA REAL
+            # HISTÓRICO REAL DE GEADA
             # ==================================================
 
-            frost = frost_by_municipality.get(
-                municipality
+            historical = (
+                historical_by_municipality.get(
+                    municipality
+                )
             )
 
-            if frost is None:
+            if historical is None:
 
                 enriched["frost"] = False
-
                 enriched["frost_occurrences"] = 0
-
                 enriched["frost_last_date"] = None
+                enriched["frost_temperature_minimum"] = None
+                enriched["historical_frost"] = False
 
-                enriched[
-                    "frost_temperature_minimum"
-                ] = None
+                # Evidência histórica estruturada.
+                enriched["historical_total_days"] = 0
+                enriched["historical_frost_days"] = 0
+                enriched["historical_frost_frequency"] = 0.0
+                enriched["historical_frost_episodes"] = 0
+                enriched["historical_min_temperature"] = None
 
             else:
 
-                enriched["frost"] = True
+                frost_dates = historical["frost_dates"]
+                total_days = historical["total_records"]
+                frost_days = historical["frost_records"]
 
-                enriched["frost_occurrences"] = (
-                    frost["occurrences"]
+                enriched["frost"] = (
+                    frost_days > 0
                 )
 
-                enriched["frost_last_date"] = (
-                    frost["last_date"]
+                enriched["frost_occurrences"] = frost_days
+                enriched["frost_last_date"] = historical["last_date"]
+                enriched["frost_temperature_minimum"] = historical["last_minimum"]
+                enriched["historical_frost"] = (
+                    frost_days > 0
                 )
 
-                enriched[
-                    "frost_temperature_minimum"
-                ] = frost["last_minimum"]
+                enriched["historical_total_days"] = total_days
+                enriched["historical_frost_days"] = frost_days
+                enriched["historical_frost_frequency"] = (
+                    frost_days / total_days
+                    if total_days > 0
+                    else 0.0
+                )
+                enriched["historical_frost_episodes"] = (
+                    self._count_frost_episodes(
+                        frost_dates
+                    )
+                )
+                enriched["historical_min_temperature"] = (
+                    historical["minimum_temperature"]
+                )
 
             enriched_points.append(
                 enriched
             )
 
         return enriched_points
+
+    # ==========================================================
+    # EPISÓDIOS HISTÓRICOS DE GEADA
+    # ==========================================================
+
+    @staticmethod
+    def _count_frost_episodes(
+        frost_dates,
+    ):
+        """
+        Conta episódios distintos de geada.
+
+        Dias consecutivos pertencem ao mesmo episódio.
+        Dias separados por pelo menos um dia sem geada
+        iniciam novo episódio.
+
+        Não calcula risco. Apenas estrutura a evidência
+        histórica para a camada de Inteligência.
+        """
+
+        if not frost_dates:
+            return 0
+
+        ordered_dates = sorted(
+            set(frost_dates)
+        )
+
+        episodes = 1
+        previous_date = ordered_dates[0]
+
+        for current_date in ordered_dates[1:]:
+
+            if current_date != previous_date + timedelta(days=1):
+                episodes += 1
+
+            previous_date = current_date
+
+        return episodes
 
     # ==========================================================
     # CONVERSÃO NUMÉRICA

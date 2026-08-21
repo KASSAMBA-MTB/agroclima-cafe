@@ -9,10 +9,11 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.8
+Versão..........: 3.9
 """
 
 from datetime import datetime
+import math
 
 from core.intelligence.base_rule import BaseRule
 
@@ -88,6 +89,26 @@ class FrostRule(BaseRule):
 
         historical = context.get(
             "historical_frost"
+        )
+
+        historical_total_days = context.get(
+            "historical_total_days"
+        )
+
+        historical_frost_days = context.get(
+            "historical_frost_days"
+        )
+
+        historical_frost_frequency = context.get(
+            "historical_frost_frequency"
+        )
+
+        historical_frost_episodes = context.get(
+            "historical_frost_episodes"
+        )
+
+        historical_min_temperature = context.get(
+            "historical_min_temperature"
         )
 
         # ------------------------------------------------------
@@ -245,7 +266,12 @@ class FrostRule(BaseRule):
 
         value, factor = (
             self._history_score(
-                historical
+                historical=historical,
+                total_days=historical_total_days,
+                frost_days=historical_frost_days,
+                frequency=historical_frost_frequency,
+                episodes=historical_frost_episodes,
+                minimum_temperature=historical_min_temperature,
             )
         )
 
@@ -504,21 +530,140 @@ class FrostRule(BaseRule):
 
     def _history_score(
         self,
-        historical
+        historical,
+        total_days=None,
+        frost_days=None,
+        frequency=None,
+        episodes=None,
+        minimum_temperature=None,
     ):
         """
-        Calcula a contribuição do histórico de geadas.
+        Calcula a contribuição histórica para o FRI.
 
-        Quando o histórico não está disponível, nenhum ponto
-        é atribuído e o fator não é considerado disponível.
+        A fonte é exclusivamente a evidência histórica persistida
+        pelo DashboardService a partir de HistoricalWeatherDaily.
+
+        Compatibilidade:
+            - quando os campos quantitativos não estiverem
+              disponíveis, utiliza historical_frost;
+            - quando estiverem disponíveis, a frequência histórica
+              é a evidência principal.
+
+        O histórico não inventa risco: ausência de ocorrência
+        produz contribuição zero.
         """
 
-        if historical is True:
+        if (
+            total_days is None
+            and frost_days is None
+            and frequency is None
+        ):
+            if historical is True:
+                return (
+                    self.WEIGHTS["history"],
+                    "Histórico de geadas",
+                )
 
-            return (
-                5,
-                "Histórico de geadas"
+            return 0, None
+
+        try:
+            total = float(total_days or 0)
+        except (TypeError, ValueError):
+            total = 0.0
+
+        try:
+            frost_count = float(frost_days or 0)
+        except (TypeError, ValueError):
+            frost_count = 0.0
+
+        try:
+            freq = float(frequency) if frequency is not None else None
+        except (TypeError, ValueError):
+            freq = None
+
+        if freq is None:
+            freq = (
+                frost_count / total
+                if total > 0
+                else 0.0
             )
+
+        freq = max(0.0, min(freq, 1.0))
+
+        # ==========================================================
+        # PONTUAÇÃO HISTÓRICA QUANTITATIVA
+        # ==========================================================
+        #
+        # O histórico permanece limitado ao peso máximo definido
+        # pela regra: 5 pontos.
+        #
+        # Critérios:
+        #   - nenhuma ocorrência real -> 0 pontos;
+        #   - qualquer ocorrência real -> pelo menos 1 ponto;
+        #   - maior frequência -> nunca menor pontuação;
+        #   - frequência de 100% -> 5 pontos.
+        #
+        # A frequência é a variável principal da contribuição
+        # histórica. Episódios e mínima histórica permanecem como
+        # evidências de explicabilidade e não são somados novamente,
+        # evitando dupla contagem.
+        # ==========================================================
+
+        history_weight = self.WEIGHTS["history"]
+
+        if frost_count <= 0 and historical is not True:
+            return 0, None
+
+        # A frequência já foi normalizada no intervalo [0, 1].
+        history_score = math.ceil(
+            freq * history_weight
+        )
+
+        # Uma ocorrência histórica real não pode resultar em
+        # contribuição zero.
+        history_score = max(
+            1,
+            min(
+                history_score,
+                history_weight
+            )
+        )
+
+        details = [
+            "Histórico de geadas",
+        ]
+
+        if total > 0:
+            details.append(
+                f"{int(frost_count)} ocorrência(s) em "
+                f"{int(total)} dia(s)"
+            )
+
+        details.append(
+            f"frequência histórica {freq * 100:.1f}%"
+        )
+
+        if episodes is not None:
+            try:
+                details.append(
+                    f"{int(float(episodes))} episódio(s)"
+                )
+            except (TypeError, ValueError):
+                pass
+
+        if minimum_temperature is not None:
+            try:
+                details.append(
+                    f"mínima histórica "
+                    f"{float(minimum_temperature):.1f} °C"
+                )
+            except (TypeError, ValueError):
+                pass
+
+        return (
+            history_score,
+            " — ".join(details),
+        )
 
         return 0, None
 
