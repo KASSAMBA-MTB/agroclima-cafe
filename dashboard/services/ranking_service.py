@@ -10,18 +10,18 @@ Arquivo.........: ranking_service.py
 
 Descrição.......:
 Serviço responsável pela geração do Ranking dos Municípios
-utilizando o Frost Risk Index (FRI).
+utilizando o Frost Risk Index (FRI) oficial da Dashboard.
 
+O Ranking consome os mesmos pontos municipais estruturados utilizados
+pelo mapa, e a avaliação do FRI é centralizada em FrostRiskService.
 Toda a inteligência permanece centralizada em
 core.intelligence.
 
-Versão..........: 3.0
+Versão..........: 3.1
 ===============================================================================
 """
 
-from clima.services.weather_service import WeatherService
-from core.intelligence.engine import IntelligenceEngine
-from municipios.models import Municipio
+from dashboard.services.frost_risk_service import FrostRiskService
 
 
 class RankingService:
@@ -32,86 +32,114 @@ class RankingService:
 
     def __init__(self):
 
-        self.weather = WeatherService()
-
-        self.intelligence = IntelligenceEngine()
+        self.frost_risk = FrostRiskService()
 
     # ==========================================================
     # RANKING
     # ==========================================================
 
-    def get_ranking(self):
+    def get_ranking(self, map_points):
 
         ranking = []
 
-        municipios = Municipio.objects.all()
+        if not map_points:
 
-        for municipio in municipios:
+            return ranking
+
+        for point in map_points:
 
             try:
 
-                observation = self.weather.update_current_weather(
-                    municipio
-                )
-
                 context = {
 
-                    "temperature": float(
-                        observation.temperature
+                    "temperature": point.get(
+                        "temperature"
                     ),
 
-                    "humidity": float(
-                        observation.humidity
+                    "humidity": point.get(
+                        "humidity"
                     ),
 
-                    "wind_speed": float(
-                        observation.wind_speed
+                    "wind_speed": point.get(
+                        "wind_speed"
                     ),
 
-                    "cloud_cover": float(
-                        observation.cloud_cover
+                    "cloud_cover": point.get(
+                        "cloud_cover"
                     ),
 
-                    "altitude": municipio.altitude,
+                    "altitude": point.get(
+                        "altitude"
+                    ),
 
-                    "historical_frost": False,
+                    "historical_frost": point.get(
+                        "historical_frost"
+                    ),
 
-                    "analysis_date": observation.observation_time,
+                    "historical_total_days": point.get(
+                        "historical_total_days"
+                    ),
+
+                    "historical_frost_days": point.get(
+                        "historical_frost_days"
+                    ),
+
+                    "historical_frost_frequency": point.get(
+                        "historical_frost_frequency"
+                    ),
+
+                    "historical_frost_episodes": point.get(
+                        "historical_frost_episodes"
+                    ),
+
+                    "historical_min_temperature": point.get(
+                        "historical_min_temperature"
+                    ),
+
+                    "analysis_date": point.get(
+                        "analysis_date"
+                    ),
 
                 }
 
-                frost = self.intelligence.evaluate_frost(
+                frost = self.frost_risk.evaluate_frost(
                     context
+                )
+
+                score = frost.get(
+                    "score"
+                )
+
+                if score is None:
+
+                    continue
+
+                severity = frost.get(
+                    "severity"
                 )
 
                 ranking.append({
 
-                    "nome": municipio.nome,
-
-                    "uf": municipio.estado,
-
-                    "score": frost.get(
-                        "score",
-                        0
+                    "nome": point.get(
+                        "nome"
                     ),
 
-                    "severity": frost.get(
-                        "severity",
-                        "none"
+                    "uf": point.get(
+                        "estado"
                     ),
+
+                    "score": score,
+
+                    "severity": severity,
 
                     "color": self._severity_color(
 
-                        frost.get(
-                            "severity",
-                            "none"
-                        )
+                        severity
 
                     ),
 
                     "confidence": frost.get(
-                        "confidence",
-                        0
+                        "confidence"
                     ),
 
                 })

@@ -24,7 +24,7 @@ Responsabilidades:
       camada de Inteligência.
     • Não executar regras de Inteligência.
 
-Versão..........: 3.6
+Versão..........: 3.8
 ===============================================================================
 """
 
@@ -40,6 +40,7 @@ from dashboard.services.chart_service import ChartService
 from dashboard.services.ranking_service import RankingService
 from dashboard.services.events_service import EventsService
 from dashboard.services.map_service import MapService
+from dashboard.services.frost_risk_service import FrostRiskService
 
 
 class DashboardService:
@@ -64,6 +65,12 @@ class DashboardService:
         self.events_service = EventsService()
 
         self.map_service = MapService()
+
+        # Avaliação oficial e única do FRI por município.
+        # O resultado é incorporado ao map_point e passa a ser a
+        # fonte autoritativa consumida por mapa, popup, ranking,
+        # alerta e insight.
+        self.frost_risk_service = FrostRiskService()
 
     # ==========================================================
     # DASHBOARD
@@ -117,14 +124,6 @@ class DashboardService:
         )
 
         # ======================================================
-        # RANKING
-        # ======================================================
-
-        context["ranking"] = (
-            self.ranking_service.get_ranking()
-        )
-
-        # ======================================================
         # EVENTOS
         # ======================================================
 
@@ -154,7 +153,34 @@ class DashboardService:
             map_points
         )
 
+        # ======================================================
+        # AVALIAÇÃO MUNICIPAL ÚNICA DO FRI
+        #
+        # Cada município é avaliado exatamente uma vez depois
+        # que os dados climáticos e históricos já foram anexados.
+        # O resultado completo passa a integrar o map_point.
+        # Nenhum consumidor posterior deve recalcular o FRI.
+        # ======================================================
+
+        map_points = self._attach_frost_intelligence(
+            map_points
+        )
+
         context["map_points"] = map_points
+
+        # ======================================================
+        # RANKING
+        #
+        # O Ranking recebe exatamente os mesmos map_points que
+        # foram disponibilizados ao mapa. O FRI já está calculado
+        # nesses objetos e não pode ser recalculado pelo Ranking.
+        # ======================================================
+
+        context["ranking"] = (
+            self.ranking_service.get_ranking(
+                map_points
+            )
+        )
 
         # ======================================================
         # CAMPOS PREENCHIDOS PELA DASHBOARDFACADE
@@ -499,6 +525,109 @@ class DashboardService:
             )
 
         return enriched_points
+
+    # ==========================================================
+    # AVALIAÇÃO MUNICIPAL ÚNICA DO FRI
+    # ==========================================================
+
+    def _attach_frost_intelligence(
+        self,
+        map_points,
+    ):
+        """
+        Executa a avaliação oficial de Inteligência uma única vez por
+        município e incorpora o resultado ao respectivo ``map_point``.
+
+        Regra arquitetural da FASE 2A:
+
+            um município
+                -> uma avaliação oficial
+                -> um map_point canônico
+                -> mapa / popup / ranking / alerta / insight
+
+        Este método não implementa regras de FRI. Ele apenas encaminha
+        ao FrostRiskService o contexto estruturado já produzido por
+        ``_attach_climate_data`` e distribui o resultado retornado pelo
+        motor oficial nos campos canônicos do map_point.
+
+        Nenhum consumidor posterior deve chamar novamente
+        FrostRiskService para o mesmo município.
+        """
+
+        if not map_points:
+            return []
+
+        evaluated_points = []
+
+        for point in map_points:
+            evaluated = dict(point)
+
+            context = {
+                "temperature": point.get("temperature"),
+                "humidity": point.get("humidity"),
+                "wind_speed": point.get("wind_speed"),
+                "cloud_cover": point.get("cloud_cover"),
+                "altitude": point.get("altitude"),
+                "historical_frost": point.get("historical_frost"),
+                "historical_total_days": point.get(
+                    "historical_total_days"
+                ),
+                "historical_frost_days": point.get(
+                    "historical_frost_days"
+                ),
+                "historical_frost_frequency": point.get(
+                    "historical_frost_frequency"
+                ),
+                "historical_frost_episodes": point.get(
+                    "historical_frost_episodes"
+                ),
+                "historical_min_temperature": point.get(
+                    "historical_min_temperature"
+                ),
+                "analysis_date": point.get("analysis_date"),
+            }
+
+            try:
+                frost = self.frost_risk_service.evaluate_frost(
+                    context
+                )
+            except Exception:
+                frost = {}
+
+            if not isinstance(frost, dict):
+                frost = {}
+
+            # --------------------------------------------------
+            # CONTRATO CANÔNICO DO MAP_POINT
+            # --------------------------------------------------
+            # O valor de FRI é materializado uma única vez.
+            # Nenhuma conversão, ponderação ou novo cálculo é feito.
+            evaluated["fri"] = frost.get("score")
+            evaluated["severity"] = frost.get("severity")
+            evaluated["confidence"] = frost.get("confidence")
+
+            # Apenas distribui o resultado oficial retornado pela
+            # camada de Inteligência. Não reconstrói esses campos.
+            evaluated["frost_factors"] = frost.get(
+                "frost_factors"
+            )
+
+            if evaluated["frost_factors"] is None:
+                evaluated["frost_factors"] = frost.get("factors")
+
+            evaluated["insight"] = frost.get("insight")
+            evaluated["recommendation"] = frost.get(
+                "recommendation"
+            )
+            evaluated["alert"] = frost.get("alert")
+
+            # Preserva a avaliação oficial completa para auditoria
+            # e rastreabilidade, sem criar uma segunda avaliação.
+            evaluated["frost_evaluation"] = frost
+
+            evaluated_points.append(evaluated)
+
+        return evaluated_points
 
     # ==========================================================
     # EPISÓDIOS HISTÓRICOS DE GEADA

@@ -10,7 +10,7 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.5
+Versão..........: 3.6
 """
 
 from django.utils import timezone
@@ -19,8 +19,8 @@ from dashboard.services.dashboard_service import (
     DashboardService
 )
 
-from core.intelligence.engine import (
-    IntelligenceEngine
+from dashboard.services.frost_risk_service import (
+    FrostRiskService
 )
 
 
@@ -32,7 +32,7 @@ class DashboardFacade:
 
     - Obter os dados estruturados
     - Preparar o contexto da Inteligência
-    - Executar a Inteligência
+    - Executar a Inteligência pelo serviço oficial de FRI
     - Consolidar o contexto final enviado ao Template
     - Enriquecer os pontos do mapa com inteligência territorial
 
@@ -47,8 +47,8 @@ class DashboardFacade:
             DashboardService()
         )
 
-        self.intelligence = (
-            IntelligenceEngine()
+        self.frost_risk = (
+            FrostRiskService()
         )
 
     # ==========================================================
@@ -165,7 +165,7 @@ class DashboardFacade:
         # ======================================================
 
         intelligence = (
-            self.intelligence.process(
+            self.frost_risk.process(
                 intelligence_context
             )
         )
@@ -271,7 +271,7 @@ class DashboardFacade:
         O método não implementa regras de risco.
 
         Apenas prepara o contexto municipal, chama o
-        IntelligenceEngine e incorpora o resultado ao
+        FrostRiskService e incorpora o resultado ao
         respectivo ponto geográfico.
         """
 
@@ -380,7 +380,7 @@ class DashboardFacade:
             try:
 
                 result = (
-                    self.intelligence.process(
+                    self.frost_risk.process(
                         municipality_context
                     )
                 )
@@ -484,7 +484,7 @@ class DashboardFacade:
             # ==================================================
             # INTELIGÊNCIA MUNICIPAL COMPLETA
             #
-            # O IntelligenceEngine já produz:
+            # O FrostRiskService já produz:
             # - insights;
             # - recomendações;
             # - alertas;
@@ -694,7 +694,7 @@ class DashboardFacade:
     ):
         """
         Retorna somente a representação visual associada
-        à severidade já calculada pelo IntelligenceEngine.
+        à severidade já calculada pelo FrostRiskService.
 
         Não calcula risco.
         """

@@ -644,16 +644,6 @@ const MapController = {
             }
 
 
-            this.territoryGeoJson = {
-
-                type:
-                    "FeatureCollection",
-
-                features:
-                    geojson.features
-            };
-
-
             /* ==================================================
                DIAGNÓSTICO DA FONTE
             ================================================== */
@@ -815,6 +805,28 @@ const MapController = {
                 );
 
             }
+
+
+            /* ==================================================
+               FIXAÇÃO DO RECORTE TERRITORIAL VALIDADO
+
+               A máscara e todas as operações territoriais devem
+               utilizar exclusivamente as feições já validadas
+               em monitoredFeatures.
+
+               Isso impede que qualquer feição adicional retornada
+               futuramente pela fonte territorial entre no recorte.
+            ================================================== */
+
+            this.territoryGeoJson = {
+
+                type:
+                    "FeatureCollection",
+
+                features:
+                    monitoredFeatures
+
+            };
 
 
             /* ==================================================
@@ -1626,11 +1638,11 @@ const MapController = {
             ],
 
             geadas: [
+                ["#777777", "Sem risco"],
                 ["#287a40", "Baixo"],
                 ["#9a6a00", "Moderado"],
                 ["#a94c17", "Alto"],
-                ["#a52f2f", "Crítico"],
-                ["#777777", "Sem risco"]
+                ["#a52f2f", "Crítico"]
             ],
 
             fri: [
@@ -1886,6 +1898,20 @@ const MapController = {
                     this.buildPopup(
                         point
                     )
+                );
+
+                /*
+                 * Tooltip do marcador:
+                 * mostra exclusivamente o nome real do município.
+                 * O texto não é mais "Indicador climático".
+                 */
+                marker.bindTooltip(
+                    point.nome || "Município",
+                    {
+                        direction: "top",
+                        offset: [0, -10],
+                        className: "agroclima-tooltip"
+                    }
                 );
 
 
@@ -2180,6 +2206,98 @@ const MapController = {
             );
 
         }
+
+    },
+
+
+    /* ==========================================================
+       DISTÂNCIA GEODÉSICA — HAVERSINE
+
+       O IDW utiliza latitude/longitude em graus apenas para
+       localizar os pontos. A distância usada nos pesos deve ser
+       geodésica, pois graus de latitude/longitude não formam uma
+       unidade cartesiana uniforme.
+
+       Retorno: distância em quilômetros.
+       ========================================================== */
+
+    haversineDistanceKm(
+        latitude1,
+        longitude1,
+        latitude2,
+        longitude2
+    ) {
+
+        const earthRadiusKm =
+            6371.0088;
+
+        const toRadians =
+            degrees =>
+                degrees *
+                (Math.PI / 180);
+
+        const lat1 =
+            toRadians(
+                Number(latitude1)
+            );
+
+        const lat2 =
+            toRadians(
+                Number(latitude2)
+            );
+
+        const deltaLatitude =
+            toRadians(
+                Number(latitude2) -
+                Number(latitude1)
+            );
+
+        const deltaLongitude =
+            toRadians(
+                Number(longitude2) -
+                Number(longitude1)
+            );
+
+        const sinLatitude =
+            Math.sin(
+                deltaLatitude / 2
+            );
+
+        const sinLongitude =
+            Math.sin(
+                deltaLongitude / 2
+            );
+
+        const haversineA =
+            (sinLatitude * sinLatitude) +
+            (
+                Math.cos(lat1) *
+                Math.cos(lat2) *
+                sinLongitude *
+                sinLongitude
+            );
+
+        const centralAngle =
+            2 *
+            Math.atan2(
+                Math.sqrt(
+                    Math.min(
+                        1,
+                        haversineA
+                    )
+                ),
+                Math.sqrt(
+                    Math.max(
+                        0,
+                        1 - haversineA
+                    )
+                )
+            );
+
+        return (
+            earthRadiusKm *
+            centralAngle
+        );
 
     },
 
@@ -2751,32 +2869,22 @@ const MapController = {
                         }
 
 
-                        const dx =
-                            latLng.lng -
-                            Number(
-                                item.longitude
-                            );
-
-
-                        const dy =
-                            latLng.lat -
-                            Number(
-                                item.latitude
-                            );
-
-
-                        const distanceSquared =
-                            (
-                                dx * dx
-                            ) +
-                            (
-                                dy * dy
+                        const distance =
+                            this.haversineDistanceKm(
+                                latLng.lat,
+                                latLng.lng,
+                                Number(
+                                    item.latitude
+                                ),
+                                Number(
+                                    item.longitude
+                                )
                             );
 
 
                         if (
-                            distanceSquared <
-                            0.000000000001
+                            distance <
+                            0.0001
                         ) {
 
                             exactValue =
@@ -2791,12 +2899,6 @@ const MapController = {
                             return;
 
                         }
-
-
-                        const distance =
-                            Math.sqrt(
-                                distanceSquared
-                            );
 
 
                         const weight =
@@ -3530,6 +3632,13 @@ const MapController = {
                 point
             );
 
+        const markerName =
+            this.escapeHtml(
+                point && point.nome
+                    ? point.nome
+                    : "Município"
+            );
+
         return L.divIcon({
 
             className:
@@ -3539,8 +3648,8 @@ const MapController = {
                 <div
                     class="agroclima-marker ${iconClass}"
                     style="background:${markerStyle.color};"
-                    aria-label="Indicador climático"
-                    title="Indicador climático">
+                    aria-label="${markerName}"
+                    title="${markerName}">
 
                     <i class="bi bi-geo-alt-fill"></i>
 
@@ -3678,32 +3787,6 @@ const MapController = {
                 : "--";
 
 
-        const fri =
-            point.fri !== null &&
-            point.fri !== undefined
-                ? point.fri
-                : "--";
-
-
-        const confidence =
-            point.confidence !== null &&
-            point.confidence !== undefined
-                ? point.confidence
-                : "--";
-
-
-        const severity =
-            this.normalizeSeverity(
-                point.severity
-            );
-
-
-        const severityLabel =
-            this.getSeverityLabel(
-                severity
-            );
-
-
         const nome =
             this.escapeHtml(
                 point.nome ||
@@ -3746,6 +3829,83 @@ const MapController = {
                 : "--";
 
 
+        /*
+         * FRI, confiança e severidade são informações específicas
+         * da camada Geadas. Não devem contaminar os popups de
+         * Municípios, Temperatura ou Precipitação.
+         */
+        const frostDetails =
+            this.activeLayer === "geadas"
+                ? (() => {
+
+                    const fri =
+                        point.fri !== null &&
+                        point.fri !== undefined
+                            ? point.fri
+                            : "--";
+
+                    const confidence =
+                        point.confidence !== null &&
+                        point.confidence !== undefined
+                            ? point.confidence
+                            : "--";
+
+                    const severity =
+                        this.normalizeSeverity(
+                            point.severity
+                        );
+
+                    const severityLabel =
+                        this.getSeverityLabel(
+                            severity
+                        );
+
+                    return `
+                        <div class="agroclima-popup-item">
+
+                            <span class="agroclima-popup-label">
+                                FRI
+                            </span>
+
+                            <span class="agroclima-popup-value">
+                                ${fri}
+                            </span>
+
+                        </div>
+
+                        <div class="agroclima-popup-item">
+
+                            <span class="agroclima-popup-label">
+                                Confiança
+                            </span>
+
+                            <span class="agroclima-popup-value">
+                                ${confidence}
+                            </span>
+
+                        </div>
+
+                        <div
+                            class="agroclima-popup-risk"
+                            style="
+                                background:${this.getSeverityBackground(severity)};
+                                color:${this.getSeverityColor(severity)};
+                            "
+                        >
+                            <span class="agroclima-popup-label">
+                                Risco de geada
+                            </span>
+
+                            <strong>
+                                ${severityLabel}
+                            </strong>
+                        </div>
+                    `;
+
+                })()
+                : "";
+
+
         return `
             <div class="agroclima-popup">
 
@@ -3772,30 +3932,7 @@ const MapController = {
                     </div>
 
 
-                    <div class="agroclima-popup-item">
-
-                        <span class="agroclima-popup-label">
-                            FRI
-                        </span>
-
-                        <span class="agroclima-popup-value">
-                            ${fri}
-                        </span>
-
-                    </div>
-
-
-                    <div class="agroclima-popup-item">
-
-                        <span class="agroclima-popup-label">
-                            Confiança
-                        </span>
-
-                        <span class="agroclima-popup-value">
-                            ${confidence}
-                        </span>
-
-                    </div>
+                    ${frostDetails}
 
 
                     <div class="agroclima-popup-item">
@@ -3816,22 +3953,10 @@ const MapController = {
 
                 ${this.buildLayerIndicator(point)}
 
-
-                <span
-                    class="agroclima-popup-risk"
-                    style="
-                        background:${this.getSeverityBackground(severity)};
-                        color:${this.getSeverityColor(severity)};
-                    "
-                >
-                    ${severityLabel}
-                </span>
-
             </div>
         `;
 
     },
-
 
     /* ======================================================
        INDICADOR DA CAMADA ATIVA NO POPUP
