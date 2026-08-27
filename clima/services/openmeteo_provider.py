@@ -623,6 +623,87 @@ class OpenMeteoProvider(WeatherProvider):
         return historical
 
     # ======================================================
+    # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
+    # ======================================================
+
+    @staticmethod
+    def _weather_condition_from_code(
+        weather_code,
+    ):
+        """
+        Normaliza o código WMO da Open-Meteo para o contrato
+        meteorológico canônico do AgroClima.
+
+        Neve não é condição operacional para a região
+        monitorada. Granizo somente é reconhecido quando a
+        fonte informa os códigos WMO 96/99.
+        """
+
+        code = int(weather_code)
+
+        if code == 0:
+            return "CLEAR"
+
+        if code in (1, 2, 3):
+            return "CLOUDY"
+
+        if code in (45, 48):
+            return "FOG"
+
+        if code in (51, 53, 55, 56, 57):
+            return "DRIZZLE"
+
+        if code in (61, 63, 65, 66, 67):
+            return "RAIN"
+
+        if code in (80, 81, 82):
+            return "RAIN_SHOWER"
+
+        if code == 95:
+            return "THUNDERSTORM"
+
+        if code in (96, 99):
+            return "HAIL"
+
+        return "UNKNOWN"
+
+    @classmethod
+    def _rain_now_from_code(
+        cls,
+        weather_code,
+    ):
+        """
+        Determina evidência de chuva atual a partir do
+        weather_code.
+
+        Trata-se de evidência de MODELO, não de observação
+        física. A resolução entre fontes ocorrerá em fase
+        posterior.
+        """
+
+        condition = cls._weather_condition_from_code(
+            weather_code
+        )
+
+        if condition in (
+            "DRIZZLE",
+            "RAIN",
+            "RAIN_SHOWER",
+            "THUNDERSTORM",
+            "HAIL",
+        ):
+            return True
+
+        if condition in (
+            "CLEAR",
+            "CLOUDY",
+            "FOG",
+        ):
+            return False
+
+        return None
+
+    # ======================================================
     # CONVERSÃO PARA WEATHER DTO
     # ======================================================
 
@@ -733,5 +814,51 @@ class OpenMeteoProvider(WeatherProvider):
             uv_index=None,
 
             visibility=None,
+
+            # Contrato meteorológico canônico — FASE 1.
+            rain_now=(
+                self._rain_now_from_code(
+                    current[
+                        "weather_code"
+                    ]
+                )
+            ),
+
+            # current.precipitation representa a hora
+            # precedente na Open-Meteo. Não é precipitação 24h.
+            precipitation_1h_mm=(
+                current[
+                    "precipitation"
+                ]
+            ),
+
+            # Nenhuma fonte real de 24h está integrada ainda.
+            precipitation_24h_mm=None,
+
+            weather_condition=(
+                self._weather_condition_from_code(
+                    current[
+                        "weather_code"
+                    ]
+                )
+            ),
+
+            source="OPEN_METEO",
+
+            source_type="MODEL",
+
+            observed_at=(
+                observation_time
+            ),
+
+            retrieved_at=(
+                timezone.now()
+            ),
+
+            quality_status="MODEL_ESTIMATE",
+
+            # A confiança comparativa será definida pelo
+            # resolver após integração das fontes observacionais.
+            confidence=None,
 
         )

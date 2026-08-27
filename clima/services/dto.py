@@ -43,3 +43,35 @@ class WeatherDTO:
     uv_index: float | None = None
 
     visibility: float | None = None
+
+    # ------------------------------------------------------
+    # Contrato meteorológico canônico — FASE 1
+    # ------------------------------------------------------
+    #
+    # Os campos legados acima são preservados para manter
+    # compatibilidade com os consumidores atuais.
+    #
+    # precipitation continua existindo neste DTO, mas não
+    # deverá ser interpretado como precipitação de 24 horas.
+    # A migração dos consumidores ocorrerá nas fases seguintes.
+    # ------------------------------------------------------
+
+    rain_now: bool | None = None
+
+    precipitation_1h_mm: float | None = None
+
+    precipitation_24h_mm: float | None = None
+
+    weather_condition: str | None = None
+
+    source: str | None = None
+
+    source_type: str | None = None
+
+    observed_at: datetime | None = None
+
+    retrieved_at: datetime | None = None
+
+    quality_status: str | None = None
+
+    confidence: str | None = None

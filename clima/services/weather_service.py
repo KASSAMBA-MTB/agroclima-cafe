@@ -172,9 +172,16 @@ class WeatherService:
 
         observation_time = getattr(
             dto,
-            "observation_time",
+            "observed_at",
             None,
         )
+
+        if observation_time is None:
+            observation_time = getattr(
+                dto,
+                "observation_time",
+                None,
+            )
 
         if observation_time is None:
             return None
@@ -185,10 +192,77 @@ class WeatherService:
             "pressao": dto.pressure,
             "velocidade_vento": dto.wind_speed,
             "direcao_vento": dto.wind_direction,
+            # Campo legado: preservado para compatibilidade.
             "precipitacao": dto.precipitation,
             "cobertura_nuvens": dto.cloud_cover,
             "codigo_tempo": dto.weather_code,
         }
+
+        # --------------------------------------------------
+        # Contrato meteorológico canônico — FASE 1
+        # --------------------------------------------------
+        #
+        # Cada variável possui significado próprio:
+        #   chuva_agora       -> condição atual
+        #   precipitacao_1h   -> precipitação de 1 hora
+        #   precipitacao_24h  -> acumulado de 24 horas
+        #
+        # O campo legado 'precipitacao' permanece somente para
+        # compatibilidade com consumidores ainda não migrados.
+        canonical_values = {
+            "precipitacao_1h": getattr(
+                dto,
+                "precipitation_1h_mm",
+                None,
+            ),
+            "precipitacao_24h": getattr(
+                dto,
+                "precipitation_24h_mm",
+                None,
+            ),
+            "chuva_agora": getattr(
+                dto,
+                "rain_now",
+                None,
+            ),
+            "condicao_tempo": getattr(
+                dto,
+                "weather_condition",
+                None,
+            ),
+            "tipo_fonte": getattr(
+                dto,
+                "source_type",
+                None,
+            ),
+            "coletado_em": getattr(
+                dto,
+                "retrieved_at",
+                None,
+            ),
+            "qualidade_dado": getattr(
+                dto,
+                "quality_status",
+                None,
+            ),
+            "confianca": getattr(
+                dto,
+                "confidence",
+                None,
+            ),
+        }
+
+        model_field_names = {
+            field.name
+            for field in WeatherObservation._meta.get_fields()
+        }
+
+        for field_name, value in canonical_values.items():
+            if (
+                field_name in model_field_names
+                and value is not None
+            ):
+                values[field_name] = value
 
         if any(
             value is None
@@ -230,6 +304,17 @@ class WeatherService:
         if dto is None:
             return False
 
+        # --------------------------------------------------
+        # Contrato meteorológico canônico — FASE 1
+        # --------------------------------------------------
+        # Os campos básicos permanecem obrigatórios para
+        # compatibilidade com a cadeia existente.
+        #
+        # A condição atual de chuva passa a ser validada por
+        # rain_now, e não por precipitation.
+        #
+        # precipitation_24h_mm permanece opcional quando a fonte
+        # não fornecer explicitamente esse acumulado.
         required = (
             "temperature",
             "humidity",
@@ -239,6 +324,13 @@ class WeatherService:
             "precipitation",
             "weather_code",
             "cloud_cover",
+            "rain_now",
+            "precipitation_1h_mm",
+            "weather_condition",
+            "source_type",
+            "observed_at",
+            "retrieved_at",
+            "quality_status",
         )
 
         return all(
@@ -251,6 +343,9 @@ class WeatherService:
         self,
         observation,
     ):
+        # Fallback legado preservado nesta etapa. A migração dos
+        # consumidores ocorrerá progressivamente, sem invalidar
+        # registros históricos já existentes.
         required = (
             "temperatura",
             "umidade",

@@ -128,9 +128,7 @@ class DashboardService:
         # ======================================================
 
         context["eventos"] = (
-            self.events_service.get_events(
-                kpis
-            )
+            self.events_service.get_events()
         )
 
         # ======================================================
@@ -211,8 +209,19 @@ class DashboardService:
             • umidade;
             • vento;
             • cobertura de nuvens;
-            • precipitação;
+            • chuva ocorrendo agora;
+            • precipitação da última hora;
+            • precipitação acumulada em 24 horas;
             • horário da observação.
+
+        Contrato canônico:
+            • chuva_agora;
+            • precipitacao_1h;
+            • precipitacao_24h.
+
+        O campo legado ``precipitation`` é preservado no map_point
+        para compatibilidade, mas seu valor corresponde à
+        precipitação da última hora nesta etapa da migração.
 
         Dados históricos de geada:
             • ocorrência;
@@ -412,6 +421,23 @@ class DashboardService:
 
             enriched["cloud_cover"] = None
 
+            # ==================================================
+            # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
+            # ==================================================
+
+            # Chuva ocorrendo agora.
+            enriched["rain_now"] = None
+            enriched["chuva_agora"] = None
+
+            # Precipitação da última hora.
+            enriched["precipitation_1h_mm"] = None
+            enriched["precipitacao_1h"] = None
+
+            # Precipitação acumulada em 24 horas.
+            enriched["precipitation_24h_mm"] = None
+            enriched["precipitacao_24h"] = None
+
+            # Campo legado: mantido por compatibilidade.
             enriched["precipitation"] = None
 
             enriched["observation_time"] = None
@@ -446,10 +472,52 @@ class DashboardService:
                     )
                 )
 
-                enriched["precipitation"] = (
-                    self._to_float(
-                        observation.precipitacao
+                # --------------------------------------------------
+                # CONTRATO METEOROLÓGICO CANÔNICO
+                # --------------------------------------------------
+
+                rain_now = getattr(
+                    observation,
+                    "chuva_agora",
+                    None,
+                )
+
+                precipitation_1h = self._to_float(
+                    getattr(
+                        observation,
+                        "precipitacao_1h",
+                        None,
                     )
+                )
+
+                precipitation_24h = self._to_float(
+                    getattr(
+                        observation,
+                        "precipitacao_24h",
+                        None,
+                    )
+                )
+
+                # Variáveis canônicas.
+                enriched["rain_now"] = rain_now
+                enriched["chuva_agora"] = rain_now
+
+                enriched["precipitation_1h_mm"] = precipitation_1h
+                enriched["precipitacao_1h"] = precipitation_1h
+
+                enriched["precipitation_24h_mm"] = precipitation_24h
+                enriched["precipitacao_24h"] = precipitation_24h
+
+                # Compatibilidade com consumidores legados.
+                # O campo genérico passa a representar explicitamente
+                # a precipitação da última hora.
+                enriched["precipitation"] = precipitation_1h
+
+                # Condição meteorológica canônica, quando disponível.
+                enriched["weather_condition"] = getattr(
+                    observation,
+                    "condicao_tempo",
+                    None,
                 )
 
                 if observation.observation_time:
