@@ -128,7 +128,7 @@ class DashboardService:
         # ======================================================
 
         context["eventos"] = (
-            self.events_service.get_events()
+    self.events_service.get_events()
         )
 
         # ======================================================

@@ -1,239 +1,119 @@
-<!-- ==========================================================
-     PAINEL DE EVENTOS CLIMÁTICOS
-=========================================================== -->
+{% comment %}
+===============================================================================
+AGROCLIMA CAFÉ
+Componente: Eventos Climáticos Recentes
+Arquivo:
+    templates/dashboard/components/events_panel.html
 
-<div class="panel events-panel">
+Origem dos dados:
+    context["eventos"]
+    → EventsService
+    → DashboardService
+    → DashboardFacade
+
+REGRA:
+    Este componente NÃO contém eventos estáticos.
+    Todos os registros exibidos são provenientes exclusivamente
+    do contexto "eventos" fornecido pelo backend.
+===============================================================================
+{% endcomment %}
+
+<section class="panel events-panel">
 
     <div class="panel-header">
-
         <div>
-
-            <h3>
+            <h2 class="panel-title">
                 <i class="bi bi-calendar-event"></i>
                 Eventos Climáticos Recentes
-            </h3>
+            </h2>
 
-            <p>
+            <p class="panel-subtitle">
                 Histórico das principais ocorrências registradas.
             </p>
-
         </div>
-
     </div>
 
     <div class="table-responsive">
 
-        <table class="table table-hover align-middle mb-0">
+        <table class="table events-table">
 
             <thead>
-
                 <tr>
-
-                    <th>Data</th>
-
-                    <th>Município</th>
-
-                    <th>Evento</th>
-
-                    <th>Intensidade</th>
-
-                    <th>Status</th>
-
+                    <th scope="col">Data</th>
+                    <th scope="col">Município</th>
+                    <th scope="col">Evento</th>
+                    <th scope="col">Intensidade</th>
+                    <th scope="col">Status</th>
                 </tr>
-
             </thead>
 
             <tbody>
 
-                <!-- =======================================================
-                     Exemplo 1
-                ======================================================== -->
-
-                <tr>
-
-                    <td>25/07/2026</td>
-
-                    <td>São João da Boa Vista</td>
-
-                    <td>
-
-                        <span class="badge bg-primary">
-
-                            Chuva
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        38 mm
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-success">
-
-                            Registrado
-
-                        </span>
-
-                    </td>
-
-                </tr>
-
-                <!-- =======================================================
-                     Exemplo 2
-                ======================================================== -->
-
-                <tr>
-
-                    <td>24/07/2026</td>
-
-                    <td>Divinolândia</td>
-
-                    <td>
-
-                        <span class="badge bg-info">
-
-                            Frente Fria
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        7°C
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-warning text-dark">
-
-                            Monitorado
-
-                        </span>
-
-                    </td>
-
-                </tr>
-
-                <!-- =======================================================
-                     Exemplo 3
-                ======================================================== -->
-
-                <tr>
-
-                    <td>22/07/2026</td>
-
-                    <td>Águas da Prata</td>
-
-                    <td>
-
-                        <span class="badge bg-danger">
-
-                            Geada
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        Moderada
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-danger">
-
-                            Alerta
-
-                        </span>
-
-                    </td>
-
-                </tr>
-
-                <!-- =======================================================
-                     Exemplo 4
-                ======================================================== -->
-
-                <tr>
-
-                    <td>20/07/2026</td>
-
-                    <td>Espírito Santo do Pinhal</td>
-
-                    <td>
-
-                        <span class="badge bg-secondary">
-
-                            Neblina
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        Intensa
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-success">
-
-                            Encerrado
-
-                        </span>
-
-                    </td>
-
-                </tr>
-
-                <!-- =======================================================
-                     Exemplo 5
-                ======================================================== -->
-
-                <tr>
-
-                    <td>18/07/2026</td>
-
-                    <td>Santo Antônio do Jardim</td>
-
-                    <td>
-
-                        <span class="badge bg-warning text-dark">
-
-                            Vento Forte
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        58 km/h
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-success">
-
-                            Registrado
-
-                        </span>
-
-                    </td>
-
-                </tr>
+                {% if eventos %}
+
+                    {% for evento in eventos %}
+
+                        <tr>
+
+                            <td>
+                                {{ evento.data_str|default:"--" }}
+                            </td>
+
+                            <td>
+                                {{ evento.municipio|default:"--" }}
+                            </td>
+
+                            <td>
+                                <span class="event-badge
+                                    {% if evento.tipo == 'geada' %}
+                                        event-geada
+                                    {% elif evento.tipo == 'precipitacao' %}
+                                        event-precipitacao
+                                    {% elif evento.tipo == 'temperatura' %}
+                                        event-temperatura
+                                    {% elif evento.tipo == 'granizo' %}
+                                        event-granizo
+                                    {% else %}
+                                        event-default
+                                    {% endif %}
+                                ">
+                                    {{ evento.titulo|default:"Evento climático" }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ evento.intensidade|default:"--" }}
+                            </td>
+
+                            <td>
+                                <span class="status-badge
+                                    {% if evento.ativo %}
+                                        status-ativo
+                                    {% else %}
+                                        status-registrado
+                                    {% endif %}
+                                ">
+                                    {{ evento.status_label|default:"Registrado" }}
+                                </span>
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <tr>
+                        <td colspan="5" class="events-empty">
+                            <i class="bi bi-calendar-check"></i>
+                            <span>
+                                Nenhum evento climático relevante foi
+                                registrado no período analisado.
+                            </span>
+                        </td>
+                    </tr>
+
+                {% endif %}
 
             </tbody>
 
@@ -241,4 +121,4 @@
 
     </div>
 
-</div>
+</section>
