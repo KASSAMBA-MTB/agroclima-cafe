@@ -145,6 +145,62 @@ class WeatherObservation(models.Model):
         verbose_name="Precipitação",
     )
 
+    precipitacao_1h = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Precipitação - 1 hora",
+    )
+
+    precipitacao_24h = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Precipitação - 24 horas",
+    )
+
+    chuva_agora = models.BooleanField(
+        null=True,
+        blank=True,
+        verbose_name="Chuva ocorrendo agora",
+    )
+
+    condicao_tempo = models.CharField(
+        max_length=30,
+        null=True,
+        blank=True,
+        verbose_name="Condição meteorológica",
+    )
+
+    tipo_fonte = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        verbose_name="Tipo da fonte",
+    )
+
+    coletado_em = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Coletado em",
+    )
+
+    qualidade_dado = models.CharField(
+        max_length=30,
+        null=True,
+        blank=True,
+        verbose_name="Qualidade do dado",
+    )
+
+    confianca = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        verbose_name="Confiança",
+    )
+
     cobertura_nuvens = models.PositiveSmallIntegerField(
         verbose_name="Cobertura de nuvens",
     )
@@ -299,102 +355,6 @@ class HistoricalWeatherDaily(models.Model):
             f"{self.station} - "
             f"{self.data}"
         )
-
-
-# ==========================================================
-# FORECAST
-# ==========================================================
-
-class Forecast(models.Model):
-    """
-    Previsão meteorológica para um município/estação.
-    """
-
-    station = models.ForeignKey(
-        WeatherStation,
-        on_delete=models.CASCADE,
-        related_name="forecasts",
-        verbose_name="Estação",
-    )
-
-    forecast_date = models.DateField(
-        verbose_name="Data da previsão",
-    )
-
-    temperatura_minima = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        verbose_name="Temperatura mínima",
-    )
-
-    temperatura_maxima = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        verbose_name="Temperatura máxima",
-    )
-
-    umidade = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        verbose_name="Umidade",
-    )
-
-    precipitacao = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-        verbose_name="Precipitação",
-    )
-
-    probabilidade_geada = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        verbose_name="Probabilidade de geada",
-    )
-
-    probabilidade_granizo = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        verbose_name="Probabilidade de granizo",
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name="Criado em",
-    )
-
-    class Meta:
-        verbose_name = "Previsão"
-        verbose_name_plural = "Previsões"
-
-        ordering = [
-            "forecast_date",
-        ]
-
-        indexes = [
-            models.Index(
-                fields=["station"],
-            ),
-            models.Index(
-                fields=["forecast_date"],
-            ),
-        ]
-
-        constraints = [
-            models.UniqueConstraint(
-                fields=[
-                    "station",
-                    "forecast_date",
-                ],
-                name="unique_station_forecast",
-            )
-        ]
-
-    def __str__(self):
-        return (
-            f"{self.station} - "
-            f"{self.forecast_date}"
-        )
-
 
 # ==========================================================
 # CLIMATE CACHE
