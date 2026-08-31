@@ -357,16 +357,61 @@ class HistoryService:
                 .first()
             )
 
-            if (
-                primeiro_registro is None
-                or ultimo_registro is None
-            ):
+            # ======================================================
+            # EXTENSÃO DO HISTÓRICO COM OBSERVAÇÕES RECENTES
+            # ======================================================
+            #
+            # HistoricalWeatherDaily continua sendo a fonte principal
+            # do histórico. Entretanto, quando existem observações reais
+            # mais recentes em WeatherObservation, o período "Histórico"
+            # deve alcançar também a data mais recente observada.
+            #
+            # Isso evita que a série histórica termine antes dos dados
+            # recentes disponíveis e mantém a mesma integração já usada
+            # nos períodos de 7 e 30 dias.
+            #
+            # Nenhum valor é inventado. Se não existir nenhuma fonte,
+            # o retorno permanece vazio.
+            # ======================================================
 
-                return self._empty()
+            recent_last_date = (
+                WeatherObservation.objects
+                .filter(
+                    station__provider=provider,
+                    station__ativa=True,
+                )
+                .order_by("-observation_time")
+                .values_list(
+                    "observation_time",
+                    flat=True,
+                )
+                .first()
+            )
 
-            data_inicio = primeiro_registro
+            if recent_last_date is not None:
+                if timezone.is_aware(recent_last_date):
+                    recent_last_date = timezone.localtime(
+                        recent_last_date
+                    ).date()
+                else:
+                    recent_last_date = recent_last_date.date()
 
-            data_fim = ultimo_registro
+            if primeiro_registro is None:
+                if recent_last_date is None:
+                    return self._empty()
+
+                data_inicio = recent_last_date
+                data_fim = recent_last_date
+
+            else:
+                data_inicio = primeiro_registro
+                data_fim = ultimo_registro
+
+                if (
+                    recent_last_date is not None
+                    and recent_last_date > data_fim
+                ):
+                    data_fim = recent_last_date
 
         else:
 
@@ -492,7 +537,7 @@ class HistoryService:
         # ChartService.
         # ======================================================
 
-        if days is not None and data_inicio <= data_fim:
+        if data_inicio <= data_fim:
             recent_observations = (
                 WeatherObservation.objects
                 .filter(
