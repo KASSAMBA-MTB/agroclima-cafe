@@ -161,6 +161,50 @@ class WeatherObservation(models.Model):
         verbose_name="Precipitação - 24 horas",
     )
 
+    # ==========================================================
+    # DADOS AMBIENTAIS DIÁRIOS
+    # ==========================================================
+    #
+    # Estes campos recebem os indicadores ambientais diários
+    # disponibilizados pelo provider climático. Permanecem
+    # opcionais para preservar observações históricas que ainda
+    # não possuem essas informações.
+    #
+    # O UV armazenado é o índice máximo diário (uv_index_max),
+    # conforme o contrato definido para a integração Open-Meteo.
+    # Sunrise, sunset e daylight_duration_seconds representam
+    # respectivamente nascer do sol, pôr do sol e duração do
+    # período de luz do dia para a data da observação.
+    # ==========================================================
+
+    uv_index_max = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Índice UV máximo",
+    )
+
+    sunrise = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Nascer do sol",
+    )
+
+    sunset = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Pôr do sol",
+    )
+
+    daylight_duration_seconds = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Duração da luz do dia (segundos)",
+    )
+
     chuva_agora = models.BooleanField(
         null=True,
         blank=True,

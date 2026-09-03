@@ -58,7 +58,6 @@
 .page-content {
 
     width: 100%;
-
     max-width: var(--content-max-width);
 
     margin: 0 auto;
@@ -74,6 +73,14 @@
    3. COMPOSIÇÃO GLOBAL DA PÁGINA
 ========================================================== */
 
+/*
+   A página deixa de funcionar como uma sequência
+   vertical de blocos independentes.
+
+   O GRID PRINCIPAL passa a controlar a composição
+   visual de todo o dashboard.
+*/
+
 .page-content {
 
     display: grid;
@@ -86,6 +93,8 @@
     row-gap: 24px;
 
     align-items: start;
+
+    width: 100%;
 
 }
 
@@ -105,23 +114,32 @@
    5. KPIs
 ========================================================== */
 
-.page-content > .kpi-grid,
-.page-content > .dashboard-kpis {
+/* ==========================================================
+   5. KPIs
+========================================================== */
 
-    grid-column: 1 / -1;
+.page-content > .kpi-grid {
 
-    display: grid;
+    grid-column: 1 / -1 !important;
+
+    display: grid !important;
 
     grid-template-columns:
-        repeat(4, minmax(0, 1fr));
+        repeat(4, minmax(0, 1fr)) !important;
+
+    grid-template-rows: 1fr;
+
+    grid-auto-flow: row;
 
     gap: 18px;
 
     width: 100%;
 
-    min-width: 0;
+    max-width: none;
 
-    box-sizing: border-box;
+    align-items: stretch;
+
+    justify-items: stretch;
 
 }
 
@@ -129,6 +147,11 @@
 /* ==========================================================
    6. FROST RISK INDEX
 ========================================================== */
+
+/*
+   Terceiro elemento do conteúdo:
+   Frost Risk Index
+*/
 
 .page-content > *:nth-child(3) {
 
@@ -169,6 +192,18 @@
    9. PAINÉIS RESTANTES
 ========================================================== */
 
+/*
+   Depois do mapa temos:
+
+   - Evolução Climática
+   - Ranking
+   - Eventos
+   - Alertas
+*/
+
+
+/* Evolução Climática */
+
 .page-content > .panel:nth-child(6) {
 
     grid-column: 1 / -1;
@@ -177,6 +212,8 @@
 
 }
 
+
+/* Ranking */
 
 .page-content > .panel:nth-child(7) {
 
@@ -187,6 +224,8 @@
 }
 
 
+/* Eventos */
+
 .page-content > .panel:nth-child(8) {
 
     grid-column: 7 / -1;
@@ -195,6 +234,8 @@
 
 }
 
+
+/* Alertas */
 
 .page-content > .panel:nth-child(9) {
 
@@ -542,49 +583,10 @@
 
 
 /* ==========================================================
-   16. KPI GRID
-========================================================== */
-
-/*
-   IMPORTANTE:
-   O HTML atual utiliza .dashboard-kpis.
-   Versões anteriores utilizavam .kpi-grid.
-
-   As duas classes são suportadas para manter
-   compatibilidade com a arquitetura existente.
-*/
-
-.kpi-grid,
-.dashboard-kpis {
-
-    display: grid !important;
-
-    grid-template-columns:
-        repeat(4, minmax(0, 1fr)) !important;
-
-    grid-template-rows: auto;
-
-    gap: 18px;
-
-    width: 100%;
-
-    min-width: 0;
-
-    margin: 0;
-
-    padding: 0;
-
-    box-sizing: border-box;
-
-}
-
-
-/* ==========================================================
    17. KPI CARD
 ========================================================== */
 
-.kpi-grid > .kpi-card,
-.dashboard-kpis > .kpi-card {
+.kpi-card {
 
     position: relative;
 
@@ -594,15 +596,9 @@
 
     justify-content: space-between;
 
-    width: 100% !important;
-
-    min-width: 0 !important;
-
-    max-width: none !important;
+    min-width: 0;
 
     min-height: 178px;
-
-    margin: 0 !important;
 
     padding: 20px;
 
@@ -618,19 +614,25 @@
 
     overflow: hidden;
 
+    
+    width: auto !important;
+
+    max-width: none;
+
     grid-column: auto !important;
 
-    grid-row: auto !important;
+    grid-row: auto;
 
-    transition:
+    align-self: stretch;
+
+transition:
         transform .25s ease,
         box-shadow .25s ease;
 
 }
 
 
-.kpi-grid > .kpi-card:hover,
-.dashboard-kpis > .kpi-card:hover {
+.kpi-card:hover {
 
     transform: translateY(-3px);
 
@@ -683,6 +685,8 @@
 }
 
 
+/* Temperatura */
+
 .kpi-icon.danger {
 
     background: #FFF0E5;
@@ -691,6 +695,8 @@
 
 }
 
+
+/* Precipitação */
 
 .kpi-icon.primary {
 
@@ -701,6 +707,8 @@
 }
 
 
+/* Geada */
+
 .kpi-icon.info {
 
     background: #EAF3FF;
@@ -709,6 +717,8 @@
 
 }
 
+
+/* Municípios */
 
 .kpi-icon.success {
 
@@ -1001,7 +1011,6 @@
 
 /* ==========================================================
    25. RANKING
-   REFACTOR VISUAL — IDENTIDADE + DIAGNÓSTICO
 ========================================================== */
 
 .ranking-list {
@@ -1019,281 +1028,47 @@
 
     display: grid;
 
-    /*
-       Estrutura visual:
-       posição | identidade do município | grupo de indicadores.
-
-       FRI, risco e confiança são agrupados semanticamente
-       em .ranking-metrics para formar uma unidade de diagnóstico.
-    */
     grid-template-columns:
-        48px minmax(0, 1fr) auto;
+        44px minmax(0, 1fr) 70px 80px;
 
     align-items: center;
 
-    gap: 18px;
+    gap: 12px;
 
-    width: 100%;
+    padding: 11px 12px;
 
-    min-width: 0;
-
-    padding: 10px 14px;
-
-    border-radius: 12px;
+    border-radius: 10px;
 
     border: 1px solid var(--border-light);
 
     background: #FFFFFF;
-
-    box-sizing: border-box;
-
-    transition:
-        border-color .2s ease,
-        box-shadow .2s ease,
-        transform .2s ease;
-
-}
-
-
-.ranking-item:hover {
-
-    border-color: var(--border);
-
-    box-shadow: var(--shadow-sm);
-
-    transform: translateY(-1px);
 
 }
 
 
 .ranking-position {
 
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    width: 48px;
-
-    min-width: 48px;
-
-    height: 48px;
-
-    border-radius: 50%;
-
-    background: #18130F;
-
-    color: #FFFFFF;
-
     font-weight: 700;
 
     font-size: 15px;
 
-    line-height: 1;
-
 }
 
 
-.ranking-city {
-
-    min-width: 0;
-
-    overflow: hidden;
-
-}
-
-
-.ranking-city strong {
-
-    display: block;
-
-    min-width: 0;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-    color: var(--text-dark);
-
-    font-size: 15px;
-
-    line-height: 1.3;
-
-    font-weight: 700;
-
-}
-
-
-.ranking-city span {
-
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--text-light);
-
-    font-size: 12px;
-
-    line-height: 1.2;
-
-}
-
-
-.ranking-metrics {
-
-    display: grid;
-
-    grid-template-columns:
-        78px 104px 102px;
-
-    align-items: center;
-
-    width: 284px;
-
-    min-width: 284px;
-
-    border-left: 1px solid var(--border-light);
-
-}
-
-
-.ranking-score,
-.ranking-classification,
-.ranking-trend {
-
-    min-width: 0;
-
-    min-height: 38px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 0 8px;
-
-    box-sizing: border-box;
-
-    overflow: hidden;
-
-}
-
-
-.ranking-score + .ranking-classification,
-.ranking-classification + .ranking-trend {
-
-    border-left: 1px solid var(--border-light);
-
-}
-
-
-.ranking-score h4 {
-
-    margin: 0;
-
-    color: var(--text-dark);
-
-    font-size: 19px;
-
-    line-height: 1.05;
-
-    font-weight: 800;
-
-}
-
-
-.ranking-score small,
-.ranking-classification-label,
-.ranking-trend-label {
-
-    display: block;
-
-    margin: 3px 0 0;
-
-    color: var(--text-light);
-
-    font-size: 10px;
-
-    line-height: 1.1;
-
-    font-weight: 700;
-
-    letter-spacing: .04em;
-
-    text-transform: uppercase;
-
-    white-space: nowrap;
+.ranking-score {
 
     text-align: center;
 
-}
-
-
-.ranking-classification .badge {
-
-    max-width: 100%;
-
-    box-sizing: border-box;
-
-    white-space: nowrap;
-
-    padding: 4px 9px;
-
-    border-radius: 999px;
-
-    font-size: 10px;
-
-    line-height: 1.1;
-
-    font-weight: 800;
-
-    letter-spacing: .03em;
-
-}
-
-
-.ranking-trend small {
-
-    margin: 3px 0 0;
-
-    color: var(--text-dark);
-
-    font-size: 13px;
-
-    line-height: 1.1;
-
     font-weight: 700;
 
 }
 
 
-/* ----------------------------------------------------------
-   ESTADOS DOS PRIMEIROS COLOCADOS
------------------------------------------------------------ */
+.ranking-trend {
 
-.ranking-item:nth-child(1) .ranking-position {
+    text-align: right;
 
-    background: #18130F;
-
-}
-
-
-.ranking-item:nth-child(2) .ranking-position {
-
-    background: #18130F;
-
-}
-
-
-.ranking-item:nth-child(3) .ranking-position {
-
-    background: #18130F;
+    font-weight: 600;
 
 }
 
@@ -1462,7 +1237,6 @@
 .page-content > * {
 
     margin-top: 0 !important;
-
     margin-bottom: 0 !important;
 
 }
@@ -1475,7 +1249,6 @@
 .page-content,
 .page-content > *,
 .kpi-grid,
-.dashboard-kpis,
 .kpi-card,
 .panel,
 .dashboard-panel,
@@ -1496,19 +1269,22 @@
     .page-content {
 
         padding-left: 24px;
-
         padding-right: 24px;
 
     }
 
-
-    .kpi-grid,
-    .dashboard-kpis {
+    .kpi-grid {
 
         gap: 14px;
 
     }
 
+    .page-content > .kpi-grid {
+
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr)) !important;
+
+    }
 
     .kpi-card {
 
@@ -1531,13 +1307,11 @@
 
     }
 
-
     .page-content > .insights-column {
 
         grid-column: 1 / -1;
 
     }
-
 
     .page-content > .panel:nth-child(7) {
 
@@ -1545,20 +1319,21 @@
 
     }
 
-
     .page-content > .panel:nth-child(8) {
 
         grid-column: 1 / -1;
 
     }
-
-
-    .kpi-grid,
-    .dashboard-kpis {
+    .page-content > .kpi-grid {
 
         grid-template-columns:
-            repeat(2, minmax(0, 1fr));
+            repeat(2, minmax(0, 1fr)) !important;
 
+    }
+
+    .kpi-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
     }
 
 }
@@ -1578,13 +1353,11 @@
 
     }
 
-
     .page-content > * {
 
         grid-column: 1 / -1 !important;
 
     }
-
 
     .panel-header {
 
@@ -1594,7 +1367,6 @@
 
     }
 
-
     .panel-actions {
 
         width: 100%;
@@ -1603,13 +1375,11 @@
 
     }
 
-
     .btn-panel {
 
         flex: 0 1 auto;
 
     }
-
 
     #map-container,
     .agroclima-map {
@@ -1635,23 +1405,28 @@
 
     }
 
+    
+    .page-content > .kpi-grid {
 
-    .kpi-grid,
-    .dashboard-kpis {
-
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
 
         gap: 12px;
 
     }
 
+    .kpi-grid {
+
+        grid-template-columns: 1fr !important;
+
+        gap: 12px;
+
+    }
 
     .kpi-card {
 
         min-height: 160px;
 
     }
-
 
     .section-title {
 
@@ -1663,13 +1438,11 @@
 
     }
 
-
     .section-title h2 {
 
         font-size: 24px;
 
     }
-
 
     .panel,
     .dashboard-panel,
@@ -1680,13 +1453,11 @@
 
     }
 
-
     .chart-container {
 
         height: 280px;
 
     }
-
 
     #map-container,
     .agroclima-map {
@@ -1695,7 +1466,6 @@
 
     }
 
-
     .chart-summary {
 
         grid-template-columns:
@@ -1703,73 +1473,18 @@
 
     }
 
-
     .ranking-item {
 
         grid-template-columns:
-            40px minmax(0, 1fr);
-
-        gap: 12px;
-
-        padding: 9px 10px;
+            40px minmax(0, 1fr) 65px;
 
     }
-
-
-    .ranking-position {
-
-        width: 40px;
-
-        min-width: 40px;
-
-        height: 40px;
-
-        font-size: 13px;
-
-    }
-
-
-    .ranking-metrics {
-
-        grid-column: 2;
-
-        grid-template-columns:
-            70px 85px 85px;
-
-        min-width: 240px;
-
-        width: 100%;
-
-        margin-top: 2px;
-
-        border-left: none;
-
-        border-top: 1px solid var(--border-light);
-
-        padding-top: 6px;
-
-    }
-
-
-    .ranking-score,
-    .ranking-classification,
-    .ranking-trend {
-
-        min-height: 34px;
-
-        padding: 0 6px;
-
-        overflow: hidden;
-
-    }
-
 
     .ranking-trend {
 
-        display: flex;
+        display: none;
 
     }
-
 
     .alert-card {
 
@@ -1793,13 +1508,11 @@
 
     }
 
-
     .chart-summary {
 
         grid-template-columns: 1fr;
 
     }
-
 
     .panel-actions {
 
@@ -1812,20 +1525,17 @@
 
     }
 
-
     .btn-panel {
 
         width: 100%;
 
     }
 
-
     .panel-header h2 {
 
         font-size: 19px;
 
     }
-
 
     .kpi-value,
     .kpi-body h2 {
@@ -1836,658 +1546,1995 @@
 
 }
 
-
 /* ==========================================================
-   FIM DO DASHBOARD V3
-========================================================== */
+   36. GARANTIA FINAL DO GRID DE KPIs
+   ========================================================== */
 
+.page-content > .kpi-grid {
 
-/* ==========================================================
-   AGROCLIMA CAFÉ — ALERTAS V3.10
-   APRESENTAÇÃO SEM ALTERAR A ESTRUTURA EXISTENTE
-========================================================== */
+    display: grid !important;
 
-.dashboard-alerts-module {
-    width: 100%;
-    min-width: 0;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr)) !important;
+
+    grid-template-rows: 1fr;
+
+    grid-auto-flow: row;
+
+    width: 100% !important;
+
+    max-width: none !important;
+
+    align-items: stretch;
+
+    justify-items: stretch;
+
+    gap: 18px;
+
 }
 
-.dashboard-alerts-module .dashboard-panel {
-    width: 100%;
-    min-width: 0;
+
+.page-content > .kpi-grid > .kpi-card {
+
+    display: flex !important;
+
+    width: auto !important;
+
+    min-width: 0 !important;
+
+    max-width: none !important;
+
+    grid-column: auto !important;
+
+    grid-row: auto !important;
+
+    float: none !important;
+
+    margin: 0 !important;
+
 }
 
-.dashboard-alerts-module .alert-summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 11px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: #F8FAF8;
+
+@media (max-width: 1200px) {
+
+    .page-content > .kpi-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr)) !important;
+
+    }
+
 }
 
-.dashboard-alerts-module .alert-summary-count {
-    font-size: 18px;
-    line-height: 1;
-    font-weight: 800;
-    color: var(--text-dark);
-}
-
-.dashboard-alerts-module .alert-summary-label {
-    color: var(--text-light);
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.dashboard-alerts-module .alert-card {
-    position: relative;
-    display: grid;
-    grid-template-columns: 46px minmax(0, 1fr) auto;
-    gap: 14px;
-    align-items: start;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 15px;
-    border-radius: 11px;
-}
-
-.dashboard-alerts-module .alert-content {
-    min-width: 0;
-}
-
-.dashboard-alerts-module .alert-title-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.dashboard-alerts-module .alert-title-row strong {
-    color: var(--text-dark);
-    font-size: 15px;
-    line-height: 1.35;
-}
-
-.dashboard-alerts-module .alert-severity-badge {
-    display: inline-flex;
-    align-items: center;
-    flex: 0 0 auto;
-    padding: 4px 9px;
-    border: 1px solid rgba(38, 50, 56, .10);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .75);
-    color: var(--text);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-}
-
-.dashboard-alerts-module .alert-message {
-    margin: 7px 0 10px;
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.dashboard-alerts-module .alert-metadata {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 7px 15px;
-    color: var(--text-light);
-    font-size: 11px;
-}
-
-.dashboard-alerts-module .alert-metadata span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.dashboard-alerts-module .alert-factors {
-    margin-top: 11px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(38, 50, 56, .08);
-}
-
-.dashboard-alerts-module .alert-factors-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    color: var(--text);
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.dashboard-alerts-module .alert-factors ul {
-    margin: 6px 0 0 17px;
-    padding: 0;
-    color: var(--text-light);
-    font-size: 11px;
-}
-
-.dashboard-alerts-module .alert-factors li {
-    margin-bottom: 3px;
-}
-
-.dashboard-alerts-module .alert-time {
-    min-width: 58px;
-    padding-top: 2px;
-    color: var(--text-light);
-    font-size: 11px;
-    text-align: right;
-}
-
-.dashboard-alerts-module .alert-time span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.dashboard-alerts-module .alert-empty {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 16px;
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    background: #F8FAF8;
-}
-
-.dashboard-alerts-module .alert-empty-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
-    border-radius: 50%;
-    background: #E9F6ED;
-    color: var(--success);
-}
-
-.dashboard-alerts-module .alert-empty strong {
-    color: var(--text-dark);
-    font-size: 13px;
-}
-
-.dashboard-alerts-module .alert-empty p {
-    margin: 3px 0 0;
-    color: var(--text-light);
-    font-size: 11px;
-    line-height: 1.45;
-}
 
 @media (max-width: 768px) {
 
-    .dashboard-alerts-module .alert-card {
-        grid-template-columns: 42px minmax(0, 1fr);
+    .page-content > .kpi-grid {
+
+        grid-template-columns:
+            1fr !important;
+
     }
 
-    .dashboard-alerts-module .alert-time {
-        grid-column: 2;
-        min-width: 0;
-        padding-top: 0;
-        text-align: left;
-    }
-
-    .dashboard-alerts-module .alert-metadata {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
 }
+
 /* ==========================================================
-   AGROCLIMA CAFÉ — RANKING DE RISCO DE GEADAS
-   IMPLEMENTAÇÃO FINAL DA REFERÊNCIA VISUAL APROVADA
-   BASE: dashboard_v3.css atual
-   REGRA: somente estilização; HTML/JS/dados preservados
-========================================================== */
+   37. POPUP MUNICIPAL — CARTÃO AGROCLIMÁTICO
 
-/* ---------- Painel / cabeçalho ---------- */
+   Etapa 2 — estilização visual
 
-.dashboard-panel:has(.ranking-list) .panel-header h2 {
-    color: var(--primary-dark);
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: -.25px;
-}
+   Responsabilidade:
+   - estilizar exclusivamente a estrutura produzida por
+     municipal_popup.js;
+   - preservar os dados e a hierarquia definida no módulo;
+   - não criar indicadores, regras climáticas ou valores;
+   - manter leitura adequada sobre o mapa Leaflet.
 
-.dashboard-panel:has(.ranking-list) .panel-header p {
-    color: var(--text-light);
-    font-size: 13px;
-}
+   Estrutura visual:
+   - cartão único branco;
+   - cabeçalho;
+   - faixa de status;
+   - grade de seis cartões em 2 colunas x 3 linhas;
+   - resumo rápido;
+   - rodapé técnico;
+   - responsividade para telas menores.
+   ========================================================== */
 
-.dashboard-panel:has(.ranking-list) .panel-actions {
-    gap: 8px;
-}
-
-.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel {
-    min-height: 36px;
-    padding: 7px 14px;
-    border-radius: 9px;
-    border-color: var(--primary);
-    background: var(--primary);
-    color: #FFFFFF;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel:hover,
-.dashboard-panel:has(.ranking-list) .panel-actions .btn-panel.active {
-    background: var(--primary-dark);
-    border-color: var(--primary-dark);
-    color: #FFFFFF;
-}
-
-/* ---------- Lista ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-list {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-top: 28px;
-}
-
-/* ---------- Linha / grade ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-item {
-    position: relative;
-    display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) 300px;
-    align-items: center;
-    column-gap: 18px;
-    width: 100%;
-    min-width: 0;
-    min-height: 58px;
-    padding: 8px 14px;
-    border: 1px solid var(--border-light);
-    border-radius: 11px;
+.leaflet-popup-content-wrapper {
+    border-radius: 18px;
     background: #FFFFFF;
-    box-sizing: border-box;
-    box-shadow: none;
-    transform: none;
-    transition:
-        border-color .18s ease,
-        box-shadow .18s ease;
-}
-
-/*
-   COMPATIBILIDADE COM A ESTRUTURA HTML ATUAL
-   O ranking atual pode entregar FRI, RISCO e CONFIANÇA
-   diretamente dentro de .ranking-item, sem .ranking-metrics.
-   Nesse caso, o grid precisa reservar uma coluna para cada
-   indicador. A estrutura agrupada em .ranking-metrics continua
-   suportada sem alteração.
-*/
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) {
-    grid-template-columns:
-        48px minmax(0, 1fr) 80px 110px 110px;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-metrics) {
-    grid-template-columns:
-        48px minmax(0, 1fr) 300px;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-position {
-    grid-column: 1;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-city {
-    grid-column: 2;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-score {
-    grid-column: 3;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-classification {
-    grid-column: 4;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-trend {
-    grid-column: 5;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-metrics) > .ranking-metrics {
-    grid-column: 3;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:hover {
-    border-color: var(--border);
-    box-shadow: var(--shadow-sm);
-    transform: none;
-}
-
-/* ---------- Posição ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-position {
-    width: 42px;
-    min-width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #18130F;
-    color: #FFFFFF;
-    font-size: 14px;
-    font-weight: 800;
-}
-
-/* Medalhas continuam sendo controladas pelo HTML/JS existente. */
-.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(1) .ranking-position,
-.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(2) .ranking-position,
-.dashboard-panel:has(.ranking-list) .ranking-item:nth-child(3) .ranking-position {
-    background: #18130F;
-}
-
-/* ---------- Município ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-city {
-    min-width: 0;
-    overflow: hidden;
+    box-shadow: 0 14px 34px rgba(27, 39, 32, .18);
     padding: 0;
 }
 
-.dashboard-panel:has(.ranking-list) .ranking-city strong {
-    display: block;
+.leaflet-popup-content {
+    width: 420px !important;
+    max-width: calc(100vw - 44px);
+    margin: 0;
+}
+
+.leaflet-popup-tip {
+    background: #FFFFFF;
+    box-shadow: 3px 3px 8px rgba(27, 39, 32, .08);
+}
+
+.agroclima-popup {
+    width: 100%;
+    max-width: 420px;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: #FFFFFF;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.agroclima-popup * {
+    box-sizing: border-box;
+}
+
+/* ==========================================================
+   CABEÇALHO
+   ========================================================== */
+
+.agroclima-popup-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 18px 13px;
+    border-bottom: 1px solid var(--border-light);
+    background: #FFFFFF;
+}
+
+.agroclima-popup-heading {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.agroclima-popup-title {
+    margin: 0;
     color: var(--text-dark);
-    font-size: 14px;
-    line-height: 1.25;
-    font-weight: 800;
+    font-size: 20px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -.25px;
+}
+
+.agroclima-popup-subtitle {
+    margin-top: 5px;
+    color: var(--text-light);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 500;
+}
+
+.agroclima-popup-close {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -2px;
+    color: var(--text-light);
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 400;
+}
+
+/* ==========================================================
+   BOTÃO NATIVO DO LEAFLET
+   ========================================================== */
+
+.leaflet-popup-close-button {
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 5;
+    width: 26px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    color: var(--text-light) !important;
+    font-size: 22px !important;
+    line-height: 26px !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    background: transparent !important;
+}
+
+.leaflet-popup-close-button:hover,
+.leaflet-popup-close-button:focus {
+    color: var(--text-dark) !important;
+    outline: none;
+}
+
+/* ==========================================================
+   FAIXA DE STATUS
+   ========================================================== */
+
+.agroclima-popup-status-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    background: #F8FAF8;
+}
+
+.agroclima-popup-status {
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 7px 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 9px;
+    background: #FFFFFF;
+    overflow: hidden;
+}
+
+.agroclima-popup-status-label {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--text-light);
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.dashboard-panel:has(.ranking-list) .ranking-city span {
+.agroclima-popup-status-value {
     display: block;
-    margin-top: 3px;
-    color: var(--text-light);
-    font-size: 11px;
-    line-height: 1.15;
-}
-
-/* ---------- Área de indicadores ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-metrics {
-    display: grid;
-    grid-template-columns: 80px 110px 110px;
-    align-items: stretch;
-    width: 300px;
-    min-width: 300px;
-    min-height: 42px;
-    border-left: 1px solid var(--border-light);
-    box-sizing: border-box;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-score,
-.dashboard-panel:has(.ranking-list) .ranking-classification,
-.dashboard-panel:has(.ranking-list) .ranking-trend {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    min-width: 0;
-    min-height: 42px;
-    padding: 4px 12px;
-    box-sizing: border-box;
-    overflow: visible;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-score + .ranking-classification,
-.dashboard-panel:has(.ranking-list) .ranking-classification + .ranking-trend {
-    border-left: 1px solid var(--border-light);
-}
-
-/* ---------- Cabeçalhos das colunas ----------
-   Os rótulos são posicionados acima dos dados sem alterar o HTML.
-*/
-
-.dashboard-panel:has(.ranking-list) .ranking-position,
-.dashboard-panel:has(.ranking-list) .ranking-city,
-.dashboard-panel:has(.ranking-list) .ranking-score {
-    position: relative;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before,
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before,
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before,
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before,
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
-    position: absolute;
-    top: -28px;
-    left: 0;
-    color: var(--primary-dark);
-    font-size: 9px;
-    line-height: 1;
-    font-weight: 800;
-    letter-spacing: .035em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    pointer-events: none;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before {
-    content: "POS.";
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before {
-    content: "MUNICÍPIO";
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before {
-    content: "FRI   ⓘ";
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before {
-    content: "RISCO";
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
-    content: "CONFIANÇA   ⓘ";
-}
-
-/* ---------- FRI ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-score small {
-    order: 0;
-    width: auto;
-    margin: 0 0 3px;
-    color: var(--text-light);
-    font-size: 0;
-    line-height: 1;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-score h4 {
-    order: 1;
-    margin: 0;
-    color: var(--primary);
-    font-size: 19px;
-    line-height: 1;
-    font-weight: 800;
-}
-
-/* ---------- Risco ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-classification-label {
-    width: auto;
-    margin: 0 0 4px;
-    color: var(--text-light);
-    font-size: 0;
-    line-height: 1;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-classification .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    min-width: 44px;
-    max-width: 100%;
-    padding: 4px 10px;
-    border-radius: 999px;
-    box-sizing: border-box;
-    white-space: nowrap;
-    font-size: 9px;
-    line-height: 1.1;
-    font-weight: 800;
-}
-
-/* ---------- Confiança ---------- */
-
-.dashboard-panel:has(.ranking-list) .ranking-trend-label {
-    width: auto;
-    margin: 0 0 4px;
-    color: var(--text-light);
-    font-size: 0;
-    line-height: 1;
-}
-
-.dashboard-panel:has(.ranking-list) .ranking-trend small {
-    margin: 0;
     color: var(--text-dark);
     font-size: 13px;
-    line-height: 1;
-    font-weight: 800;
+    line-height: 1.25;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* Escudo visual da referência, sem alterar o conteúdo dos dados. */
-.dashboard-panel:has(.ranking-list) .ranking-trend::after {
-    content: "✓";
-    position: absolute;
-    top: 50%;
-    right: 10px;
-    width: 16px;
-    height: 19px;
-    transform: translateY(-38%);
+.agroclima-popup-status.thermal {
+    background: #EEF6F1;
+    border-color: #D6E8DC;
+}
+
+.agroclima-popup-status.thermal .agroclima-popup-status-value {
+    color: var(--primary);
+}
+
+.agroclima-popup-status.fri {
+    background: #F4F7FB;
+    border-color: #DDE5EF;
+}
+
+.agroclima-popup-status.fri .agroclima-popup-status-value {
+    color: var(--info);
+}
+
+.agroclima-popup-status.severity {
+    background: #F8F5EF;
+    border-color: #E9E0D2;
+}
+
+.agroclima-popup-status.severity .agroclima-popup-status-value {
+    color: var(--secondary);
+}
+
+.agroclima-popup-status.confidence {
+    background: #F7F8F7;
+    border-color: var(--border-light);
+}
+
+/* ==========================================================
+   GRADE PRINCIPAL — 2 COLUNAS x 3 LINHAS
+   ========================================================== */
+
+.agroclima-popup-main-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    padding: 12px 14px 14px;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    border-radius: 11px;
+    background: #FFFFFF;
+    box-shadow: 0 2px 7px rgba(27, 39, 32, .045);
+}
+
+.agroclima-popup-card-header {
     display: flex;
     align-items: center;
+    gap: 7px;
+    min-height: 35px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-light);
+    background: #FAFBFA;
+}
+
+.agroclima-popup-card-icon {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    border: 1.5px solid var(--primary);
-    border-radius: 45% 45% 50% 50% / 35% 35% 65% 65%;
+    width: 20px;
+    height: 20px;
     color: var(--primary);
-    font-size: 8px;
-    font-weight: 800;
-    box-sizing: border-box;
+    font-size: 14px;
 }
 
-/* ---------- Rodapé ---------- */
+.agroclima-popup-card-title {
+    min-width: 0;
+    color: var(--text-dark);
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -.05px;
+}
 
-.dashboard-panel:has(.ranking-list) .panel-footer {
-    margin-top: 14px;
-    padding-top: 11px;
-    border-top-color: var(--border-light);
+.agroclima-popup-card-body {
+    min-width: 0;
+    padding: 8px 10px 10px;
+}
+
+/* ==========================================================
+   VALORES COMPACTOS
+   ========================================================== */
+
+.agroclima-popup-two-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 0;
+}
+
+.agroclima-popup-two-columns + .agroclima-popup-two-columns {
+    margin-top: 7px;
+}
+
+.agroclima-popup-compact-value {
+    min-width: 0;
+    padding: 5px 6px;
+    border-radius: 6px;
+}
+
+.agroclima-popup-compact-label {
+    display: block;
+    margin-bottom: 2px;
     color: var(--text-light);
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.2;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* ---------- Responsividade ---------- */
+.agroclima-popup-compact-number {
+    display: block;
+    min-width: 0;
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-@media (max-width: 768px) {
+.agroclima-popup-compact-value.primary {
+    background: #F2ECFF;
+}
 
-    .dashboard-panel:has(.ranking-list) .ranking-list {
-        padding-top: 24px;
+.agroclima-popup-compact-value.primary .agroclima-popup-compact-number {
+    color: #7650C8;
+}
+
+/* ==========================================================
+   ITENS COM LARGURA TOTAL
+   ========================================================== */
+
+.agroclima-popup-item.compact-full {
+    width: 100%;
+    margin: 0 0 7px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    background: #F8F6F2;
+}
+
+.agroclima-popup-item.compact-full:last-child {
+    margin-bottom: 0;
+}
+
+.agroclima-popup-label {
+    display: block;
+    color: var(--text-light);
+    font-size: 10px;
+    line-height: 1.25;
+    font-weight: 500;
+}
+
+.agroclima-popup-value {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-dark);
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* ==========================================================
+   CARTÃO TÉRMICO
+   ========================================================== */
+
+.agroclima-popup-card.thermal-card {
+    border-color: #DDEADF;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-card-header {
+    background: #F4F9F5;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-card-icon {
+    color: #C45A12;
+}
+
+/* ==========================================================
+   CARTÃO DE PRECIPITAÇÃO
+   ========================================================== */
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-card-icon {
+    color: #2678B8;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-card-header {
+    background: #F4F9FD;
+}
+
+/* ==========================================================
+   CARTÃO DE METEOROLOGIA
+   ========================================================== */
+
+.agroclima-popup-card.meteorology-card .agroclima-popup-card-icon {
+    color: #5D6870;
+}
+
+/* ==========================================================
+   CARTÃO DE AMBIENTE
+   ========================================================== */
+
+.agroclima-popup-card.environment-card .agroclima-popup-card-icon {
+    color: var(--primary);
+}
+
+.agroclima-popup-card.environment-card .agroclima-popup-card-header {
+    background: #F4F9F5;
+}
+
+/* ==========================================================
+   CARTÃO DE LOCALIZAÇÃO
+   ========================================================== */
+
+.agroclima-popup-card.location-card .agroclima-popup-card-icon {
+    color: #65727A;
+}
+
+/* ==========================================================
+   CARTÃO DE RESUMO
+   ========================================================== */
+
+.agroclima-popup-card.summary-card {
+    border-color: #E3E6E3;
+}
+
+.agroclima-popup-card.summary-card .agroclima-popup-card-header {
+    background: #FAFAF8;
+}
+
+.agroclima-popup-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 7px;
+}
+
+.agroclima-popup-summary-grid .agroclima-popup-compact-value {
+    padding: 4px 5px;
+}
+
+/* ==========================================================
+   RODAPÉ TÉCNICO
+   ========================================================== */
+
+.agroclima-popup-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    padding: 10px 14px 12px;
+    border-top: 1px solid var(--border);
+    background: #F7F8F6;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-value {
+    padding: 4px 7px;
+    border-left: 1px solid var(--border-light);
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-value:nth-child(odd) {
+    border-left: none;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .2px;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-number {
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* ==========================================================
+   AUSÊNCIA DE DADOS
+   ========================================================== */
+
+.agroclima-popup-empty {
+    padding: 20px 18px;
+    color: var(--text-light);
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* ==========================================================
+   COMPATIBILIDADE COM ELEMENTOS LEGADOS
+
+   Estas regras somente evitam que estilos genéricos do
+   dashboard interfiram no cartão municipal novo.
+   ========================================================== */
+
+.leaflet-popup-content .agroclima-popup-item {
+    margin-top: 0;
+}
+
+.leaflet-popup-content .agroclima-popup-item::before,
+.leaflet-popup-content .agroclima-popup-item::after {
+    display: none;
+}
+
+.leaflet-popup-content .agroclima-popup-card-body .agroclima-popup-item {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+/* ==========================================================
+   ACESSIBILIDADE E LEITURA
+   ========================================================== */
+
+.leaflet-popup-content .agroclima-popup-card-title,
+.leaflet-popup-content .agroclima-popup-status-value,
+.leaflet-popup-content .agroclima-popup-compact-number {
+    overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .leaflet-popup-content-wrapper,
+    .agroclima-popup-card,
+    .agroclima-popup-status {
+        transition: none !important;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-item {
-        grid-template-columns: 40px minmax(0, 1fr);
-        gap: 12px;
+}
+
+/* ==========================================================
+   RESPONSIVIDADE — 520px
+   ========================================================== */
+
+@media (max-width: 520px) {
+
+    .leaflet-popup-content {
+        width: min(360px, calc(100vw - 30px)) !important;
+        max-width: calc(100vw - 30px);
+    }
+
+    .agroclima-popup {
+        max-width: 360px;
+    }
+
+    .agroclima-popup-header {
+        padding: 15px 14px 11px;
+    }
+
+    .agroclima-popup-title {
+        font-size: 18px;
+    }
+
+    .agroclima-popup-status-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         padding: 8px 10px;
     }
 
-    /*
-       Em telas pequenas, os três indicadores voltam para
-       a segunda linha quando estão diretamente no item.
-    */
-    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-score,
-    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-classification,
-    .dashboard-panel:has(.ranking-list) .ranking-item:has(> .ranking-score) > .ranking-trend {
-        grid-column: 2;
+    .agroclima-popup-main-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-position {
-        width: 40px;
-        min-width: 40px;
-        height: 40px;
-        font-size: 13px;
+    .agroclima-popup-footer {
+        grid-template-columns: 1fr;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-metrics {
-        grid-column: 2;
-        grid-template-columns: 1fr 1fr 1fr;
-        width: 100%;
-        min-width: 0;
-        min-height: 42px;
-        margin-top: 3px;
+    .agroclima-popup-footer .agroclima-popup-compact-value,
+    .agroclima-popup-footer .agroclima-popup-compact-value:nth-child(odd) {
         border-left: none;
         border-top: 1px solid var(--border-light);
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-score,
-    .dashboard-panel:has(.ranking-list) .ranking-classification,
-    .dashboard-panel:has(.ranking-list) .ranking-trend {
-        min-height: 42px;
-        padding: 5px 6px;
+    .agroclima-popup-footer .agroclima-popup-compact-value:first-child {
+        border-top: none;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-position::before,
-    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-city::before,
-    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-score::before,
-    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-classification::before,
-    .dashboard-panel:has(.ranking-list) .ranking-item:first-child .ranking-trend::before {
-        top: -24px;
-    }
-
-    .dashboard-panel:has(.ranking-list) .ranking-trend::after {
-        right: 5px;
-    }
 }
 
-@media (max-width: 520px) {
+/* ==========================================================
+   RESPONSIVIDADE — 380px
+   ========================================================== */
 
-    .dashboard-panel:has(.ranking-list) .panel-actions {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 380px) {
+
+    .leaflet-popup-content {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px);
     }
 
-    .dashboard-panel:has(.ranking-list) .panel-actions .btn-panel {
-        width: 100%;
+    .agroclima-popup {
+        max-width: none;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-list {
-        padding-top: 22px;
+    .agroclima-popup-status {
+        min-height: 44px;
+        padding: 6px 7px;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-item {
-        grid-template-columns: 36px minmax(0, 1fr);
-        gap: 9px;
+    .agroclima-popup-status-label {
+        font-size: 9px;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-position {
-        width: 36px;
-        min-width: 36px;
-        height: 36px;
+    .agroclima-popup-status-value {
         font-size: 12px;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-city strong {
-        font-size: 13px;
+    .agroclima-popup-two-columns,
+    .agroclima-popup-summary-grid {
+        grid-template-columns: 1fr;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-city span {
-        font-size: 10px;
+}
+
+/* ==========================================================
+   FIM DA ETAPA 2 — CSS DO CARTÃO MUNICIPAL
+   ========================================================== */
+
+
+/* ==========================================================
+   ETAPA 3 — REFINAMENTO VISUAL DO CARTÃO MUNICIPAL
+
+   Objetivo:
+   - aproximar a composição visual da referência aprovada;
+   - manter o cartão amplo e horizontal em desktop;
+   - organizar os seis cartões em 3 colunas x 2 linhas;
+   - preservar integralmente os dados e a estrutura do módulo;
+   - não criar cálculos, indicadores ou regras agroclimáticas.
+   ========================================================== */
+
+/* ==========================================================
+   37.1 — CONTAINER LEAFLET / DIMENSÃO DO CARTÃO
+   ========================================================== */
+
+.leaflet-popup-content-wrapper {
+    border-radius: 20px;
+    background: #FFFFFF;
+    box-shadow: 0 18px 42px rgba(27, 39, 32, .20);
+    padding: 0;
+}
+
+.leaflet-popup-content {
+    width: min(1100px, calc(100vw - 48px)) !important;
+    max-width: calc(100vw - 48px) !important;
+    margin: 0 !important;
+}
+
+.leaflet-popup-tip {
+    background: #FFFFFF;
+    box-shadow: 4px 4px 10px rgba(27, 39, 32, .09);
+}
+
+.agroclima-popup {
+    width: 100%;
+    max-width: 1100px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #FFFFFF;
+    color: #263238;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+/* ==========================================================
+   37.2 — CABEÇALHO / HIERARQUIA
+   ========================================================== */
+
+.agroclima-popup-header {
+    min-height: 108px;
+    padding: 26px 32px 20px;
+    border-bottom: 0;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-title {
+    font-size: 28px;
+    line-height: 1.18;
+    font-weight: 700;
+    letter-spacing: -.45px;
+    color: #18221D;
+}
+
+.agroclima-popup-subtitle {
+    margin-top: 7px;
+    font-size: 17px;
+    line-height: 1.35;
+    font-weight: 400;
+    color: #4B5563;
+}
+
+.agroclima-popup-close {
+    width: 34px;
+    height: 34px;
+    margin-top: -1px;
+    font-size: 28px;
+}
+
+.leaflet-popup-close-button {
+    top: 24px !important;
+    right: 25px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 28px !important;
+    line-height: 32px !important;
+}
+
+/* ==========================================================
+   37.3 — FAIXA DE STATUS
+   ========================================================== */
+
+.agroclima-popup-status-bar {
+    grid-template-columns: 1.1fr .9fr .9fr 1.05fr;
+    gap: 14px;
+    padding: 0 32px 22px;
+    border-bottom: 0;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-status {
+    min-height: 60px;
+    padding: 10px 17px;
+    border-radius: 11px;
+    justify-content: center;
+}
+
+.agroclima-popup-status-label {
+    font-size: 11px;
+}
+
+.agroclima-popup-status-value {
+    font-size: 17px;
+    line-height: 1.25;
+}
+
+.agroclima-popup-status.thermal {
+    background: #EEF5FF;
+    border-color: #AFCBF0;
+}
+
+.agroclima-popup-status.thermal .agroclima-popup-status-value {
+    color: #164B9B;
+}
+
+.agroclima-popup-status.fri {
+    background: #EEF7E9;
+    border-color: #B8DDA7;
+}
+
+.agroclima-popup-status.fri .agroclima-popup-status-value {
+    color: #1C6A2B;
+}
+
+.agroclima-popup-status.severity {
+    background: #EEF8E9;
+    border-color: #C2E1B3;
+}
+
+.agroclima-popup-status.severity .agroclima-popup-status-value {
+    color: #1C6A2B;
+}
+
+.agroclima-popup-status.confidence {
+    background: #F3F6FA;
+    border-color: #D4E0EE;
+}
+
+.agroclima-popup-status.confidence .agroclima-popup-status-value {
+    color: #536273;
+}
+
+/* ==========================================================
+   37.4 — GRADE PRINCIPAL: 3 COLUNAS x 2 LINHAS
+   ========================================================== */
+
+.agroclima-popup-main-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 0 32px 20px;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card {
+    min-height: 250px;
+    border: 1px solid #E4E7E5;
+    border-radius: 13px;
+    box-shadow: none;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card-header {
+    min-height: 54px;
+    padding: 13px 18px;
+    gap: 10px;
+    border-bottom: 1px solid #EEF0EE;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card-icon {
+    width: 26px;
+    height: 26px;
+    font-size: 21px;
+}
+
+.agroclima-popup-card-title {
+    font-size: 15px;
+    line-height: 1.2;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .15px;
+}
+
+.agroclima-popup-card-body {
+    padding: 13px 18px 16px;
+}
+
+/* ==========================================================
+   37.5 — CÉLULAS INTERNAS
+   ========================================================== */
+
+.agroclima-popup-two-columns {
+    gap: 11px;
+}
+
+.agroclima-popup-three-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 11px;
+}
+
+.agroclima-popup-two-columns + .agroclima-popup-two-columns {
+    margin-top: 11px;
+}
+
+.agroclima-popup-compact-value {
+    min-height: 70px;
+    padding: 10px 13px;
+    border: 1px solid #E8EBE9;
+    border-radius: 10px;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-compact-label {
+    margin-bottom: 4px;
+    font-size: 11px;
+    line-height: 1.25;
+    color: #6B7280;
+}
+
+.agroclima-popup-compact-number {
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 600;
+    color: #18221D;
+}
+
+.agroclima-popup-compact-value.primary {
+    background: #F1E9FF;
+    border-color: #E3D5FA;
+}
+
+.agroclima-popup-compact-value.primary .agroclima-popup-compact-number {
+    color: #7650C8;
+}
+
+.agroclima-popup-three-columns .agroclima-popup-compact-value {
+    min-height: 64px;
+}
+
+.agroclima-popup-three-columns .agroclima-popup-compact-number {
+    font-size: 15px;
+}
+
+.agroclima-popup-item.compact-full {
+    margin-top: 11px;
+    margin-bottom: 0;
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: #F7F5F1;
+    border: 1px solid #ECE7DE;
+}
+
+.agroclima-popup-label {
+    font-size: 11px;
+}
+
+.agroclima-popup-value {
+    margin-top: 3px;
+    font-size: 14px;
+}
+
+/* ==========================================================
+   37.6 — IDENTIDADE DOS CARTÕES
+   ========================================================== */
+
+.agroclima-popup-card.thermal-card {
+    border-color: #DCE7DF;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-card-header {
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-card-icon {
+    color: #1763B2;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-card-icon {
+    color: #1763B2;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-card-header {
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card.meteorology-card .agroclima-popup-card-icon {
+    color: #1763B2;
+}
+
+.agroclima-popup-card.environment-card .agroclima-popup-card-icon {
+    color: #21833A;
+}
+
+.agroclima-popup-card.environment-card .agroclima-popup-card-header {
+    background: #FFFFFF;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-card-icon {
+    color: #1763B2;
+}
+
+.agroclima-popup-card.summary-card .agroclima-popup-card-icon {
+    color: #1763B2;
+}
+
+.agroclima-popup-card.summary-card .agroclima-popup-card-header {
+    background: #FFFFFF;
+}
+
+/* ==========================================================
+   37.7 — LOCALIZAÇÃO
+   ========================================================== */
+
+.agroclima-popup-card.location-card .agroclima-popup-item.compact-full {
+    min-height: 82px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-top: 0;
+    margin-bottom: 11px;
+    background: #FAFAF8;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-item.compact-full:last-child {
+    margin-bottom: 0;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-value {
+    font-size: 16px;
+}
+
+/* ==========================================================
+   37.8 — RESUMO RÁPIDO
+   ========================================================== */
+
+.agroclima-popup-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 14px;
+}
+
+.agroclima-popup-summary-grid .agroclima-popup-compact-value {
+    min-height: 65px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 7px 8px 7px 42px;
+    position: relative;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.agroclima-popup-summary-grid .agroclima-popup-compact-value::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    background: #EEF5FF;
+}
+
+.agroclima-popup-summary-grid .agroclima-popup-compact-number {
+    font-size: 15px;
+}
+
+/* ==========================================================
+   37.9 — RODAPÉ TÉCNICO
+   ========================================================== */
+
+.agroclima-popup-footer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    padding: 15px 32px 17px;
+    border-top: 1px solid #E4E7E5;
+    background: #FFFFFF;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-value {
+    min-height: 60px;
+    padding: 6px 18px;
+    border-left: 1px solid #E1E5E1;
+    border-radius: 0;
+    background: transparent;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-value:nth-child(3n + 1) {
+    border-left: none;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-label {
+    font-size: 10px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-number {
+    font-size: 13px;
+    color: #263238;
+}
+
+/* ==========================================================
+   37.10 — RESPONSIVIDADE DO REFINAMENTO
+   ========================================================== */
+
+@media (max-width: 900px) {
+
+    .leaflet-popup-content {
+        width: min(760px, calc(100vw - 32px)) !important;
+        max-width: calc(100vw - 32px) !important;
     }
 
-    .dashboard-panel:has(.ranking-list) .ranking-metrics {
-        grid-template-columns: 1fr 1fr 1fr;
+    .agroclima-popup {
+        max-width: 760px;
+    }
+
+    .agroclima-popup-header {
+        padding: 22px 24px 17px;
+    }
+
+    .agroclima-popup-title {
+        font-size: 24px;
+    }
+
+    .agroclima-popup-subtitle {
+        font-size: 15px;
+    }
+
+    .agroclima-popup-status-bar {
+        padding: 0 24px 17px;
+        gap: 9px;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+        padding: 0 24px 17px;
+    }
+
+    .agroclima-popup-footer {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+@media (max-width: 620px) {
+
+    .leaflet-popup-content {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
+    }
+
+    .agroclima-popup {
+        max-width: none;
+        border-radius: 16px;
+    }
+
+    .agroclima-popup-header {
+        min-height: 88px;
+        padding: 18px 18px 14px;
+    }
+
+    .agroclima-popup-title {
+        font-size: 20px;
+    }
+
+    .agroclima-popup-subtitle {
+        font-size: 14px;
+    }
+
+    .agroclima-popup-status-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 0 18px 14px;
+    }
+
+    .agroclima-popup-status {
+        min-height: 52px;
+        padding: 8px 10px;
+    }
+
+    .agroclima-popup-status-value {
+        font-size: 14px;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 0 18px 14px;
+    }
+
+    .agroclima-popup-card {
+        min-height: 0;
+    }
+
+    .agroclima-popup-footer {
+        grid-template-columns: 1fr;
+        padding: 10px 18px 12px;
+    }
+
+    .agroclima-popup-footer .agroclima-popup-compact-value,
+    .agroclima-popup-footer .agroclima-popup-compact-value:nth-child(3n + 1) {
+        border-left: none;
+        border-top: 1px solid #E1E5E1;
+    }
+
+    .agroclima-popup-footer .agroclima-popup-compact-value:first-child {
+        border-top: none;
     }
 }
 
 /* ==========================================================
-   FIM — RANKING DE RISCO DE GEADAS
-========================================================== */
+   FIM DA ETAPA 3 — REFINAMENTO VISUAL
+   ========================================================== */
+
+/* ==========================================================
+   ETAPA 4 — CORREÇÃO DE COMPOSIÇÃO E PROPORÇÃO
+
+   Correções observadas no teste visual:
+   1. restaurar os 4 KPI cards em uma única linha no desktop;
+   2. manter 2 colunas em telas intermediárias;
+   3. reduzir a largura do popup municipal;
+   4. reduzir a altura dos seis cartões para que a grade
+      3 colunas x 2 linhas permaneça visível dentro do mapa;
+   5. preservar integralmente dados, JavaScript e regras de negócio.
+   ========================================================== */
+
+/* ==========================================================
+   38.1 — KPI GRID REAL DA DASHBOARD V3
+
+   O template atual utiliza .dashboard-kpis.
+   As regras anteriores estavam direcionadas a .kpi-grid,
+   portanto não controlavam a composição real dos quatro cards.
+   ========================================================== */
+
+.dashboard-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-auto-flow: row;
+    gap: 18px;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    align-items: stretch;
+}
+
+.dashboard-kpis > .kpi-card {
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    margin: 0 !important;
+}
+
+/* ==========================================================
+   38.2 — POPUP MUNICIPAL COMPACTO E PROPORCIONAL AO MAPA
+   ========================================================== */
+
+.leaflet-popup-content-wrapper {
+    max-width: 860px;
+}
+
+.leaflet-popup-content {
+    width: 820px !important;
+    max-width: calc(100vw - 64px) !important;
+}
+
+.agroclima-popup {
+    width: 100%;
+    max-width: 820px;
+}
+
+.agroclima-popup-header {
+    min-height: 78px;
+    padding: 17px 22px 12px;
+}
+
+.agroclima-popup-title {
+    font-size: 23px;
+    line-height: 1.15;
+}
+
+.agroclima-popup-subtitle {
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+.leaflet-popup-close-button {
+    top: 15px !important;
+    right: 17px !important;
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 24px !important;
+    line-height: 28px !important;
+}
+
+.agroclima-popup-status-bar {
+    grid-template-columns: 1.1fr .9fr .9fr 1fr;
+    gap: 9px;
+    padding: 0 22px 12px;
+}
+
+.agroclima-popup-status {
+    min-height: 48px;
+    padding: 7px 11px;
+    border-radius: 9px;
+}
+
+.agroclima-popup-status-label {
+    font-size: 10px;
+}
+
+.agroclima-popup-status-value {
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+/* ==========================================================
+   38.3 — GRADE PRINCIPAL: 3 x 2 SEM EXCESSO VERTICAL
+   ========================================================== */
+
+.agroclima-popup-main-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 10px;
+    padding: 0 22px 12px;
+}
+
+.agroclima-popup-card {
+    min-width: 0;
+    min-height: 0;
+    height: 158px;
+    overflow: hidden;
+    border-radius: 11px;
+}
+
+.agroclima-popup-card-header {
+    min-height: 40px;
+    height: 40px;
+    padding: 9px 13px;
+    gap: 8px;
+}
+
+.agroclima-popup-card-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 18px;
+}
+
+.agroclima-popup-card-title {
+    font-size: 13px;
+    line-height: 1.15;
+}
+
+.agroclima-popup-card-body {
+    min-height: 0;
+    padding: 9px 12px 10px;
+    overflow: hidden;
+}
+
+.agroclima-popup-two-columns {
+    gap: 7px;
+}
+
+.agroclima-popup-two-columns + .agroclima-popup-two-columns {
+    margin-top: 7px;
+}
+
+.agroclima-popup-three-columns {
+    gap: 6px;
+    margin-top: 7px;
+}
+
+.agroclima-popup-compact-value {
+    min-height: 48px;
+    padding: 7px 9px;
+    border-radius: 8px;
+}
+
+.agroclima-popup-compact-label {
+    margin-bottom: 2px;
+    font-size: 9px;
+    line-height: 1.15;
+}
+
+.agroclima-popup-compact-number {
+    font-size: 13px;
+    line-height: 1.2;
+}
+
+.agroclima-popup-three-columns .agroclima-popup-compact-value {
+    min-height: 43px;
+}
+
+.agroclima-popup-three-columns .agroclima-popup-compact-number {
+    font-size: 12px;
+}
+
+.agroclima-popup-item.compact-full {
+    margin-top: 7px;
+    padding: 7px 9px;
+    border-radius: 8px;
+}
+
+.agroclima-popup-label {
+    font-size: 9px;
+}
+
+.agroclima-popup-value {
+    margin-top: 2px;
+    font-size: 12px;
+}
+
+/* ==========================================================
+   38.4 — RODAPÉ TÉCNICO COMPACTO
+   ========================================================== */
+
+.agroclima-popup-footer {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    padding: 9px 22px 10px;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-value {
+    min-height: 42px;
+    padding: 4px 10px;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-label {
+    font-size: 8px;
+}
+
+.agroclima-popup-footer .agroclima-popup-compact-number {
+    font-size: 11px;
+}
+
+/* ==========================================================
+   38.5 — RESPONSIVIDADE SEM PERDER A GRADE NO DESKTOP
+   ========================================================== */
+
+@media (max-width: 1200px) {
+
+    .dashboard-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .leaflet-popup-content {
+        width: 760px !important;
+        max-width: calc(100vw - 48px) !important;
+    }
+
+    .agroclima-popup {
+        max-width: 760px;
+    }
+
+}
+
+@media (max-width: 900px) {
+
+    .leaflet-popup-content {
+        width: min(680px, calc(100vw - 40px)) !important;
+        max-width: calc(100vw - 40px) !important;
+    }
+
+    .agroclima-popup {
+        max-width: 680px;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+    }
+
+    .agroclima-popup-card {
+        height: 158px;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .dashboard-kpis {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+
+}
+
+@media (max-width: 620px) {
+
+    .leaflet-popup-content {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
+    }
+
+    .agroclima-popup {
+        max-width: none;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+    }
+
+    .agroclima-popup-card {
+        height: auto;
+        min-height: 145px;
+    }
+
+}
+
+/* ==========================================================
+   38.6 — MARCO DE AUDITORIA DA ETAPA 4
+
+   A correção é exclusivamente visual:
+   - nenhum valor climático é criado;
+   - nenhuma classificação é calculada;
+   - nenhum FRI é recalculado;
+   - nenhum dado do backend é alterado.
+   ========================================================== */
+
+/* Linha de auditoria 001: .dashboard-kpis restaurado para 4 colunas no desktop. */
+/* Linha de auditoria 002: .dashboard-kpis reduzido para 2 colunas em <= 1200px. */
+/* Linha de auditoria 003: .dashboard-kpis reduzido para 1 coluna em <= 768px. */
+/* Linha de auditoria 004: popup desktop limitado a 820px. */
+/* Linha de auditoria 005: grade municipal mantida em 3 colunas x 2 linhas. */
+/* Linha de auditoria 006: altura dos cartões reduzida para 158px. */
+/* Linha de auditoria 007: espaçamentos internos reduzidos sem remoção de dados. */
+/* Linha de auditoria 008: rodapé técnico reduzido proporcionalmente. */
+/* Linha de auditoria 009: breakpoint intermediário preserva leitura em 2 colunas. */
+/* Linha de auditoria 010: breakpoint móvel passa a 1 coluna somente em tela estreita. */
+
+
+
+/* ==========================================================
+   39 — REFINAMENTO VISUAL FINAL DO POPUP MUNICIPAL
+
+   Objetivo desta etapa:
+   - reduzir a escala geral do popup;
+   - manter os seis cards em 3 x 2 no desktop;
+   - aproximar proporções do mapa e da referência visual;
+   - criar hierarquia visual elegante e discreta;
+   - preservar integralmente o conteúdo fornecido pelo módulo JS.
+
+   Esta seção é exclusivamente visual.
+   ========================================================== */
+
+/* ---------- CONTÊINER LEAFLET ---------- */
+.leaflet-popup-content-wrapper {
+    max-width: 760px !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(28, 35, 42, 0.20) !important;
+}
+
+.leaflet-popup-content {
+    width: 700px !important;
+    max-width: calc(100vw - 48px) !important;
+    margin: 0 !important;
+}
+
+.leaflet-popup-tip {
+    box-shadow: 3px 3px 8px rgba(28, 35, 42, 0.10) !important;
+}
+
+.leaflet-popup-close-button {
+    top: 11px !important;
+    right: 13px !important;
+    width: 26px !important;
+    height: 26px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    font-size: 21px !important;
+    line-height: 25px !important;
+    font-weight: 400 !important;
+    text-align: center !important;
+    z-index: 5 !important;
+}
+
+/* ---------- CARTÃO PRINCIPAL ---------- */
+.agroclima-popup {
+    width: 700px;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid rgba(33, 48, 62, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* ---------- CABEÇALHO ---------- */
+.agroclima-popup-header {
+    min-height: 64px;
+    padding: 13px 18px 9px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(33, 48, 62, 0.08);
+    background: #ffffff;
+}
+
+.agroclima-popup-heading {
+    min-width: 0;
+    padding-right: 28px;
+}
+
+.agroclima-popup-title {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.25px;
+    color: #18232e;
+}
+
+.agroclima-popup-subtitle {
+    margin-top: 3px;
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 400;
+    color: #657383;
+}
+
+/* ---------- GRADE DOS SEIS CARDS ---------- */
+.agroclima-popup-main-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 12px 12px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+/* ---------- CARD INDIVIDUAL ---------- */
+.agroclima-popup-card {
+    min-width: 0;
+    height: 126px;
+    min-height: 126px;
+    margin: 0;
+    border: 1px solid #e3e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(24, 35, 46, 0.035);
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.agroclima-popup-card:hover {
+    border-color: #d4dbe2;
+    box-shadow: 0 3px 9px rgba(24, 35, 46, 0.07);
+}
+
+.agroclima-popup-card-header {
+    height: 34px;
+    min-height: 34px;
+    padding: 7px 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-bottom: 1px solid #edf0f2;
+    background: #fcfdfd;
+    box-sizing: border-box;
+}
+
+.agroclima-popup-card-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #1458a0;
+}
+
+.agroclima-popup-card-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: 0.15px;
+    text-transform: uppercase;
+    color: #24313d;
+}
+
+.agroclima-popup-card-body {
+    height: calc(100% - 34px);
+    min-height: 0;
+    padding: 7px 9px 8px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* ---------- VALORES INTERNOS ---------- */
+.agroclima-popup-two-columns,
+.agroclima-popup-three-columns {
+    display: grid;
+    min-width: 0;
+}
+
+.agroclima-popup-two-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.agroclima-popup-two-columns + .agroclima-popup-two-columns {
+    margin-top: 5px;
+}
+
+.agroclima-popup-three-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.agroclima-popup-compact-value {
+    min-width: 0;
+    min-height: 39px;
+    padding: 5px 7px;
+    border: 1px solid #e7eaed;
+    border-radius: 7px;
+    background: #ffffff;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.agroclima-popup-compact-label {
+    display: block;
+    margin: 0 0 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 8px;
+    line-height: 1.1;
+    font-weight: 500;
+    color: #778492;
+}
+
+.agroclima-popup-compact-number {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    line-height: 1.15;
+    font-weight: 600;
+    color: #17212b;
+}
+
+/* ---------- DESTAQUES ---------- */
+.agroclima-popup-compact-value.primary {
+    border-color: #e5dcff;
+    background: #f7f3ff;
+}
+
+.agroclima-popup-compact-value.primary .agroclima-popup-compact-number {
+    color: #6240b4;
+}
+
+.agroclima-popup-compact-value.decision {
+    background: #f4f9f1;
+    border-color: #d9e9d2;
+}
+
+.agroclima-popup-compact-value.decision .agroclima-popup-compact-number {
+    color: #28612d;
+}
+
+/* ---------- TÉRMICA ---------- */
+.agroclima-popup-card.thermal-card .agroclima-popup-card-icon {
+    color: #1458a0;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-two-columns:first-child .agroclima-popup-compact-value {
+    min-height: 43px;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-three-columns .agroclima-popup-compact-value {
+    min-height: 36px;
+    padding: 5px 6px;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-three-columns .agroclima-popup-compact-label {
+    font-size: 7px;
+}
+
+.agroclima-popup-card.thermal-card .agroclima-popup-three-columns .agroclima-popup-compact-number {
+    font-size: 10px;
+}
+
+/* ---------- PRECIPITAÇÃO ---------- */
+.agroclima-popup-card.precipitation-card .agroclima-popup-card-icon {
+    color: #1767b1;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-item.compact-full {
+    margin-top: 5px;
+    min-height: 39px;
+    padding: 5px 7px;
+    border: 1px solid #eee8df;
+    border-radius: 7px;
+    background: #faf8f5;
+    box-sizing: border-box;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-label {
+    display: block;
+    font-size: 8px;
+    line-height: 1.1;
+    color: #8a837b;
+}
+
+.agroclima-popup-card.precipitation-card .agroclima-popup-value {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 600;
+    color: #302c28;
+}
+
+/* ---------- METEOROLOGIA ---------- */
+.agroclima-popup-card.meteorology-card .agroclima-popup-card-icon,
+.agroclima-popup-card.wind-card .agroclima-popup-card-icon {
+    color: #1458a0;
+}
+
+/* ---------- VENTO ---------- */
+.agroclima-popup-card.wind-card .agroclima-popup-compact-value {
+    min-height: 49px;
+    padding: 7px 8px;
+}
+
+.agroclima-popup-card.wind-card .agroclima-popup-compact-number {
+    font-size: 12px;
+}
+
+/* ---------- AMBIENTE ---------- */
+.agroclima-popup-card.environment-card .agroclima-popup-card-icon {
+    color: #28753b;
+}
+
+/* ---------- LOCALIZAÇÃO ---------- */
+.agroclima-popup-card.location-card .agroclima-popup-card-icon {
+    color: #1458a0;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-item.compact-full {
+    min-height: 43px;
+    margin: 0 0 5px;
+    padding: 6px 8px;
+    border: 1px solid #edf0f2;
+    border-radius: 7px;
+    background: #fafbfc;
+    box-sizing: border-box;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-item.compact-full:last-child {
+    margin-bottom: 0;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-label {
+    display: block;
+    font-size: 8px;
+    line-height: 1.1;
+    color: #7b8793;
+}
+
+.agroclima-popup-card.location-card .agroclima-popup-value {
+    display: block;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    line-height: 1.15;
+    font-weight: 600;
+    color: #26323d;
+}
+
+/* ---------- REMOÇÃO VISUAL DE ELEMENTOS ANTIGOS ---------- */
+.agroclima-popup-status-bar,
+.agroclima-popup-footer,
+.agroclima-popup-meta,
+.summary-card {
+    display: none !important;
+}
+
+/* ---------- RESPONSIVIDADE ---------- */
+@media (max-width: 900px) {
+    .leaflet-popup-content-wrapper {
+        max-width: 680px !important;
+    }
+
+    .leaflet-popup-content {
+        width: 620px !important;
+        max-width: calc(100vw - 40px) !important;
+    }
+
+    .agroclima-popup {
+        width: 620px;
+    }
+}
+
+@media (max-width: 720px) {
+    .leaflet-popup-content-wrapper {
+        max-width: calc(100vw - 20px) !important;
+    }
+
+    .leaflet-popup-content {
+        width: calc(100vw - 20px) !important;
+        max-width: calc(100vw - 20px) !important;
+    }
+
+    .agroclima-popup {
+        width: 100%;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+    }
+}
+
+@media (max-width: 500px) {
+    .agroclima-popup-header {
+        min-height: 58px;
+        padding: 11px 14px 8px;
+    }
+
+    .agroclima-popup-title {
+        font-size: 17px;
+    }
+
+    .agroclima-popup-subtitle {
+        font-size: 11px;
+    }
+
+    .agroclima-popup-main-grid {
+        grid-template-columns: 1fr;
+        padding: 8px;
+    }
+
+    .agroclima-popup-card {
+        height: auto;
+        min-height: 120px;
+    }
+}
+
+/* ==========================================================
+   AUDITORIA DA ETAPA 5
+   - popup desktop reduzido para 700px;
+   - seis cards preservados em 3 x 2;
+   - altura dos cards reduzida para 126px;
+   - status/rodapé/resumo ocultados visualmente;
+   - Vento permanece como card independente;
+   - nenhuma regra de cálculo climático introduzida;
+   - conteúdo do map_point permanece inalterado.
+   ========================================================== */
+/* Auditoria 001: proporção do popup aproximada ao mapa. */
+/* Auditoria 002: cabeçalho compactado sem perder hierarquia. */
+/* Auditoria 003: grade desktop fixada em três colunas. */
+/* Auditoria 004: duas linhas mantidas para os seis cards. */
+/* Auditoria 005: cards internos compactados para leitura. */
+/* Auditoria 006: destaques cromáticos limitados aos valores. */
+/* Auditoria 007: sombra e bordas reduzidas para aparência elegante. */
+/* Auditoria 008: breakpoints preservam leitura em telas menores. */
+/* Auditoria 009: elementos de versões anteriores ocultados somente por CSS. */
+/* Auditoria 010: nenhuma alteração de JavaScript ou backend. */
+
+/* ==========================================================
+   ETAPA 5.1 — CORREÇÃO DO COMANDO DE ENCERRAMENTO DUPLICADO
+   ========================================================== */
+
+/*
+   O Leaflet já fornece o botão nativo .leaflet-popup-close-button.
+   O módulo municipal também renderiza .agroclima-popup-close.
+   Para manter um único comando de encerramento visível, preservamos
+   o controle nativo do Leaflet e ocultamos apenas o duplicado visual.
+*/
+.agroclima-popup-close {
+    display: none !important;
+}
+
+/* Auditoria 011: um único comando visual de encerramento permanece ativo. */
+/* Auditoria 012: nenhuma alteração de JavaScript, dados ou lógica climática. */

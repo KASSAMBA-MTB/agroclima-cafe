@@ -250,6 +250,42 @@ class WeatherService:
                 "confidence",
                 None,
             ),
+            # --------------------------------------------------
+            # Indicadores ambientais — FASE 1
+            # --------------------------------------------------
+            #
+            # Esses campos pertencem à observação persistida e
+            # devem acompanhar o DTO até o PostgreSQL.
+            #
+            # UV máximo:
+            #   valor diário fornecido pelo Open-Meteo.
+            #
+            # Nascer/pôr do sol:
+            #   horários locais do município, já normalizados
+            #   pelo Provider.
+            #
+            # Duração da luz do dia:
+            #   segundos de luz do dia fornecidos pelo Provider.
+            "uv_index_max": getattr(
+                dto,
+                "uv_index_max",
+                None,
+            ),
+            "sunrise": getattr(
+                dto,
+                "sunrise",
+                None,
+            ),
+            "sunset": getattr(
+                dto,
+                "sunset",
+                None,
+            ),
+            "daylight_duration_seconds": getattr(
+                dto,
+                "daylight_duration_seconds",
+                None,
+            ),
         }
 
         model_field_names = {
@@ -313,8 +349,9 @@ class WeatherService:
         # A condição atual de chuva passa a ser validada por
         # rain_now, e não por precipitation.
         #
-        # precipitation_24h_mm permanece opcional quando a fonte
-        # não fornecer explicitamente esse acumulado.
+        # O serviço atual exige o acumulado de 24h porque a Dashboard
+        # o oferece como dado operacional. Ausência de 24h não pode ser
+        # mascarada como zero ou substituída pelo valor de 1h.
         required = (
             "temperature",
             "humidity",
@@ -326,6 +363,7 @@ class WeatherService:
             "cloud_cover",
             "rain_now",
             "precipitation_1h_mm",
+            "precipitation_24h_mm",
             "weather_condition",
             "source_type",
             "observed_at",
@@ -355,6 +393,13 @@ class WeatherService:
             "precipitacao",
             "cobertura_nuvens",
             "codigo_tempo",
+            "precipitacao_1h",
+            "precipitacao_24h",
+            "chuva_agora",
+            "condicao_tempo",
+            "tipo_fonte",
+            "coletado_em",
+            "qualidade_dado",
         )
 
         return all(

@@ -1,30 +1,30 @@
 """
 ===============================================================================
-UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
+UNIVERSIDADE VIRTUAL DO ESTADO DE SÃƒO PAULO - UNIVESP
 
-Curso...........: Bacharelado em Ciência de Dados
-Disciplina......: Trabalho de Conclusão de Curso (TCC)
-Projeto.........: AgroClima Café
-Módulo..........: Dashboard
+Curso...........: Bacharelado em CiÃªncia de Dados
+Disciplina......: Trabalho de ConclusÃ£o de Curso (TCC)
+Projeto.........: AgroClima CafÃ©
+MÃ³dulo..........: Dashboard
 Arquivo.........: dashboard_service.py
 
 Autor...........: Walter Junio Pontes Teixeira
-Polo............: São João da Boa Vista - SP
+Polo............: SÃ£o JoÃ£o da Boa Vista - SP
 Ano.............: 2026
 
-Descrição.......:
-Serviço responsável por consolidar todos os dados estruturados
+DescriÃ§Ã£o.......:
+ServiÃ§o responsÃ¡vel por consolidar todos os dados estruturados
 da Dashboard Principal.
 
 Responsabilidades:
-    • Consolidar KPIs, gráficos, ranking, eventos e mapa.
-    • Enriquecer os pontos geográficos com dados meteorológicos.
-    • Disponibilizar ocorrências históricas reais de geada.
-    • Disponibilizar indicadores históricos estruturados para a
-      camada de Inteligência.
-    • Não executar regras de Inteligência.
+    â€¢ Consolidar KPIs, grÃ¡ficos, ranking, eventos e mapa.
+    â€¢ Enriquecer os pontos geogrÃ¡ficos com dados meteorolÃ³gicos.
+    â€¢ Disponibilizar ocorrÃªncias histÃ³ricas reais de geada.
+    â€¢ Disponibilizar indicadores histÃ³ricos estruturados para a
+      camada de InteligÃªncia.
+    â€¢ NÃ£o executar regras de InteligÃªncia.
 
-Versão..........: 3.8
+VersÃ£o..........: 3.8
 ===============================================================================
 """
 
@@ -32,8 +32,11 @@ from datetime import timedelta
 
 from clima.models import (
     HistoricalWeatherDaily,
+    Provider,
     WeatherObservation,
 )
+from clima.services.weather_service import WeatherService
+from municipios.models import Municipio
 
 from dashboard.services.kpi_service import KPIService
 from dashboard.services.chart_service import ChartService
@@ -41,6 +44,9 @@ from dashboard.services.ranking_service import RankingService
 from dashboard.services.events_service import EventsService
 from dashboard.services.map_service import MapService
 from dashboard.services.frost_risk_service import FrostRiskService
+from dashboard.services.thermal_classification_service import (
+    ThermalClassificationService,
+)
 
 
 class DashboardService:
@@ -48,9 +54,9 @@ class DashboardService:
     Consolida todos os dados estruturados utilizados pela
     Dashboard.
 
-    Não executa regras de negócio inteligentes.
+    NÃ£o executa regras de negÃ³cio inteligentes.
 
-    A camada de Inteligência permanece responsabilidade da
+    A camada de InteligÃªncia permanece responsabilidade da
     DashboardFacade.
     """
 
@@ -66,11 +72,27 @@ class DashboardService:
 
         self.map_service = MapService()
 
-        # Avaliação oficial e única do FRI por município.
-        # O resultado é incorporado ao map_point e passa a ser a
+        # Serviço meteorológico responsável por atualizar a observação
+        # atual antes da montagem dos KPIs e dos pontos do mapa.
+        self.weather_service = WeatherService()
+
+        # AvaliaÃ§Ã£o oficial e Ãºnica do FRI por municÃpio.
+        # O resultado Ã© incorporado ao map_point e passa a ser a
         # fonte autoritativa consumida por mapa, popup, ranking,
         # alerta e insight.
         self.frost_risk_service = FrostRiskService()
+
+        # Serviço responsável pela classificação operacional da temperatura.
+        # A classificação é derivada exclusivamente da temperatura observada
+        # e materializada no map_point para consumo uniforme pelos componentes.
+        # O serviço não acessa banco de dados, API, FRI ou regras de geada.
+        self.thermal_classification_service = ThermalClassificationService()
+
+        # Mantém os DTOs da atualização meteorológica corrente disponíveis
+        # para o enriquecimento do map_point. Isso evita perder campos que
+        # já existem no WeatherDTO, mas ainda não possuem persistência própria
+        # em WeatherObservation, como UV e dados de nascer/pôr do sol.
+        self._current_weather_dtos = {}
 
     # ==========================================================
     # DASHBOARD
@@ -82,6 +104,16 @@ class DashboardService:
         """
 
         context = {}
+
+        # ======================================================
+        # ATUALIZAÇÃO METEOROLÓGICA
+        # ======================================================
+        # WeatherObservation é atualizada antes dos KPIs e do mapa.
+        # Uma falha isolada não interrompe os demais municípios.
+        # ======================================================
+
+        weather_refresh = self._refresh_current_weather()
+        context["weather_refresh"] = weather_refresh
 
         # ======================================================
         # KPIs
@@ -96,7 +128,7 @@ class DashboardService:
         context["kpis"] = kpis
 
         # ======================================================
-        # GRÁFICOS
+        # GRÃFICOS
         # ======================================================
 
         context["chart"] = (
@@ -104,17 +136,17 @@ class DashboardService:
         )
 
         # ======================================================
-        # PERÍODOS DO GRÁFICO
+        # PERÃODOS DO GRÃFICO
         #
         # Disponibiliza separadamente:
         #
         #   Hoje
         #   7 dias
         #   30 dias
-        #   Histórico
+        #   HistÃ³rico
         #
         # O frontend apenas alterna entre os dados
-        # já consolidados pelo ChartService.
+        # jÃ¡ consolidados pelo ChartService.
         # ======================================================
 
         context["chart_periods"] = (
@@ -140,11 +172,11 @@ class DashboardService:
         )
 
         # ======================================================
-        # DADOS CLIMÁTICOS DOS MUNICÍPIOS
+        # DADOS CLIMÃTICOS DOS MUNICÃPIOS
         #
         # Somente dados estruturados.
         #
-        # Nenhuma regra de inteligência é executada aqui.
+        # Nenhuma regra de inteligÃªncia Ã© executada aqui.
         # ======================================================
 
         map_points = self._attach_climate_data(
@@ -152,10 +184,10 @@ class DashboardService:
         )
 
         # ======================================================
-        # AVALIAÇÃO MUNICIPAL ÚNICA DO FRI
+        # AVALIAÃ‡ÃƒO MUNICIPAL ÃšNICA DO FRI
         #
-        # Cada município é avaliado exatamente uma vez depois
-        # que os dados climáticos e históricos já foram anexados.
+        # Cada municÃpio Ã© avaliado exatamente uma vez depois
+        # que os dados climÃ¡ticos e histÃ³ricos jÃ¡ foram anexados.
         # O resultado completo passa a integrar o map_point.
         # Nenhum consumidor posterior deve recalcular o FRI.
         # ======================================================
@@ -170,8 +202,8 @@ class DashboardService:
         # RANKING
         #
         # O Ranking recebe exatamente os mesmos map_points que
-        # foram disponibilizados ao mapa. O FRI já está calculado
-        # nesses objetos e não pode ser recalculado pelo Ranking.
+        # foram disponibilizados ao mapa. O FRI jÃ¡ estÃ¡ calculado
+        # nesses objetos e nÃ£o pode ser recalculado pelo Ranking.
         # ======================================================
 
         context["ranking"] = (
@@ -193,60 +225,131 @@ class DashboardService:
         return context
 
     # ==========================================================
-    # DADOS CLIMÁTICOS DO MAPA
+    # DADOS CLIMÃTICOS DO MAPA
     # ==========================================================
+
+
+    # ==========================================================
+    # ATUALIZAÇÃO METEOROLÓGICA PARA A DASHBOARD
+    # ==========================================================
+
+    def _refresh_current_weather(self):
+        """
+        Atualiza o clima atual de todos os municípios antes da
+        consolidação dos KPIs e dos pontos consumidos pelo mapa.
+
+        Não calcula FRI nem executa regras de Inteligência.
+        Cada município é processado independentemente.
+        """
+
+        atualizados = 0
+        erros = 0
+        resultados = []
+
+        # Cada execução representa um novo ciclo de atualização.
+        # Remove DTOs de municípios que eventualmente falhem neste ciclo.
+        self._current_weather_dtos = {}
+
+        municipios = (
+            Municipio.objects
+            .all()
+            .order_by("nome")
+        )
+
+        for municipio in municipios:
+
+            try:
+
+                dto = self.weather_service.update_current_weather(
+                    municipio,
+                    Provider.OPEN_METEO,
+                )
+
+                # O DTO é a fonte corrente dos campos meteorológicos
+                # complementares. O map_point recebe esses valores sem
+                # recalcular, inferir ou substituir dados ausentes.
+                self._current_weather_dtos[municipio.nome] = dto
+
+                atualizados += 1
+
+                resultados.append(
+                    {
+                        "municipio": municipio.nome,
+                        "status": "ATUALIZADO",
+                    }
+                )
+
+            except Exception as exc:
+
+                erros += 1
+
+                resultados.append(
+                    {
+                        "municipio": municipio.nome,
+                        "status": "ERRO",
+                        "erro": str(exc),
+                    }
+                )
+
+        return {
+            "total": len(resultados),
+            "atualizados": atualizados,
+            "erros": erros,
+            "municipios": resultados,
+        }
+
 
     def _attach_climate_data(
         self,
         map_points,
     ):
         """
-        Adiciona aos pontos geográficos os dados estruturados
-        disponíveis para cada município.
+        Adiciona aos pontos geogrÃ¡ficos os dados estruturados
+        disponÃveis para cada municÃpio.
 
-        Dados meteorológicos:
-            • temperatura;
-            • umidade;
-            • vento;
-            • cobertura de nuvens;
-            • chuva ocorrendo agora;
-            • precipitação da última hora;
-            • precipitação acumulada em 24 horas;
-            • horário da observação.
+        Dados meteorolÃ³gicos:
+            â€¢ temperatura;
+            â€¢ umidade;
+            â€¢ vento;
+            â€¢ cobertura de nuvens;
+            â€¢ chuva ocorrendo agora;
+            â€¢ precipitaÃ§Ã£o da Ãºltima hora;
+            â€¢ precipitaÃ§Ã£o acumulada em 24 horas;
+            â€¢ horÃ¡rio da observaÃ§Ã£o.
 
-        Contrato canônico:
-            • chuva_agora;
-            • precipitacao_1h;
-            • precipitacao_24h.
+        Contrato canÃ´nico:
+            â€¢ chuva_agora;
+            â€¢ precipitacao_1h;
+            â€¢ precipitacao_24h.
 
-        O campo legado ``precipitation`` é preservado no map_point
-        para compatibilidade, mas seu valor corresponde à
-        precipitação da última hora nesta etapa da migração.
+        O campo legado ``precipitation`` Ã© preservado no map_point
+        para compatibilidade, mas seu valor corresponde Ã 
+        precipitaÃ§Ã£o da Ãºltima hora nesta etapa da migraÃ§Ã£o.
 
-        Dados históricos de geada:
-            • ocorrência;
-            • quantidade de ocorrências;
-            • quantidade total de registros históricos;
-            • frequência histórica de geada;
-            • quantidade de episódios de geada;
-            • última data de ocorrência;
-            • temperatura mínima da última ocorrência;
-            • menor temperatura registrada em ocorrência de geada.
+        Dados histÃ³ricos de geada:
+            â€¢ ocorrÃªncia;
+            â€¢ quantidade de ocorrÃªncias;
+            â€¢ quantidade total de registros histÃ³ricos;
+            â€¢ frequÃªncia histÃ³rica de geada;
+            â€¢ quantidade de episÃ³dios de geada;
+            â€¢ Ãºltima data de ocorrÃªncia;
+            â€¢ temperatura mÃnima da Ãºltima ocorrÃªncia;
+            â€¢ menor temperatura registrada em ocorrÃªncia de geada.
 
-        Critério objetivo para ocorrência histórica de geada:
+        CritÃ©rio objetivo para ocorrÃªncia histÃ³rica de geada:
 
-            temperatura_minima <= 0 °C
+            temperatura_minima <= 0 Â°C
 
-        Este método NÃO:
-            • calcula FRI;
-            • classifica risco;
-            • calcula confiança;
-            • gera alertas;
-            • gera recomendações;
-            • executa regras de Inteligência.
+        Este mÃ©todo NÃƒO:
+            â€¢ calcula FRI;
+            â€¢ classifica risco;
+            â€¢ calcula confianÃ§a;
+            â€¢ gera alertas;
+            â€¢ gera recomendaÃ§Ãµes;
+            â€¢ executa regras de InteligÃªncia.
 
-        Os indicadores históricos adicionados aqui constituem
-        evidência estruturada para a etapa posterior da FrostRule.
+        Os indicadores histÃ³ricos adicionados aqui constituem
+        evidÃªncia estruturada para a etapa posterior da FrostRule.
         """
 
         if not map_points:
@@ -264,7 +367,7 @@ class DashboardService:
             return map_points
 
         # ======================================================
-        # ÚLTIMA OBSERVAÇÃO METEOROLÓGICA
+        # ÃšLTIMA OBSERVAÃ‡ÃƒO METEOROLÃ“GICA
         # ======================================================
 
         observations = (
@@ -305,13 +408,13 @@ class DashboardService:
             ] = observation
 
         # ======================================================
-        # HISTÓRICO REAL DE GEADAS
+        # HISTÃ“RICO REAL DE GEADAS
         #
         # Fonte:
         # HistoricalWeatherDaily
         #
-        # Somente registros persistidos são considerados.
-        # Não utiliza previsão.
+        # Somente registros persistidos sÃ£o considerados.
+        # NÃ£o utiliza previsÃ£o.
         # ======================================================
 
         historical_records = (
@@ -369,7 +472,7 @@ class DashboardService:
             ):
                 summary["minimum_temperature"] = minimum
 
-            # Critério real de geada.
+            # CritÃ©rio real de geada.
             if minimum <= 0:
 
                 summary["frost_records"] += 1
@@ -379,8 +482,8 @@ class DashboardService:
                         record.data
                     )
 
-                # O queryset está em ordem crescente; portanto,
-                # o último registro de geada é o mais recente.
+                # O queryset estÃ¡ em ordem crescente; portanto,
+                # o Ãºltimo registro de geada Ã© o mais recente.
                 summary["last_date"] = (
                     record.data.isoformat()
                     if record.data
@@ -410,10 +513,22 @@ class DashboardService:
             )
 
             # ==================================================
-            # PADRÃO SEM DADO
+            # PADRÃƒO SEM DADO
             # ==================================================
 
             enriched["temperature"] = None
+
+            # Classificação térmica canônica.
+            # O valor permanece ``unavailable`` até que uma temperatura
+            # válida seja efetivamente disponibilizada pela observação.
+            enriched["temperature_class"] = (
+                ThermalClassificationService.CLASS_UNAVAILABLE
+            )
+            enriched["temperature_class_label"] = (
+                ThermalClassificationService.LABELS[
+                    ThermalClassificationService.CLASS_UNAVAILABLE
+                ]
+            )
 
             enriched["humidity"] = None
 
@@ -422,18 +537,18 @@ class DashboardService:
             enriched["cloud_cover"] = None
 
             # ==================================================
-            # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
+            # CONTRATO METEOROLÃ“GICO CANÃ”NICO â€” FASE 1
             # ==================================================
 
             # Chuva ocorrendo agora.
             enriched["rain_now"] = None
             enriched["chuva_agora"] = None
 
-            # Precipitação da última hora.
+            # PrecipitaÃ§Ã£o da Ãºltima hora.
             enriched["precipitation_1h_mm"] = None
             enriched["precipitacao_1h"] = None
 
-            # Precipitação acumulada em 24 horas.
+            # PrecipitaÃ§Ã£o acumulada em 24 horas.
             enriched["precipitation_24h_mm"] = None
             enriched["precipitacao_24h"] = None
 
@@ -443,7 +558,7 @@ class DashboardService:
             enriched["observation_time"] = None
 
             # ==================================================
-            # DADOS DA OBSERVAÇÃO
+            # DADOS DA OBSERVAÃ‡ÃƒO
             # ==================================================
 
             if observation:
@@ -473,7 +588,7 @@ class DashboardService:
                 )
 
                 # --------------------------------------------------
-                # CONTRATO METEOROLÓGICO CANÔNICO
+                # CONTRATO METEOROLÃ“GICO CANÃ”NICO
                 # --------------------------------------------------
 
                 rain_now = getattr(
@@ -498,7 +613,7 @@ class DashboardService:
                     )
                 )
 
-                # Variáveis canônicas.
+                # VariÃ¡veis canÃ´nicas.
                 enriched["rain_now"] = rain_now
                 enriched["chuva_agora"] = rain_now
 
@@ -509,11 +624,11 @@ class DashboardService:
                 enriched["precipitacao_24h"] = precipitation_24h
 
                 # Compatibilidade com consumidores legados.
-                # O campo genérico passa a representar explicitamente
-                # a precipitação da última hora.
+                # O campo genÃ©rico passa a representar explicitamente
+                # a precipitaÃ§Ã£o da Ãºltima hora.
                 enriched["precipitation"] = precipitation_1h
 
-                # Condição meteorológica canônica, quando disponível.
+                # CondiÃ§Ã£o meteorolÃ³gica canÃ´nica, quando disponÃvel.
                 enriched["weather_condition"] = getattr(
                     observation,
                     "condicao_tempo",
@@ -531,7 +646,120 @@ class DashboardService:
                     )
 
             # ==================================================
-            # HISTÓRICO REAL DE GEADA
+            # DADOS COMPLEMENTARES DO WEATHERDTO
+            # ==================================================
+            # Estes campos podem estar disponíveis na coleta atual mesmo
+            # quando ainda não existem como colunas em WeatherObservation.
+            # O serviço apenas transporta o valor recebido do Provider.
+
+            current_dto = self._current_weather_dtos.get(municipality)
+
+            if current_dto is not None:
+
+                enriched["pressure"] = self._to_float(
+                    getattr(current_dto, "pressure", None)
+                )
+
+                enriched["wind_direction"] = self._to_float(
+                    getattr(current_dto, "wind_direction", None)
+                )
+
+                enriched["apparent_temperature"] = self._to_float(
+                    getattr(current_dto, "apparent_temperature", None)
+                )
+
+                enriched["dew_point"] = self._to_float(
+                    getattr(current_dto, "dew_point", None)
+                )
+
+                enriched["solar_radiation"] = self._to_float(
+                    getattr(current_dto, "solar_radiation", None)
+                )
+
+                enriched["uv_index"] = self._to_float(
+                    getattr(current_dto, "uv_index", None)
+                )
+
+                enriched["uv_index_max"] = self._to_float(
+                    getattr(current_dto, "uv_index_max", None)
+                )
+
+                enriched["visibility"] = self._to_float(
+                    getattr(current_dto, "visibility", None)
+                )
+
+                enriched["weather_condition"] = getattr(
+                    current_dto,
+                    "weather_condition",
+                    None,
+                ) or enriched["weather_condition"]
+
+                enriched["sunrise"] = self._serialize_datetime(
+                    getattr(current_dto, "sunrise", None)
+                )
+
+                enriched["sunset"] = self._serialize_datetime(
+                    getattr(current_dto, "sunset", None)
+                )
+
+                enriched["daylight_duration_seconds"] = self._to_float(
+                    getattr(current_dto, "daylight_duration_seconds", None)
+                )
+
+                enriched["observed_at"] = self._serialize_datetime(
+                    getattr(current_dto, "observed_at", None)
+                )
+
+                enriched["retrieved_at"] = self._serialize_datetime(
+                    getattr(current_dto, "retrieved_at", None)
+                )
+
+                enriched["quality_status"] = getattr(
+                    current_dto,
+                    "quality_status",
+                    None,
+                )
+
+                enriched["confidence"] = self._to_float(
+                    getattr(current_dto, "confidence", None)
+                )
+
+                enriched["source"] = getattr(
+                    current_dto,
+                    "source",
+                    None,
+                )
+
+                enriched["source_type"] = getattr(
+                    current_dto,
+                    "source_type",
+                    None,
+                )
+
+            # ==================================================
+            # CLASSIFICAÇÃO TÉRMICA CANÔNICA
+            # ==================================================
+            # A classificação é produzida no backend a partir do mesmo
+            # valor de temperatura que foi materializado no map_point.
+            # Nenhum consumidor posterior precisa reproduzir os limites.
+            # O popup e o mapa devem apenas consumir estes dois campos.
+
+            thermal_classification = (
+                self.thermal_classification_service
+                .classify_with_label(
+                    enriched.get("temperature")
+                )
+            )
+
+            enriched["temperature_class"] = (
+                thermal_classification["temperature_class"]
+            )
+            enriched["temperature_class_label"] = (
+                thermal_classification["temperature_class_label"]
+            )
+
+            # ==================================================
+            # HISTÃ“RICO REAL DE GEADA
             # ==================================================
 
             historical = (
@@ -548,7 +776,7 @@ class DashboardService:
                 enriched["frost_temperature_minimum"] = None
                 enriched["historical_frost"] = False
 
-                # Evidência histórica estruturada.
+                # EvidÃªncia histÃ³rica estruturada.
                 enriched["historical_total_days"] = 0
                 enriched["historical_frost_days"] = 0
                 enriched["historical_frost_frequency"] = 0.0
@@ -592,10 +820,19 @@ class DashboardService:
                 enriched
             )
 
+        # ==========================================================
+        # CONTRATO TÉRMICO MATERIALIZADO
+        # ==========================================================
+        # Cada ponto devolvido por este método possui sempre: temperature,
+        # temperature_class e temperature_class_label. Quando a temperatura
+        # não está disponível, a classificação permanece explicitamente como
+        # ``unavailable`` / ``Sem dado``. Assim, ausência de dado nunca é
+        # convertida em uma faixa térmica válida por conveniência visual.
+
         return enriched_points
 
     # ==========================================================
-    # AVALIAÇÃO MUNICIPAL ÚNICA DO FRI
+    # AVALIAÃ‡ÃƒO MUNICIPAL ÃšNICA DO FRI
     # ==========================================================
 
     def _attach_frost_intelligence(
@@ -603,23 +840,23 @@ class DashboardService:
         map_points,
     ):
         """
-        Executa a avaliação oficial de Inteligência uma única vez por
-        município e incorpora o resultado ao respectivo ``map_point``.
+        Executa a avaliaÃ§Ã£o oficial de InteligÃªncia uma Ãºnica vez por
+        municÃpio e incorpora o resultado ao respectivo ``map_point``.
 
         Regra arquitetural da FASE 2A:
 
-            um município
-                -> uma avaliação oficial
-                -> um map_point canônico
+            um municÃpio
+                -> uma avaliaÃ§Ã£o oficial
+                -> um map_point canÃ´nico
                 -> mapa / popup / ranking / alerta / insight
 
-        Este método não implementa regras de FRI. Ele apenas encaminha
-        ao FrostRiskService o contexto estruturado já produzido por
+        Este mÃ©todo nÃ£o implementa regras de FRI. Ele apenas encaminha
+        ao FrostRiskService o contexto estruturado jÃ¡ produzido por
         ``_attach_climate_data`` e distribui o resultado retornado pelo
-        motor oficial nos campos canônicos do map_point.
+        motor oficial nos campos canÃ´nicos do map_point.
 
         Nenhum consumidor posterior deve chamar novamente
-        FrostRiskService para o mesmo município.
+        FrostRiskService para o mesmo municÃpio.
         """
 
         if not map_points:
@@ -666,16 +903,16 @@ class DashboardService:
                 frost = {}
 
             # --------------------------------------------------
-            # CONTRATO CANÔNICO DO MAP_POINT
+            # CONTRATO CANÃ”NICO DO MAP_POINT
             # --------------------------------------------------
-            # O valor de FRI é materializado uma única vez.
-            # Nenhuma conversão, ponderação ou novo cálculo é feito.
+            # O valor de FRI Ã© materializado uma Ãºnica vez.
+            # Nenhuma conversÃ£o, ponderaÃ§Ã£o ou novo cÃ¡lculo Ã© feito.
             evaluated["fri"] = frost.get("score")
             evaluated["severity"] = frost.get("severity")
             evaluated["confidence"] = frost.get("confidence")
 
             # Apenas distribui o resultado oficial retornado pela
-            # camada de Inteligência. Não reconstrói esses campos.
+            # camada de InteligÃªncia. NÃ£o reconstrÃ³i esses campos.
             evaluated["frost_factors"] = frost.get(
                 "frost_factors"
             )
@@ -689,8 +926,8 @@ class DashboardService:
             )
             evaluated["alert"] = frost.get("alert")
 
-            # Preserva a avaliação oficial completa para auditoria
-            # e rastreabilidade, sem criar uma segunda avaliação.
+            # Preserva a avaliaÃ§Ã£o oficial completa para auditoria
+            # e rastreabilidade, sem criar uma segunda avaliaÃ§Ã£o.
             evaluated["frost_evaluation"] = frost
 
             evaluated_points.append(evaluated)
@@ -698,7 +935,7 @@ class DashboardService:
         return evaluated_points
 
     # ==========================================================
-    # EPISÓDIOS HISTÓRICOS DE GEADA
+    # EPISÃ“DIOS HISTÃ“RICOS DE GEADA
     # ==========================================================
 
     @staticmethod
@@ -706,14 +943,14 @@ class DashboardService:
         frost_dates,
     ):
         """
-        Conta episódios distintos de geada.
+        Conta episÃ³dios distintos de geada.
 
-        Dias consecutivos pertencem ao mesmo episódio.
+        Dias consecutivos pertencem ao mesmo episÃ³dio.
         Dias separados por pelo menos um dia sem geada
-        iniciam novo episódio.
+        iniciam novo episÃ³dio.
 
-        Não calcula risco. Apenas estrutura a evidência
-        histórica para a camada de Inteligência.
+        NÃ£o calcula risco. Apenas estrutura a evidÃªncia
+        histÃ³rica para a camada de InteligÃªncia.
         """
 
         if not frost_dates:
@@ -736,7 +973,26 @@ class DashboardService:
         return episodes
 
     # ==========================================================
-    # CONVERSÃO NUMÉRICA
+    # SERIALIZAÇÃO DE DATAS
+    # ==========================================================
+
+    @staticmethod
+    def _serialize_datetime(value):
+        """
+        Converte datas recebidas pelo WeatherDTO para representação
+        serializável no map_point, preservando None quando ausentes.
+        """
+
+        if value is None:
+            return None
+
+        if hasattr(value, "isoformat"):
+            return value.isoformat()
+
+        return str(value)
+
+    # ==========================================================
+    # CONVERSÃƒO NUMÃ‰RICA
     # ==========================================================
 
     @staticmethod

@@ -382,6 +382,16 @@ Dashboard Inteligente | AgroClima Café
 
 {% block extra_js %}
 
+<!-- ==========================================================
+     MÓDULO POPUP MUNICIPAL
+     Carregado antes do dashboard_v3.js para disponibilizar
+     AgroClimaMunicipalPopup durante a inicialização do mapa.
+=========================================================== -->
+
+<script
+    src="{% static 'dashboard/js/municipal_popup.js' %}">
+</script>
+
 <script
     src="{% static 'dashboard/js/dashboard_v3.js' %}">
 </script>

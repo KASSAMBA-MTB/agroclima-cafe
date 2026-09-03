@@ -40,9 +40,46 @@ class WeatherDTO:
 
     solar_radiation: float | None = None
 
+    # ------------------------------------------------------
+    # Índice UV
+    # ------------------------------------------------------
+    #
+    # uv_index é preservado por compatibilidade com os
+    # consumidores existentes.
+    #
+    # uv_index_max representa o índice UV máximo previsto/
+    # calculado para o dia de referência da observação.
+    # A distinção evita atribuir ao campo legado um
+    # significado diferente daquele que já possui.
+    # ------------------------------------------------------
+
     uv_index: float | None = None
 
+    uv_index_max: float | None = None
+
     visibility: float | None = None
+
+    # ------------------------------------------------------
+    # Informações solares e astronômicas — FASE 1
+    # ------------------------------------------------------
+    #
+    # sunrise e sunset representam os horários locais de
+    # nascer e pôr do sol para a data de referência.
+    #
+    # daylight_duration_seconds representa a duração do
+    # período entre nascer e pôr do sol, em segundos.
+    #
+    # Os campos são opcionais porque nem toda fonte,
+    # histórico ou observação existente possui esses dados.
+    # O Provider será responsável por preenchê-los quando
+    # a fonte disponibilizar as variáveis correspondentes.
+    # ------------------------------------------------------
+
+    sunrise: datetime | None = None
+
+    sunset: datetime | None = None
+
+    daylight_duration_seconds: float | None = None
 
     # ------------------------------------------------------
     # Contrato meteorológico canônico — FASE 1

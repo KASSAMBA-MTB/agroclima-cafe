@@ -65,6 +65,30 @@ class OpenMeteoProvider(WeatherProvider):
 
             ]),
 
+            # Série horária usada para calcular o acumulado
+            # móvel de precipitação das últimas 24 horas.
+            # O campo current.precipitation representa somente
+            # a precipitação da hora anterior e não substitui
+            # o acumulado de 24 horas.
+            "hourly": "precipitation",
+
+            # Variáveis diárias ambientais usadas pelo contrato
+            # agroclimático da FASE 1.
+            #
+            # uv_index_max = índice UV máximo do dia.
+            # sunrise/sunset = horários locais do nascer e pôr do sol.
+            # daylight_duration = duração do período de luz, em segundos.
+            "daily": ",".join([
+                "uv_index_max",
+                "sunrise",
+                "sunset",
+                "daylight_duration",
+            ]),
+
+            "past_days": 1,
+
+            "forecast_days": 1,
+
             "timezone": self.TIMEZONE,
 
             "temperature_unit": "celsius",
@@ -704,6 +728,499 @@ class OpenMeteoProvider(WeatherProvider):
         return None
 
     # ======================================================
+    # PRECIPITAÇÃO ACUMULADA — ÚLTIMAS 24 HORAS
+    # ======================================================
+
+    def _precipitation_24h_from_hourly(
+        self,
+        payload,
+        observation_time,
+    ):
+        """
+        Calcula o acumulado móvel real das últimas 24 horas.
+
+        O cálculo usa exclusivamente a série
+        ``hourly.precipitation`` retornada pela Open-Meteo.
+
+        A regra é:
+
+        1. localizar o horário da observação;
+        2. usar exatamente 24 intervalos horários;
+        3. terminar o intervalo no horário da observação;
+        4. nunca utilizar horário futuro;
+        5. rejeitar valores ausentes ou inválidos;
+        6. devolver o total em milímetros.
+
+        ``current.precipitation`` não é utilizado para construir
+        o acumulado de 24 horas. Ele permanece disponível como
+        precipitação do intervalo horário atual.
+
+        O resultado retorna ``None`` somente quando a série não
+        possui informação suficiente para produzir um acumulado
+        confiável.
+        """
+
+        if not isinstance(payload, dict):
+            return None
+
+        hourly = payload.get(
+            "hourly",
+            {},
+        )
+
+        if not isinstance(hourly, dict):
+            return None
+
+        times = hourly.get(
+            "time",
+            [],
+        )
+
+        precipitations = hourly.get(
+            "precipitation",
+            [],
+        )
+
+        if not isinstance(times, list):
+            return None
+
+        if not isinstance(precipitations, list):
+            return None
+
+        total = min(
+            len(times),
+            len(precipitations),
+        )
+
+        if total < 24:
+            return None
+
+        parsed_times = []
+
+        for index in range(total):
+
+            raw_time = times[index]
+
+            try:
+
+                parsed_time = datetime.fromisoformat(
+                    str(raw_time)
+                )
+
+            except (
+                TypeError,
+                ValueError,
+            ):
+
+                parsed_times.append(None)
+
+                continue
+
+            if parsed_time.tzinfo is not None:
+
+                parsed_time = (
+                    parsed_time.replace(
+                        tzinfo=None
+                    )
+                )
+
+            parsed_times.append(
+                parsed_time
+            )
+
+        target_time = None
+
+        if observation_time is not None:
+
+            target_time = (
+                observation_time.replace(
+                    tzinfo=None
+                )
+            )
+
+        target_index = None
+
+        if target_time is not None:
+
+            exact_candidates = [
+
+                index
+
+                for index, parsed_time
+                in enumerate(parsed_times)
+
+                if (
+                    parsed_time is not None
+                    and parsed_time == target_time
+                )
+
+            ]
+
+            if exact_candidates:
+
+                target_index = (
+                    exact_candidates[-1]
+                )
+
+            else:
+
+                eligible_candidates = [
+
+                    index
+
+                    for index, parsed_time
+                    in enumerate(parsed_times)
+
+                    if (
+                        parsed_time is not None
+                        and parsed_time <= target_time
+                    )
+
+                ]
+
+                if eligible_candidates:
+
+                    target_index = (
+                        eligible_candidates[-1]
+                    )
+
+        if target_index is None:
+
+            valid_candidates = [
+
+                index
+
+                for index, parsed_time
+                in enumerate(parsed_times)
+
+                if parsed_time is not None
+
+            ]
+
+            if not valid_candidates:
+
+                return None
+
+            target_index = (
+                valid_candidates[-1]
+            )
+
+        start_index = (
+            target_index - 23
+        )
+
+        if start_index < 0:
+            return None
+
+        selected_times = parsed_times[
+            start_index : target_index + 1
+        ]
+
+        selected_values = precipitations[
+            start_index : target_index + 1
+        ]
+
+        if len(selected_times) != 24:
+            return None
+
+        if len(selected_values) != 24:
+            return None
+
+        if any(
+            parsed_time is None
+            for parsed_time
+            in selected_times
+        ):
+            return None
+
+        numeric_values = []
+
+        for value in selected_values:
+
+            if value is None:
+                return None
+
+            try:
+
+                numeric_value = float(
+                    value
+                )
+
+            except (
+                TypeError,
+                ValueError,
+            ):
+
+                return None
+
+            if numeric_value < 0:
+                return None
+
+            numeric_values.append(
+                numeric_value
+            )
+
+        accumulated = sum(
+            numeric_values
+        )
+
+        return round(
+            accumulated,
+            2,
+        )
+
+
+    # ======================================================
+    # VALIDAÇÃO DO ACUMULADO ANTES DO WEATHERDTO
+    # ======================================================
+
+    @staticmethod
+    def _validate_precipitation_24h_result(
+        value,
+    ):
+        """
+        Valida o valor calculado antes de entregá-lo ao
+        WeatherDTO.
+
+        A ausência de informação permanece representada por
+        ``None``. Um valor presente precisa ser numérico e não
+        negativo.
+
+        Esta função não cria dados. Ela apenas impede que um
+        resultado estruturalmente inválido atravesse a fronteira
+        do Provider.
+        """
+
+        if value is None:
+            return None
+
+        try:
+
+            numeric_value = float(
+                value
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ):
+
+            return None
+
+        if numeric_value < 0:
+            return None
+
+        return round(
+            numeric_value,
+            2,
+        )
+
+    # ======================================================
+    # DADOS AMBIENTAIS DIÁRIOS
+    # ======================================================
+
+    def _daily_environmental_data(
+        self,
+        payload,
+        observation_time,
+    ):
+        """
+        Extrai as variáveis ambientais diárias da resposta
+        Open-Meteo para a data da observação.
+
+        A função não cria valores. Quando a resposta não possui
+        a série diária, a data não é localizada ou um valor é
+        inválido, o campo correspondente permanece None.
+        """
+
+        if not isinstance(payload, dict):
+            return {
+                "uv_index_max": None,
+                "sunrise": None,
+                "sunset": None,
+                "daylight_duration_seconds": None,
+            }
+
+        daily = payload.get(
+            "daily",
+            {},
+        )
+
+        if not isinstance(daily, dict):
+            return {
+                "uv_index_max": None,
+                "sunrise": None,
+                "sunset": None,
+                "daylight_duration_seconds": None,
+            }
+
+        dates = daily.get(
+            "time",
+            [],
+        )
+
+        uv_values = daily.get(
+            "uv_index_max",
+            [],
+        )
+
+        sunrise_values = daily.get(
+            "sunrise",
+            [],
+        )
+
+        sunset_values = daily.get(
+            "sunset",
+            [],
+        )
+
+        daylight_values = daily.get(
+            "daylight_duration",
+            [],
+        )
+
+        if not isinstance(dates, list):
+            dates = []
+
+        if not isinstance(uv_values, list):
+            uv_values = []
+
+        if not isinstance(sunrise_values, list):
+            sunrise_values = []
+
+        if not isinstance(sunset_values, list):
+            sunset_values = []
+
+        if not isinstance(daylight_values, list):
+            daylight_values = []
+
+        target_date = None
+
+        if observation_time is not None:
+            target_date = observation_time.date().isoformat()
+
+        target_index = None
+
+        if target_date is not None:
+            for index, raw_date in enumerate(dates):
+                if str(raw_date) == target_date:
+                    target_index = index
+                    break
+
+        if target_index is None:
+            return {
+                "uv_index_max": None,
+                "sunrise": None,
+                "sunset": None,
+                "daylight_duration_seconds": None,
+            }
+
+        local_timezone = ZoneInfo(
+            self.TIMEZONE
+        )
+
+        uv_index_max = None
+
+        if target_index < len(uv_values):
+            raw_uv = uv_values[target_index]
+
+            if raw_uv is not None:
+                try:
+                    numeric_uv = float(raw_uv)
+
+                    if numeric_uv >= 0:
+                        uv_index_max = round(
+                            numeric_uv,
+                            2,
+                        )
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    uv_index_max = None
+
+        sunrise = self._parse_daily_local_datetime(
+            sunrise_values,
+            target_index,
+            local_timezone,
+        )
+
+        sunset = self._parse_daily_local_datetime(
+            sunset_values,
+            target_index,
+            local_timezone,
+        )
+
+        daylight_duration_seconds = None
+
+        if target_index < len(daylight_values):
+            raw_duration = daylight_values[target_index]
+
+            if raw_duration is not None:
+                try:
+                    numeric_duration = float(
+                        raw_duration
+                    )
+
+                    if numeric_duration >= 0:
+                        daylight_duration_seconds = round(
+                            numeric_duration,
+                            2,
+                        )
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    daylight_duration_seconds = None
+
+        return {
+            "uv_index_max": uv_index_max,
+            "sunrise": sunrise,
+            "sunset": sunset,
+            "daylight_duration_seconds": (
+                daylight_duration_seconds
+            ),
+        }
+
+    @staticmethod
+    def _parse_daily_local_datetime(
+        values,
+        index,
+        local_timezone,
+    ):
+        """
+        Converte um horário diário ISO retornado pela Open-Meteo
+        em datetime com o fuso America/Sao_Paulo.
+        """
+
+        if index >= len(values):
+            return None
+
+        raw_value = values[index]
+
+        if raw_value is None:
+            return None
+
+        try:
+            parsed_value = datetime.fromisoformat(
+                str(raw_value)
+            )
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return None
+
+        if timezone.is_naive(
+            parsed_value
+        ):
+            parsed_value = parsed_value.replace(
+                tzinfo=local_timezone
+            )
+
+        return parsed_value
+
+    # ======================================================
     # CONVERSÃO PARA WEATHER DTO
     # ======================================================
 
@@ -744,6 +1261,13 @@ class OpenMeteoProvider(WeatherProvider):
             observation_time = (
                 timezone.now()
             )
+
+        environmental_data = (
+            self._daily_environmental_data(
+                payload,
+                observation_time,
+            )
+        )
 
         return WeatherDTO(
 
@@ -811,9 +1335,35 @@ class OpenMeteoProvider(WeatherProvider):
 
             solar_radiation=None,
 
+            # uv_index permanece preservado para compatibilidade.
+            # O novo campo uv_index_max recebe o valor diário canônico.
             uv_index=None,
 
+            uv_index_max=(
+                environmental_data[
+                    "uv_index_max"
+                ]
+            ),
+
             visibility=None,
+
+            sunrise=(
+                environmental_data[
+                    "sunrise"
+                ]
+            ),
+
+            sunset=(
+                environmental_data[
+                    "sunset"
+                ]
+            ),
+
+            daylight_duration_seconds=(
+                environmental_data[
+                    "daylight_duration_seconds"
+                ]
+            ),
 
             # Contrato meteorológico canônico — FASE 1.
             rain_now=(
@@ -832,8 +1382,18 @@ class OpenMeteoProvider(WeatherProvider):
                 ]
             ),
 
-            # Nenhuma fonte real de 24h está integrada ainda.
-            precipitation_24h_mm=None,
+            # Acumulado móvel real das últimas 24 observações
+            # horárias retornadas pela Open-Meteo.
+            # O cálculo é realizado na origem para que o valor
+            # percorra o contrato WeatherDTO como dado próprio.
+            precipitation_24h_mm=(
+                self._validate_precipitation_24h_result(
+                    self._precipitation_24h_from_hourly(
+                        payload,
+                        observation_time,
+                    )
+                )
+            ),
 
             weather_condition=(
                 self._weather_condition_from_code(

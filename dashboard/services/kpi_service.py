@@ -21,7 +21,7 @@ WeatherDTO. O KPIService utiliza os nomes de atributos definidos pelo DTO
 e disponibiliza também os campos estruturados utilizados pela camada
 de Inteligência.
 
-Versão..........: 2.4
+Versão..........: 2.5
 ===============================================================================
 """
 
@@ -62,26 +62,41 @@ class KPIService:
 
         O WeatherService retorna um WeatherDTO.
 
-        Os atributos utilizados abaixo correspondem ao contrato
-        atual do WeatherDTO:
+        Os atributos meteorológicos básicos são obtidos do
+        WeatherDTO. Para precipitação, o contrato canônico
+        distingue explicitamente:
 
-            temperature
-            humidity
-            precipitation
-            wind_speed
-            cloud_cover
-            observation_time
+            rain_now
+            precipitation_1h_mm
+            precipitation_24h_mm
+
+        O atributo legado precipitation permanece apenas para
+        compatibilidade com a cadeia existente.
         """
 
-        municipio = Municipio.objects.first()
+        municipios = list(
+            Municipio.objects
+            .all()
+            .order_by("nome")
+        )
 
-        if municipio is None:
+        if not municipios:
 
             return self._empty()
 
         # ======================================================
-        # OBSERVAÇÃO METEOROLÓGICA ATUAL
+        # OBSERVAÇÃO METEOROLÓGICA DO MUNICÍPIO DE REFERÊNCIA
         # ======================================================
+        #
+        # Temperatura, umidade, vento, nuvens e Índice AgroClima
+        # permanecem associados ao primeiro município da cadeia
+        # histórica desta classe.
+        #
+        # A precipitação de 24h, porém, é consolidada separadamente
+        # para TODOS os municípios monitorados.
+        # ======================================================
+
+        municipio = municipios[0]
 
         observation = (
             self.weather.update_current_weather(
@@ -90,34 +105,140 @@ class KPIService:
         )
 
         # ======================================================
-        # DADOS DO WEATHERDTO
+        # MÉDIA MUNICIPAL DE PRECIPITAÇÃO — 24 HORAS
+        # ======================================================
         #
-        # IMPORTANTE:
-        # O objeto retornado pelo WeatherService é WeatherDTO.
+        # Regra canônica:
         #
-        # Portanto, os atributos devem utilizar os nomes definidos
-        # pelo DTO, e não os nomes dos campos do modelo
-        # WeatherObservation.
+        #     soma das precipitações_24h válidas
+        #     ---------------------------------
+        #          quantidade de municípios
+        #
+        # O cálculo utiliza exclusivamente precipitation_24h_mm
+        # fornecido pelo WeatherDTO.
+        #
+        # Nenhum município sem dado válido é convertido para zero.
+        # Portanto, a média somente é publicada quando existe dado
+        # válido para todos os municípios monitorados.
+        # ======================================================
+
+        precipitation_24h_values = []
+
+        for municipio_precipitacao in municipios:
+
+            if municipio_precipitacao == municipio:
+
+                precipitation_observation = observation
+
+            else:
+
+                precipitation_observation = (
+                    self.weather.update_current_weather(
+                        municipio_precipitacao
+                    )
+                )
+
+            value = self._to_float(
+                self._weather_value(
+                    precipitation_observation,
+                    "precipitation_24h_mm",
+                    "precipitacao_24h",
+                )
+            )
+
+            if value is not None:
+
+                precipitation_24h_values.append(
+                    value
+                )
+
+        if (
+            len(precipitation_24h_values)
+            == len(municipios)
+        ):
+
+            precipitation_24h_average = (
+                sum(precipitation_24h_values)
+                / len(precipitation_24h_values)
+            )
+
+        else:
+
+            precipitation_24h_average = None
+
+        # ======================================================
+        # DADOS DO WEATHERDTO DO MUNICÍPIO DE REFERÊNCIA
         # ======================================================
 
         temperature = self._to_float(
-            observation.temperature
+            self._weather_value(
+                observation,
+                "temperature",
+                "temperatura",
+            )
         )
 
         humidity = self._to_float(
-            observation.humidity
+            self._weather_value(
+                observation,
+                "humidity",
+                "umidade",
+            )
         )
 
-        precipitation = self._to_float(
-            observation.precipitation
+        # ======================================================
+        # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
+        # ======================================================
+        #
+        # Chuva ocorrendo agora e volumes de precipitação são
+        # variáveis semanticamente distintas.
+        #
+        # rain_now:
+        #     condição meteorológica atual.
+        #
+        # precipitation_1h_mm:
+        #     precipitação da última hora disponibilizada pelo
+        #     provider.
+        #
+        # precipitation_24h_mm:
+        #     acumulado de 24 horas. Não é inferido a partir
+        #     de precipitation_1h_mm.
+        rain_now = self._weather_value(
+            observation,
+            "rain_now",
+            "chuva_agora",
         )
+
+        precipitation_1h = self._to_float(
+            self._weather_value(
+                observation,
+                "precipitation_1h_mm",
+                "precipitacao_1h",
+            )
+        )
+
+        # O valor de 24h do KPI é a MÉDIA MUNICIPAL.
+        precipitation_24h = precipitation_24h_average
+
+        # Campo legado preservado para consumidores ainda não
+        # migrados. Para o KPI visual "Chuva (24h)", o contrato
+        # consolidado agora representa a média dos municípios.
+        precipitation = precipitation_24h
 
         wind_speed = self._to_float(
-            observation.wind_speed
+            self._weather_value(
+                observation,
+                "wind_speed",
+                "velocidade_vento",
+            )
         )
 
         cloud_cover = self._to_float(
-            observation.cloud_cover
+            self._weather_value(
+                observation,
+                "cloud_cover",
+                "cobertura_nuvens",
+            )
         )
 
         # ======================================================
@@ -200,6 +321,9 @@ class KPIService:
                 else None
             ),
 
+            # Campo legado: mantido temporariamente para
+            # compatibilidade. Seu significado agora é explícito:
+            # precipitação da última hora.
             "precipitacao": (
                 round(
                     precipitation,
@@ -207,6 +331,45 @@ class KPIService:
                 )
                 if precipitation is not None
                 else None
+            ),
+
+            # Contrato meteorológico canônico.
+            "chuva_agora": rain_now,
+
+            "precipitacao_1h": (
+                round(
+                    precipitation_1h,
+                    1
+                )
+                if precipitation_1h is not None
+                else None
+            ),
+
+            "precipitacao_24h": (
+                round(
+                    precipitation_24h,
+                    1
+                )
+                if precipitation_24h is not None
+                else None
+            ),
+
+            # Média municipal utilizada pelo cartão "Chuva (24h)".
+            "precipitacao_24h_media": (
+                round(
+                    precipitation_24h_average,
+                    2
+                )
+                if precipitation_24h_average is not None
+                else None
+            ),
+
+            "precipitacao_24h_municipios": (
+                len(precipitation_24h_values)
+            ),
+
+            "precipitacao_24h_total_municipios": (
+                len(municipios)
             ),
 
             # ==================================================
@@ -285,7 +448,17 @@ class KPIService:
                 else None
             ),
 
+            # Compatibilidade com a camada de Inteligência:
+            # precipitation representa explicitamente a janela
+            # de 1 hora nesta etapa.
             "precipitation": precipitation,
+
+            # Variáveis canônicas disponíveis aos consumidores.
+            "rain_now": rain_now,
+
+            "precipitation_1h_mm": precipitation_1h,
+
+            "precipitation_24h_mm": precipitation_24h,
 
             "analysis_date": analysis_date,
 
@@ -457,6 +630,43 @@ class KPIService:
         return episodes
 
     # ==========================================================
+    # LEITURA COMPATÍVEL DO OBJETO METEOROLÓGICO
+    # ==========================================================
+
+    @staticmethod
+    def _weather_value(
+        observation,
+        *attribute_names,
+    ):
+        """
+        Lê um atributo meteorológico preservando o contrato do DTO.
+
+        O contrato principal desta camada utiliza os nomes em inglês
+        definidos por WeatherDTO. Como proteção de compatibilidade,
+        também reconhece os nomes persistidos em português do modelo
+        WeatherObservation.
+
+        Esta compatibilidade não cria dados nem altera valores.
+        Apenas evita que uma diferença de representação entre camadas
+        interrompa a consolidação dos KPIs.
+        """
+
+        if observation is None:
+            return None
+
+        for attribute_name in attribute_names:
+            value = getattr(
+                observation,
+                attribute_name,
+                None,
+            )
+
+            if value is not None:
+                return value
+
+        return None
+
+    # ==========================================================
     # CONVERSÃO NUMÉRICA
     # ==========================================================
 
@@ -504,6 +714,18 @@ class KPIService:
             "temperatura_media": None,
 
             "precipitacao": None,
+
+            "chuva_agora": None,
+
+            "precipitacao_1h": None,
+
+            "precipitacao_24h": None,
+
+            "precipitacao_24h_media": None,
+
+            "precipitacao_24h_municipios": 0,
+
+            "precipitacao_24h_total_municipios": 0,
 
             "geadas": 0,
 
@@ -565,6 +787,12 @@ class KPIService:
             "altitude": None,
 
             "precipitation": None,
+
+            "rain_now": None,
+
+            "precipitation_1h_mm": None,
+
+            "precipitation_24h_mm": None,
 
             "analysis_date": now,
 
