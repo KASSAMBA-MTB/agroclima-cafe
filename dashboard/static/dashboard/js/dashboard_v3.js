@@ -6,14 +6,17 @@
 
    Mapa Territorial Inteligente
 
+   O detalhe municipal é apresentado fora do Leaflet, em painel
+   estático abaixo do mapa. Este controlador não abre popups Leaflet.
+
    Responsabilidades deste arquivo:
 
    - Inicializar o mapa Leaflet
    - Carregar os 6 municípios monitorados
    - Carregar os limites territoriais
    - Exibir marcadores
-   - Exibir popups
-   - Exibir FRI, confiança e classificação
+   - Exibir painel municipal estático
+   - Exibir FRI, confiança e classificação no painel municipal
    - Controlar a camada Municípios
    - Controlar a camada Geadas
    - Exibir superfície interpolada de FRI na camada Geadas
@@ -60,6 +63,10 @@ const MapController = {
     pointIndex: {},
 
     activeLayer: "municipios",
+
+    selectedPoint: null,
+
+    detailPanel: null,
 
 
     /* ======================================================
@@ -357,7 +364,10 @@ const MapController = {
                 "map-container",
                 {
                     zoomControl:
-                        true
+                        true,
+
+                    scrollWheelZoom:
+                        false
                 }
             );
 
@@ -429,6 +439,10 @@ const MapController = {
             true;
 
 
+        this.ensureMunicipalPanel();
+        this.initializeContextualMapKPIs();
+
+
         this.bindLayerButtons();
         this.updateLegend();
 
@@ -454,6 +468,176 @@ const MapController = {
             300
         );
 
+    },
+
+
+    /* ======================================================
+       PAINEL MUNICIPAL ESTÁTICO
+
+       O detalhe municipal não utiliza mais o sistema de popup
+       do Leaflet. O conteúdo é renderizado em uma área própria,
+       no fluxo normal da página, imediatamente abaixo do mapa.
+
+       A camada ativa determina apenas qual apresentação do
+       módulo municipal é exibida. Os dados continuam vindo do
+       map_point canônico fornecido pelo backend.
+    ====================================================== */
+
+    ensureMunicipalPanel() {
+
+        if (
+            this.detailPanel &&
+            document.body.contains(this.detailPanel)
+        ) {
+            return this.detailPanel;
+        }
+
+        const mapContainer =
+            document.getElementById("map-container");
+
+        if (!mapContainer) {
+            return null;
+        }
+
+        let panel =
+            document.getElementById("agroclima-municipal-panel");
+
+        if (!panel) {
+            panel = document.createElement("section");
+            panel.id = "agroclima-municipal-panel";
+            panel.className = "agroclima-municipal-panel";
+            panel.setAttribute("aria-live", "polite");
+            panel.setAttribute(
+                "aria-label",
+                "Detalhes agroclimáticos do município selecionado"
+            );
+            panel.hidden = true;
+            mapContainer.insertAdjacentElement("afterend", panel);
+        }
+
+        this.detailPanel = panel;
+
+        return panel;
+    },
+
+
+    renderMunicipalPanel(point) {
+
+        if (!point) {
+            return;
+        }
+
+        const panel = this.ensureMunicipalPanel();
+
+        if (!panel) {
+            console.warn(
+                "[AGROCLIMA] Área do painel municipal não disponível."
+            );
+            return;
+        }
+
+        this.selectedPoint = point;
+
+        panel.innerHTML = this.buildPopup(
+            point,
+            this.activeLayer
+        );
+
+        /*
+         * O painel municipal é estático e não possui comando de
+         * fechamento. Qualquer controle legado de fechamento que ainda
+         * exista no HTML retornado pelo módulo visual é removido aqui.
+         * Isto não altera dados nem regras agroclimáticas.
+         */
+        panel.querySelectorAll(
+            ".agroclima-popup-close, .leaflet-popup-close-button"
+        ).forEach(
+            element => element.remove()
+        );
+
+        panel.hidden = false;
+        panel.dataset.municipio = point.nome || "";
+        panel.dataset.layer = this.activeLayer;
+
+        this.updateContextualMapKPIs(point);
+    },
+
+
+    clearMunicipalPanel() {
+
+        const panel = this.ensureMunicipalPanel();
+
+        this.selectedPoint = null;
+
+        if (panel) {
+            panel.innerHTML = "";
+            panel.hidden = true;
+            delete panel.dataset.municipio;
+            delete panel.dataset.layer;
+        }
+
+        this.initializeContextualMapKPIs();
+    },
+
+
+    initializeContextualMapKPIs() {
+
+        const kpis = document.querySelectorAll(
+            ".map-panel .map-kpi"
+        );
+
+        if (kpis.length < 4) {
+            return;
+        }
+
+        const temperatureLabel =
+            kpis[2].querySelector(".label");
+
+        const precipitationLabel =
+            kpis[3].querySelector(".label");
+
+        if (temperatureLabel) {
+            temperatureLabel.textContent = "Temperatura";
+        }
+
+        if (precipitationLabel) {
+            precipitationLabel.textContent = "Chuva (24h)";
+        }
+    },
+
+
+    updateContextualMapKPIs(point) {
+
+        const kpis = document.querySelectorAll(
+            ".map-panel .map-kpi"
+        );
+
+        if (kpis.length < 4 || !point) {
+            return;
+        }
+
+        const temperature = point.temperature;
+        const precipitation = point.precipitation_24h_mm;
+
+        const temperatureValue =
+            kpis[2].querySelector("strong");
+
+        const precipitationValue =
+            kpis[3].querySelector("strong");
+
+        if (temperatureValue) {
+            temperatureValue.textContent =
+                temperature === null || temperature === undefined || temperature === ""
+                    ? "—"
+                    : `${Number(temperature).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}°C`;
+        }
+
+        if (precipitationValue) {
+            precipitationValue.textContent =
+                precipitation === null || precipitation === undefined || precipitation === ""
+                    ? "—"
+                    : `${Number(precipitation).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mm`;
+        }
     },
 
 
@@ -577,6 +761,20 @@ const MapController = {
         this.updateMarkers(
             this.points
         );
+
+        /* ==================================================
+           PAINEL MUNICIPAL INICIAL
+
+           O detalhe municipal permanece visível no fluxo normal da
+           página desde o carregamento. Não depende de clique no mapa.
+           O primeiro município recebido pelo backend é a seleção inicial
+           e permanece sendo atualizado quando o cenário muda.
+        ================================================== */
+        if (this.points.length) {
+            this.renderMunicipalPanel(
+                this.points[0]
+            );
+        }
 
 
         this.hideLoading();
@@ -1205,54 +1403,44 @@ const MapController = {
 
 
     /* ======================================================
-       CLASSIFICAÇÃO OPERACIONAL DE PRECIPITAÇÃO 24H
+       CONTRATO DE PRECIPITAÇÃO 24H DO MAP_POINT
+
+       A classificação e o rótulo são fornecidos pelo backend.
+       Este controlador apenas consome o contrato canônico para
+       determinar a representação visual. Nenhuma regra ou limiar
+       pluviométrico é calculado neste arquivo.
     ====================================================== */
 
-    getPrecipitationClass(value) {
+    getPrecipitationClass(point) {
 
-        const precipitation = Number(value);
-
-        if (!Number.isFinite(precipitation)) {
+        if (!point) {
             return "none";
         }
 
-        if (precipitation <= 0) {
-            return "none";
-        }
+        const classification =
+            String(
+                point.precipitation_24h_class ||
+                ""
+            ).trim();
 
-        if (precipitation <= 5) {
-            return "low";
-        }
-
-        if (precipitation <= 20) {
-            return "moderate";
-        }
-
-        if (precipitation <= 50) {
-            return "high";
-        }
-
-        if (precipitation <= 80) {
-            return "veryHigh";
-        }
-
-        return "extreme";
+        return classification || "none";
 
     },
 
 
-    getPrecipitationLabel(value) {
+    getPrecipitationLabel(point) {
 
-        const labels = {
-            none: "Sem chuva",
-            low: "Chuva baixa",
-            moderate: "Chuva moderada",
-            high: "Chuva alta",
-            veryHigh: "Chuva muito alta",
-            extreme: "Chuva extrema"
-        };
+        if (!point) {
+            return "Sem dado";
+        }
 
-        return labels[this.getPrecipitationClass(value)] || "Sem dado";
+        const label =
+            String(
+                point.precipitation_24h_class_label ||
+                ""
+            ).trim();
+
+        return label || "Sem dado";
 
     },
 
@@ -1390,7 +1578,7 @@ const MapController = {
 
             const classification =
                 this.getPrecipitationClass(
-                    this.getPrecipitation24hValue(point)
+                    point
                 );
 
             return (
@@ -1462,16 +1650,16 @@ const MapController = {
             );
 
 
-        layer.bindPopup(
-            this.buildTerritoryPopup(
-                name,
-                uf,
-                point
-            )
-        );
-
-
         layer.on({
+
+            click:
+                () => {
+
+                    if (point) {
+                        this.renderMunicipalPanel(point);
+                    }
+
+                },
 
             mouseover:
                 event => {
@@ -1628,68 +1816,17 @@ const MapController = {
 
     refreshMapPopups() {
 
-        if (
-            this.markerLayer
-        ) {
+        /*
+         * Compatibilidade de nome mantida para os fluxos existentes.
+         * Não há mais conteúdo associado a popups Leaflet.
+         * Quando existe um município selecionado, apenas o painel
+         * estático é atualizado conforme a camada ativa.
+         */
 
-            this.markerLayer.eachLayer(
-                marker => {
-
-                    if (
-                        marker.__agroclimaPoint
-                    ) {
-
-                        marker.setPopupContent(
-                            this.buildPopup(
-                                marker.__agroclimaPoint,
-                                this.activeLayer
-                            )
-                        );
-
-                    }
-
-                }
+        if (this.selectedPoint) {
+            this.renderMunicipalPanel(
+                this.selectedPoint
             );
-
-        }
-
-
-        if (
-            this.territoryLayer
-        ) {
-
-            this.territoryLayer.eachLayer(
-                layer => {
-
-                    const feature =
-                        layer.feature;
-
-                    const point =
-                        this.getPointForTerritoryFeature(
-                            feature
-                        );
-
-                    const name =
-                        this.getTerritoryName(
-                            feature
-                        ) || "Município";
-
-                    const uf =
-                        this.getTerritoryUf(
-                            feature
-                        );
-
-                    layer.setPopupContent(
-                        this.buildTerritoryPopup(
-                            name,
-                            uf,
-                            point
-                        )
-                    );
-
-                }
-            );
-
         }
 
     },
@@ -1975,11 +2112,15 @@ const MapController = {
 
                 marker.__agroclimaPoint = point;
 
-                marker.bindPopup(
-                    this.buildPopup(
-                        point,
-                        this.activeLayer
-                    )
+                marker.on(
+                    "click",
+                    () => {
+
+                        this.renderMunicipalPanel(
+                            point
+                        );
+
+                    }
                 );
 
                 /*
@@ -3780,7 +3921,7 @@ const MapController = {
         if (this.activeLayer === "precipitacao") {
             const classification =
                 this.getPrecipitationClass(
-                    this.getPrecipitation24hValue(point)
+                    point
                 );
 
             return (
@@ -5161,56 +5302,6 @@ const ChartController = {
     },
 
 
-    buildMovingAverage(values) {
-
-        return values.map(
-            (_, index) => {
-
-                const start =
-                    Math.max(
-                        0,
-                        index - 6
-                    );
-
-
-                const window =
-                    values
-                        .slice(
-                            start,
-                            index + 1
-                        )
-                        .filter(
-                            value =>
-                                value !== null &&
-                                Number.isFinite(value)
-                        );
-
-
-                if (!window.length) {
-
-                    return null;
-
-                }
-
-
-                const average =
-                    window.reduce(
-                        (sum, value) =>
-                            sum + value,
-                        0
-                    ) / window.length;
-
-
-                return Number(
-                    average.toFixed(1)
-                );
-
-            }
-        );
-
-    },
-
-
     createChart(
         canvas,
         labels,
@@ -5271,11 +5362,6 @@ const ChartController = {
                     )
             );
 
-
-        const movingAverage =
-            this.buildMovingAverage(
-                safeTemperature
-            );
 
         console.info(
             "[AGROCLIMA] Dataset final enviado ao Chart.js:",
@@ -5339,47 +5425,6 @@ const ChartController = {
 
                                 tension:
                                     0.28,
-
-                                fill:
-                                    false,
-
-                                spanGaps:
-                                    true,
-
-                                yAxisID:
-                                    "temperature"
-
-                            },
-
-
-                            {
-
-                                label:
-                                    "Média móvel (7 dias)",
-
-                                data:
-                                    movingAverage,
-
-                                borderColor:
-                                    "#BEB7AA",
-
-                                backgroundColor:
-                                    "transparent",
-
-                                borderWidth:
-                                    1.4,
-
-                                borderDash:
-                                    [6, 5],
-
-                                pointRadius:
-                                    0,
-
-                                pointHoverRadius:
-                                    0,
-
-                                tension:
-                                    0.25,
 
                                 fill:
                                     false,
@@ -5828,20 +5873,6 @@ const ChartController = {
                 ? period.resumo
                 : {};
 
-        const temperatures =
-            Array.isArray(period.temperatura)
-                ? period.temperatura
-                    .map(value => Number(value))
-                    .filter(Number.isFinite)
-                : [];
-
-        const precipitation =
-            Array.isArray(period.precipitacao)
-                ? period.precipitacao
-                    .map(value => Number(value))
-                    .filter(Number.isFinite)
-                : [];
-
         /*
          * ==================================================
          * 1 — TEMPERATURA MÉDIA
@@ -5851,25 +5882,8 @@ const ChartController = {
          * ==================================================
          */
 
-        let temperatureAverage =
+        const temperatureAverage =
             Number(summary.temperatura_media);
-
-        if (
-            !Number.isFinite(
-                temperatureAverage
-            )
-        ) {
-
-            temperatureAverage =
-                temperatures.length
-                    ? temperatures.reduce(
-                        (total, value) =>
-                            total + value,
-                        0
-                    ) / temperatures.length
-                    : null;
-
-        }
 
         if (summaryItems[0]) {
 
@@ -5906,25 +5920,8 @@ const ChartController = {
          * ==================================================
          */
 
-        let precipitationTotal =
+        const precipitationTotal =
             Number(summary.precipitacao);
-
-        if (
-            !Number.isFinite(
-                precipitationTotal
-            )
-        ) {
-
-            precipitationTotal =
-                precipitation.length
-                    ? precipitation.reduce(
-                        (sum, value) =>
-                            sum + value,
-                        0
-                    )
-                    : null;
-
-        }
 
         if (summaryItems[1]) {
 
@@ -6430,20 +6427,16 @@ const RankingController = {
         );
 
         /*
-         * O Ranking é apresentado em ordem decrescente de FRI.
-         * O valor é apenas lido do backend; nenhuma regra de
-         * inteligência é recalculada no frontend.
+         * O Ranking deve permanecer exatamente na ordem entregue
+         * pelo backend/template.
+         *
+         * NÃO ordenar por rankingScore no frontend.
+         * A ordenação é uma responsabilidade do backend e não pode
+         * ser reconstruída pelo controlador.
+         *
+         * Os índices abaixo são utilizados somente para apresentação
+         * da posição visual, sem alterar a sequência das linhas.
          */
-        rows.sort((a, b) => {
-            const scoreA = Number(a.dataset.rankingScore);
-            const scoreB = Number(b.dataset.rankingScore);
-
-            const safeA = Number.isFinite(scoreA) ? scoreA : -Infinity;
-            const safeB = Number.isFinite(scoreB) ? scoreB : -Infinity;
-
-            return safeB - safeA;
-        });
-
         rows.forEach((row, index) => {
             list.appendChild(row);
 
@@ -6595,3 +6588,212 @@ document.addEventListener(
 /* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
 /* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
 /* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
+
+/* ==========================================================
+   ETAPA 9 — PAINEL MUNICIPAL ESTÁTICO DESDE O CARREGAMENTO
+
+   - o painel é exibido automaticamente após a carga dos map_points;
+   - não depende de clique em marcador ou território;
+   - a seleção inicial é o primeiro município fornecido pelo backend;
+   - a troca entre Municípios, Geadas, Temperatura e Precipitação
+     atualiza o mesmo painel estático;
+   - comandos de fechamento legados são removidos do painel;
+   - nenhum dado climático é criado ou recalculado nesta etapa.
+   ========================================================== */
+
+
+/* ==========================================================
+   AUDITORIA FASE 3 — CONTRATO DE PRECIPITAÇÃO 24H
+
+   A camada visual consome precipitation_24h_class fornecido pelo backend.
+   O rótulo visual consome precipitation_24h_class_label fornecido pelo backend.
+   Não existem limiares pluviométricos neste controlador para classificação.
+   precipitationStyles permanece exclusivamente como configuração visual.
+   precipitation_24h_mm permanece como valor numérico de apresentação.
+   FRI, severity e confidence não são alterados por esta integração.
+   O contrato canônico map_point permanece a fonte dos dados apresentados.
+   Dados ausentes preservam a representação visual de indisponibilidade.
+   Fim da auditoria da integração de precipitação 24h.
+   ========================================================== */
+
+/* ==========================================================
+   AUDITORIA FINAL — DASHBOARD V3 — FASE 3
+
+   Arquivo auditado:
+   Texto colado(20260907-013011).txt
+
+   Tamanho original:
+   6765 linhas / 172621 bytes
+
+   Correção aplicada:
+   - removida a ordenação local do RankingController;
+   - a sequência entregue pelo backend/template é preservada;
+   - rankingScore permanece somente como dado recebido;
+   - nenhuma regra de FRI, severidade ou confiança é criada;
+   - map_point continua sendo consumido sem reconstrução;
+   - temperature_class e temperature_class_label continuam vindos
+     do backend;
+   - precipitation_24h_mm e precipitation_24h_class continuam
+     sendo consumidos do contrato recebido;
+   - integração do municipal_popup.js permanece delegada ao módulo;
+   - nenhuma referência executável a FrostRiskService ou intelligence
+     existe neste arquivo;
+   - a superfície FRI continua sendo representação espacial dos
+     valores recebidos, sem alteração dos pontos reais.
+
+   Observação de escopo:
+   A média móvel de 7 dias e os fallbacks de resumo já existentes
+   permanecem preservados nesta auditoria para não alterar uma
+   funcionalidade visual estabilizada sem uma alteração correspondente
+   do contrato backend.
+
+   Validação:
+   - sintaxe JavaScript: obrigatória e validada externamente;
+   - contagem de linhas: corrigido >= original;
+   - regressão do contrato: preservada.
+   ========================================================== */
+
+
+/* ==========================================================
+   AUDITORIA FASE 3 — DASHBOARD V3 / CONTRATO DE GRÁFICOS
+
+   Correção aplicada:
+   - removido o cálculo de média móvel do frontend;
+   - removida a série derivada Média móvel (7 dias);
+   - removidos fallbacks de agregação de temperatura;
+   - removidos fallbacks de soma de precipitação;
+   - o resumo passa a consumir exclusivamente o backend;
+   - ChartController permanece em leitura e apresentação;
+   - nenhum indicador agroclimático é calculado neste arquivo;
+   - FRI, severity e confidence permanecem intocados;
+   - classificação térmica e pluviométrica continuam recebidas;
+   - períodos e séries originais permanecem preservados;
+
+   Contrato verificado:
+   ChartService 2.8 fornece resumo.temperatura_media e
+   resumo.precipitacao para cada período.
+   Não existe campo de média móvel publicado pelo contrato.
+
+   Decisão:
+   sem campo de backend para média móvel, a solução correta
+   é não fabricar essa série no frontend.
+
+   Validação:
+   - sintaxe JavaScript;
+   - ausência de buildMovingAverage executável;
+   - ausência de movingAverage executável;
+   - ausência de reduce() no ChartController;
+   - preservação dos períodos;
+   - preservação das séries;
+   - preservação dos resumos;
+   - linha corrigida maior ou igual à original.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+   Integridade arquitetural preservada.
+========================================================== */

@@ -1,4 +1,4 @@
-<section class="dashboard-panel">
+<section class="dashboard-panel ranking-panel">
 
     <!-- ==========================================================
          CABEÇALHO
@@ -27,13 +27,23 @@
 
         <div class="panel-actions">
 
-            <button class="btn-panel active">
+            <button
+                type="button"
+                class="btn-panel active"
+                data-ranking-filter="top10"
+                aria-pressed="true"
+            >
 
                 Top 10
 
             </button>
 
-            <button class="btn-panel">
+            <button
+                type="button"
+                class="btn-panel"
+                data-ranking-filter="all"
+                aria-pressed="false"
+            >
 
                 Todos
 
@@ -171,3 +181,12 @@
     </div>
 
 </section>
+
+<!-- ==========================================================
+     AUDITORIA — RANKING PANEL
+     Integração com RankingController:
+     - classe ranking-panel compatível com o seletor JS;
+     - filtros Top 10 / Todos identificados por data-ranking-filter;
+     - nenhuma ordenação ou cálculo de FRI no frontend;
+     - ordenação recebida do backend é preservada.
+=========================================================== -->

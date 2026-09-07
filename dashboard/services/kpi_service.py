@@ -818,3 +818,24 @@ class KPIService:
 
             "scores": {},
         }
+
+# ==========================================================
+# AUDITORIA — FASE 3 / MAP PANEL
+# ==========================================================
+#
+# Este arquivo foi auditado para verificar o contrato utilizado
+# pelo painel geoespacial para o indicador "Chuva (24h)".
+#
+# Resultado:
+# - KPIService disponibiliza "precipitacao_24h" como campo oficial.
+# - "precipitacao_24h_media" registra explicitamente a média
+#   municipal de precipitação em 24 horas.
+# - O campo "precipitacao" permanece como alias/compatibilidade
+#   dentro desta versão do serviço.
+# - Portanto, a correção necessária está no template map_panel.html:
+#       kpis.precipitacao
+#   deve ser substituído por:
+#       kpis.precipitacao_24h
+#
+# Nenhuma alteração funcional foi aplicada ao KPIService nesta etapa.
+# ==========================================================

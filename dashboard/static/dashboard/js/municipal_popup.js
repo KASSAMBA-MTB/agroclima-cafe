@@ -685,6 +685,15 @@
                 point && point.precipitation_24h_mm
             );
 
+        /*
+         * A classificação pluviométrica é produzida exclusivamente
+         * pelo backend. Este módulo apenas apresenta o rótulo recebido.
+         */
+        const precipitation24hClassLabel =
+            point && point.precipitation_24h_class_label
+                ? point.precipitation_24h_class_label
+                : MISSING;
+
         const accumulatedText =
             formatMillimeters(accumulated);
 
@@ -702,6 +711,12 @@
                 )}
 
             </div>
+
+            ${buildItem(
+                "Classificação 24h",
+                precipitation24hClassLabel,
+                "compact-full"
+            )}
 
             ${buildItem(
                 "Acumulado disponível",
@@ -1592,6 +1607,11 @@
                     ? "Sem chuva agora"
                     : MISSING;
 
+        const precipitation24hClassLabel =
+            point && point.precipitation_24h_class_label
+                ? point.precipitation_24h_class_label
+                : MISSING;
+
         const precipitationContent = `
             <div class="agroclima-popup-two-columns">
 
@@ -1608,6 +1628,12 @@
                 )}
 
             </div>
+
+            ${buildCompactValue(
+                "Classificação 24h",
+                precipitation24hClassLabel,
+                "compact-full"
+            )}
         `;
 
         const rainContent = `
@@ -1666,9 +1692,16 @@
             </div>
         `;
 
+        /*
+         * O acumulado pluviométrico oficial disponível no contrato
+         * municipal é precipitation_24h_mm.
+         *
+         * A popup não cria um segundo campo de acumulado.
+         * Ela somente apresenta o valor oficial recebido do backend.
+         */
         const accumulated =
             formatMillimeters(
-                getAccumulatedPrecipitation(point)
+                point && point.precipitation_24h_mm
             );
 
         return `
@@ -1685,7 +1718,7 @@
                     ${buildCard("Condição meteorológica", conditionContent, "bi bi-cloud-sun", "precipitation-condition-card")}
                     ${buildCard("Umidade e pressão", humidityContent, "bi bi-droplet-half", "precipitation-atmosphere-card")}
                     ${buildCard("Vento", windContent, "bi bi-wind", "precipitation-wind-card")}
-                    ${buildCard("Acumulado disponível", buildCompactValue("Acumulado", accumulated, "compact-full"), "bi bi-cloud-rain-heavy", "precipitation-accumulated-card")}
+                    ${buildCard("Acumulado 24h", buildCompactValue("Acumulado", accumulated, "compact-full"), "bi bi-cloud-rain-heavy", "precipitation-accumulated-card")}
                 </div>
 
             </div>
@@ -1851,4 +1884,32 @@
    Regra de entrega:
    - esta versão mantém ou supera a quantidade de linhas
      do arquivo original auditado.
+============================================================ */
+
+/* ============================================================
+   AUDITORIA — CORREÇÃO DO ACUMULADO PLUVIOMÉTRICO
+
+   Correção:
+   - elimina a dependência de precipitation_accumulated_mm;
+   - utiliza precipitation_24h_mm, campo oficial do map_point;
+   - não calcula precipitação no frontend;
+   - não cria indicador agroclimático;
+   - mantém a popup como camada de apresentação.
+
+   Cadeia:
+   Open-Meteo → WeatherDTO → DashboardService →
+   AgroClimateIndicatorService → map_point →
+   AgroClimaMunicipalPopup → apresentação.
+
+   Resultado:
+   - "Últimas 24h" mostra precipitation_24h_mm;
+   - "Acumulado 24h" mostra o mesmo valor oficial;
+   - se o backend fornecer 14,6 mm, ambos apresentarão 14,6 mm;
+   - "Não disponível" somente aparece quando o backend realmente
+     não fornecer precipitation_24h_mm.
+
+   Integridade do arquivo:
+   - versão original auditada: 1880 linhas;
+   - versão corrigida: quantidade igual ou superior;
+   - nenhuma alteração realizada na lógica do backend.
 ============================================================ */

@@ -24,7 +24,7 @@ Responsabilidades:
       camada de InteligÃªncia.
     â€¢ NÃ£o executar regras de InteligÃªncia.
 
-VersÃ£o..........: 3.8
+VersÃ£o..........: 3.9 — integração dos indicadores agroclimáticos da FASE 2
 ===============================================================================
 """
 
@@ -46,6 +46,9 @@ from dashboard.services.map_service import MapService
 from dashboard.services.frost_risk_service import FrostRiskService
 from dashboard.services.thermal_classification_service import (
     ThermalClassificationService,
+)
+from dashboard.services.agroclimate_indicator_service import (
+    AgroClimateIndicatorService,
 )
 
 
@@ -87,6 +90,14 @@ class DashboardService:
         # e materializada no map_point para consumo uniforme pelos componentes.
         # O serviço não acessa banco de dados, API, FRI ou regras de geada.
         self.thermal_classification_service = ThermalClassificationService()
+
+        # Serviço especializado da FASE 2 para consolidação dos primeiros
+        # indicadores agroclimáticos derivados. Ele recebe somente dados já
+        # estruturados neste serviço e delega a classificação térmica ao
+        # ThermalClassificationService canônico, sem duplicar faixas ou regras.
+        # Também preserva None para precipitação ausente e não interfere na
+        # avaliação oficial do FRI, executada posteriormente.
+        self.agroclimate_indicator_service = AgroClimateIndicatorService()
 
         # Mantém os DTOs da atualização meteorológica corrente disponíveis
         # para o enriquecimento do map_point. Isso evita perder campos que
@@ -737,26 +748,67 @@ class DashboardService:
                 )
 
             # ==================================================
-            # CLASSIFICAÇÃO TÉRMICA CANÔNICA
+            # INDICADORES AGROCLIMÁTICOS DERIVADOS — FASE 2
             # ==================================================
-            # A classificação é produzida no backend a partir do mesmo
-            # valor de temperatura que foi materializado no map_point.
-            # Nenhum consumidor posterior precisa reproduzir os limites.
-            # O popup e o mapa devem apenas consumir estes dois campos.
+            # O AgroClimateIndicatorService é o ponto especializado para os
+            # primeiros indicadores derivados desta fase. Neste momento ele
+            # consolida a classificação térmica e normaliza, sem inventar
+            # valores, os acumulados de precipitação já obtidos pela cadeia
+            # WeatherService -> WeatherDTO/WeatherObservation.
+            #
+            # A classificação térmica continua tendo uma única regra oficial:
+            # o próprio AgroClimateIndicatorService delega internamente ao
+            # ThermalClassificationService canônico. Portanto, não há nova
+            # tabela de faixas térmicas neste DashboardService.
+            #
+            # Importante: este bloco NÃO calcula FRI, severidade ou confiança.
+            # A avaliação de geada permanece exclusivamente no bloco posterior
+            # _attach_frost_intelligence(), preservando a cadeia estabilizada.
 
-            thermal_classification = (
-                self.thermal_classification_service
-                .classify_with_label(
-                    enriched.get("temperature")
+            agroclimate_indicators = (
+                self.agroclimate_indicator_service.calculate(
+                    enriched
                 )
             )
 
+            # Materializa somente os campos autorizados pela FASE 2.
+            # Ausência de dado permanece None / unavailable / Sem dado.
+            enriched["temperature"] = (
+                agroclimate_indicators["temperature"]
+            )
             enriched["temperature_class"] = (
-                thermal_classification["temperature_class"]
+                agroclimate_indicators["temperature_class"]
             )
             enriched["temperature_class_label"] = (
-                thermal_classification["temperature_class_label"]
+                agroclimate_indicators["temperature_class_label"]
             )
+            enriched["precipitation_1h_mm"] = (
+                agroclimate_indicators["precipitation_1h_mm"]
+            )
+            enriched["precipitation_24h_mm"] = (
+                agroclimate_indicators["precipitation_24h_mm"]
+            )
+            enriched["precipitation_24h_class"] = (
+                agroclimate_indicators["precipitation_24h_class"]
+            )
+            enriched["precipitation_24h_class_label"] = (
+                agroclimate_indicators["precipitation_24h_class_label"]
+            )
+
+            # Mantém os aliases canônicos em português sincronizados com os
+            # mesmos valores estruturados, sem qualquer novo cálculo.
+            enriched["precipitacao_1h"] = enriched[
+                "precipitation_1h_mm"
+            ]
+            enriched["precipitacao_24h"] = enriched[
+                "precipitation_24h_mm"
+            ]
+
+            # Compatibilidade legada: o campo genérico permanece representando
+            # explicitamente a precipitação da última hora, como já ocorria.
+            enriched["precipitation"] = enriched[
+                "precipitation_1h_mm"
+            ]
 
             # ==================================================
             # HISTÃ“RICO REAL DE GEADA

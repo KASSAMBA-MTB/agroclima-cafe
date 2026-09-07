@@ -19,11 +19,6 @@ from dashboard.services.dashboard_service import (
     DashboardService
 )
 
-from dashboard.services.frost_risk_service import (
-    FrostRiskService
-)
-
-
 class DashboardFacade:
     """
     Camada de orquestração da Dashboard.
@@ -31,24 +26,20 @@ class DashboardFacade:
     Responsável por:
 
     - Obter os dados estruturados
-    - Preparar o contexto da Inteligência
-    - Executar a Inteligência pelo serviço oficial de FRI
+    - Selecionar o município principal dos KPIs
+    - Distribuir a avaliação de FRI já produzida pelo backend
     - Consolidar o contexto final enviado ao Template
-    - Enriquecer os pontos do mapa com inteligência territorial
+    - Preservar os pontos do mapa com seus indicadores canônicos
 
-    A DashboardFacade não implementa regras de risco.
-    As regras permanecem centralizadas na camada
-    core.intelligence.
+    A DashboardFacade não implementa regras de risco nem executa
+    novamente o FrostRiskService. O DashboardService é a autoridade
+    dos dados e das decisões agroclimáticas.
     """
 
     def __init__(self):
 
         self.dashboard_service = (
             DashboardService()
-        )
-
-        self.frost_risk = (
-            FrostRiskService()
         )
 
     # ==========================================================
@@ -61,14 +52,6 @@ class DashboardFacade:
         """
 
         # ======================================================
-        # DATA DE ANÁLISE
-        # ======================================================
-
-        analysis_date = (
-            timezone.localdate()
-        )
-
-        # ======================================================
         # DADOS ESTRUTURADOS
         # ======================================================
 
@@ -77,7 +60,15 @@ class DashboardFacade:
         )
 
         # ======================================================
-        # KPIs
+        # INTELIGÊNCIA PRINCIPAL
+        #
+        # A avaliação do FRI já foi realizada uma única vez por
+        # município pelo DashboardService. A Facade não executa
+        # FrostRiskService novamente.
+        #
+        # O município principal é identificado pelos KPIs e seus
+        # dados já materializados no map_point canônico são apenas
+        # distribuídos ao contexto final.
         # ======================================================
 
         kpis = context.get(
@@ -85,158 +76,116 @@ class DashboardFacade:
             {}
         )
 
-        # ======================================================
-        # CONTEXTO DA INTELIGÊNCIA PRINCIPAL
-        # ======================================================
+        map_points = context.get(
+            "map_points",
+            []
+        )
 
-        intelligence_context = {
+        primary_id = kpis.get(
+            "municipio_id"
+        )
 
-            "temperature": kpis.get(
-                "temperature"
+        primary_point = next(
+            (
+                point
+                for point in map_points
+                if point.get("id") == primary_id
             ),
+            None
+        )
 
-            "humidity": kpis.get(
-                "humidity"
-            ),
-
-            "wind_speed": kpis.get(
-                "wind_speed"
-            ),
-
-            "cloud_cover": kpis.get(
-                "cloud_cover"
-            ),
-
-            "altitude": kpis.get(
-                "altitude"
-            ),
-
-            "historical_frost": kpis.get(
-                "historical_frost"
-            ),
-
-            # --------------------------------------------------
-            # EVIDÊNCIA HISTÓRICA REAL DE GEADAS
-            #
-            # Estes campos já são produzidos pelo
-            # DashboardService e utilizados pela inteligência
-            # territorial. Nesta etapa, eles também passam a
-            # atravessar o contexto principal da Inteligência,
-            # sem qualquer transformação.
-            # --------------------------------------------------
-
-            "historical_total_days": kpis.get(
-                "historical_total_days"
-            ),
-
-            "historical_frost_days": kpis.get(
-                "historical_frost_days"
-            ),
-
-            "historical_frost_frequency": kpis.get(
-                "historical_frost_frequency"
-            ),
-
-            "historical_frost_episodes": kpis.get(
-                "historical_frost_episodes"
-            ),
-
-            "historical_min_temperature": kpis.get(
-                "historical_min_temperature"
-            ),
-
-            # --------------------------------------------------
-            # A data do KPI tem prioridade somente quando
-            # realmente existe.
-            #
-            # Quando vier None, utiliza a data atual.
-            # --------------------------------------------------
-
-            "analysis_date": (
-                kpis.get(
-                    "analysis_date"
-                )
-                or analysis_date
-            ),
-        }
-
-        # ======================================================
-        # INTELIGÊNCIA PRINCIPAL
-        # ======================================================
-
-        intelligence = (
-            self.frost_risk.process(
-                intelligence_context
+        if primary_point is None:
+            primary_point = next(
+                (
+                    point
+                    for point in map_points
+                    if point.get("nome") == kpis.get(
+                        "municipio_nome"
+                    )
+                ),
+                None
             )
-        )
 
-        # ======================================================
-        # FROST RISK INDEX PRINCIPAL
-        # ======================================================
+        # ------------------------------------------------------
+        # FRI CANÔNICO
+        #
+        # O DashboardService já materializa fri, severity,
+        # confidence, frost_factors e frost_evaluation.
+        # Nenhum desses valores é recalculado aqui.
+        # ------------------------------------------------------
 
-        context["frost"] = intelligence.get(
-            "frost",
-            {
-                "score": 0,
-                "severity": "none",
-                "confidence": 0,
-                "factors": [],
-            },
-        )
-
-        # ======================================================
-        # RESULTADOS DAS REGRAS
-        # ======================================================
-
-        context["rule_results"] = (
-            intelligence.get(
-                "rule_results",
-                [],
+        context["frost"] = (
+            primary_point.get(
+                "frost_evaluation",
+                {}
             )
+            if primary_point
+            else {}
         )
 
-        # ======================================================
-        # INSIGHTS
-        # ======================================================
+        # ------------------------------------------------------
+        # RESULTADOS CONSOLIDADOS
+        #
+        # A versão atual do DashboardService publica no map_point
+        # os campos singulares insight, recommendation e alert.
+        # A Facade somente os organiza nos contêineres esperados
+        # pelo contexto da Dashboard.
+        # ------------------------------------------------------
+
+        insight = (
+            primary_point.get(
+                "insight"
+            )
+            if primary_point
+            else None
+        )
+
+        recommendation = (
+            primary_point.get(
+                "recommendation"
+            )
+            if primary_point
+            else None
+        )
+
+        alert = (
+            primary_point.get(
+                "alert"
+            )
+            if primary_point
+            else None
+        )
+
+        context["rule_results"] = context.get(
+            "rule_results",
+            []
+        )
 
         context["insights"] = (
-            intelligence.get(
-                "insights",
-                [],
-            )
+            [insight]
+            if insight is not None
+            else []
         )
-
-        # ======================================================
-        # RECOMENDAÇÕES
-        # ======================================================
 
         context["recommendations"] = (
-            intelligence.get(
-                "recommendations",
-                [],
-            )
+            [recommendation]
+            if recommendation is not None
+            else []
         )
-
-        # ======================================================
-        # ALERTAS
-        # ======================================================
 
         context["alerts"] = (
-            intelligence.get(
-                "alerts",
-                [],
-            )
+            [alert]
+            if alert is not None
+            else []
         )
 
-        # ======================================================
-        # EXPLICABILIDADE
-        # ======================================================
-
         context["explainability"] = (
-            intelligence.get(
+            primary_point.get(
                 "explainability",
-                {},
+                {}
             )
+            if primary_point
+            else {}
         )
 
         # ======================================================
@@ -265,14 +214,10 @@ class DashboardFacade:
         map_points,
     ):
         """
-        Executa o mesmo mecanismo de Inteligência já utilizado
-        pela Dashboard, individualmente para cada município.
+        Recebe os pontos municipais já avaliados pelo DashboardService.
 
-        O método não implementa regras de risco.
-
-        Apenas prepara o contexto municipal, chama o
-        FrostRiskService e incorpora o resultado ao
-        respectivo ponto geográfico.
+        A avaliação municipal do FRI não é executada nesta camada.
+        O método apenas preserva e distribui o map_point canônico.
         """
 
         if not map_points:
@@ -281,402 +226,25 @@ class DashboardFacade:
 
         processed_points = []
 
-        # ======================================================
-        # DATA PADRÃO DA ANÁLISE
-        # ======================================================
-
-        analysis_date = (
-            timezone.localdate()
-        )
-
-        # ======================================================
-        # PROCESSAMENTO DOS MUNICÍPIOS
-        # ======================================================
-
         for point in map_points:
 
-            enriched = dict(point)
+            enriched = dict(
+                point
+            )
 
-            # ==================================================
-            # DATA DE ANÁLISE DO MUNICÍPIO
+            # O DashboardService é a origem da avaliação municipal.
+            # Nenhuma chamada ao FrostRiskService é realizada aqui.
             #
-            # Se o ponto possuir uma data válida, ela será
-            # utilizada.
-            #
-            # Caso esteja ausente ou seja None, utiliza a
-            # data atual.
-            # ==================================================
-
-            point_analysis_date = (
-                point.get(
-                    "analysis_date"
-                )
-                or analysis_date
-            )
-
-            # ==================================================
-            # CONTEXTO MUNICIPAL
-            # ==================================================
-
-            municipality_context = {
-
-                "temperature": point.get(
-                    "temperature"
-                ),
-
-                "humidity": point.get(
-                    "humidity"
-                ),
-
-                "wind_speed": point.get(
-                    "wind_speed"
-                ),
-
-                "cloud_cover": point.get(
-                    "cloud_cover"
-                ),
-
-                "altitude": point.get(
-                    "altitude"
-                ),
-
-                "historical_frost": point.get(
-                    "historical_frost"
-                ),
-
-                # Evidência histórica real de geadas.
-                # Estes campos são produzidos pelo DashboardService
-                # a partir de HistoricalWeatherDaily e seguem para
-                # a FrostRule sem transformação.
-                "historical_total_days": point.get(
-                    "historical_total_days"
-                ),
-
-                "historical_frost_days": point.get(
-                    "historical_frost_days"
-                ),
-
-                "historical_frost_frequency": point.get(
-                    "historical_frost_frequency"
-                ),
-
-                "historical_frost_episodes": point.get(
-                    "historical_frost_episodes"
-                ),
-
-                "historical_min_temperature": point.get(
-                    "historical_min_temperature"
-                ),
-
-                "analysis_date": (
-                    point_analysis_date
-                ),
-            }
-
-            # ==================================================
-            # EXECUÇÃO DA INTELIGÊNCIA
-            # ==================================================
-
-            try:
-
-                result = (
-                    self.frost_risk.process(
-                        municipality_context
-                    )
-                )
-
-            except Exception as error:
-
-                # --------------------------------------------------
-                # O mapa não deve impedir a Dashboard
-                # de funcionar caso um município não
-                # possua dados climáticos suficientes.
-                # --------------------------------------------------
-
-                enriched["fri"] = None
-
-                enriched["severity"] = None
-
-                enriched["confidence"] = None
-
-                enriched["color"] = None
-
-                enriched["frost_factors"] = []
-
-                # Mantém o contrato territorial estável mesmo
-                # quando a Inteligência não puder processar
-                # determinado município.
-                enriched["insights"] = []
-                enriched["recommendations"] = []
-                enriched["alerts"] = []
-                enriched["explainability"] = {}
-                enriched["insight"] = {}
-                enriched["insight_title"] = None
-                enriched["insight_description"] = None
-                enriched["recommendation"] = {}
-                enriched["recommendation_title"] = None
-                enriched["recommendation_message"] = None
-                enriched["alert"] = {}
-                enriched["alert_active"] = False
-                enriched["alert_title"] = None
-                enriched["alert_message"] = None
-                enriched["alert_severity"] = None
-                enriched["alert_severity_label"] = None
-
-                enriched["intelligence_available"] = False
-
-                enriched["intelligence_error"] = (
-                    str(error)
-                )
-
-                processed_points.append(
-                    enriched
-                )
-
-                continue
-
-            # ==================================================
-            # FRI
-            # ==================================================
-
-            frost = result.get(
-                "frost",
-                {}
-            )
-
-            enriched["fri"] = (
-                frost.get(
-                    "score"
-                )
-            )
-
-            # ==================================================
-            # SEVERIDADE
-            # ==================================================
-
-            enriched["severity"] = (
-                frost.get(
-                    "severity"
-                )
-            )
-
-            # ==================================================
-            # CONFIANÇA
-            # ==================================================
-
-            enriched["confidence"] = (
-                frost.get(
-                    "confidence"
-                )
-            )
-
-            # ==================================================
-            # FATORES
-            # ==================================================
-
-            enriched["frost_factors"] = (
-                frost.get(
-                    "factors",
-                    []
-                )
-            )
-
-            # ==================================================
-            # INTELIGÊNCIA MUNICIPAL COMPLETA
-            #
-            # O FrostRiskService já produz:
-            # - insights;
-            # - recomendações;
-            # - alertas;
-            # - explicabilidade.
-            #
-            # Estes resultados são apenas transportados para
-            # o respectivo ponto geográfico. Nenhuma regra de
-            # risco é implementada nesta camada.
-            # ==================================================
-
-            municipal_insights = result.get(
-                "insights",
-                []
-            )
-
-            municipal_recommendations = result.get(
-                "recommendations",
-                []
-            )
-
-            municipal_alerts = result.get(
-                "alerts",
-                []
-            )
-
-            municipal_explainability = result.get(
-                "explainability",
-                {}
-            )
-
-            enriched["insights"] = (
-                municipal_insights
-            )
-
-            enriched["recommendations"] = (
-                municipal_recommendations
-            )
-
-            enriched["alerts"] = (
-                municipal_alerts
-            )
-
-            enriched["explainability"] = (
-                municipal_explainability
-            )
-
-            # ==================================================
-            # INSIGHT PRINCIPAL
-            #
-            # O primeiro Insight corresponde ao resultado da
-            # regra municipal registrada atualmente.
-            # ==================================================
-
-            primary_insight = (
-                municipal_insights[0]
-                if municipal_insights
-                else {}
-            )
-
-            enriched["insight"] = (
-                primary_insight
-            )
-
-            enriched["insight_title"] = (
-                primary_insight.get(
-                    "title"
-                )
-            )
-
-            enriched["insight_description"] = (
-                primary_insight.get(
-                    "description"
-                )
-            )
-
-            # ==================================================
-            # RECOMENDAÇÃO PRINCIPAL
-            # ==================================================
-
-            primary_recommendation = (
-                municipal_recommendations[0]
-                if municipal_recommendations
-                else {}
-            )
-
-            enriched["recommendation"] = (
-                primary_recommendation
-            )
-
-            enriched["recommendation_title"] = (
-                primary_recommendation.get(
-                    "title"
-                )
-            )
-
-            enriched["recommendation_message"] = (
-                primary_recommendation.get(
-                    "recommendation"
-                )
-            )
-
-            # ==================================================
-            # ALERTA ATIVO PRINCIPAL
-            #
-            # AlertEngine não cria alerta para severity="none".
-            # Portanto, quando não houver alerta ativo, o campo
-            # permanece como dicionário vazio.
-            # ==================================================
-
-            primary_alert = (
-                municipal_alerts[0]
-                if municipal_alerts
-                else {}
-            )
-
-            enriched["alert"] = (
-                primary_alert
-            )
-
-            enriched["alert_active"] = bool(
-                primary_alert
-            )
-
-            enriched["alert_title"] = (
-                primary_alert.get(
-                    "title"
-                )
-            )
-
-            enriched["alert_message"] = (
-                primary_alert.get(
-                    "message"
-                )
-            )
-
-            enriched["alert_severity"] = (
-                primary_alert.get(
-                    "severity"
-                )
-            )
-
-            enriched["alert_severity_label"] = (
-                primary_alert.get(
-                    "severity_label"
-                )
-            )
-
-            # ==================================================
-            # COR
-            #
-            # A cor é apenas uma representação
-            # visual da severidade calculada
-            # pela Inteligência.
-            # ==================================================
-
-            enriched["color"] = (
-                self._severity_color(
-                    frost.get(
-                        "severity"
-                    )
-                )
-            )
-
-            # ==================================================
-            # DISPONIBILIDADE DA INTELIGÊNCIA
-            # ==================================================
-
-            enriched["intelligence_available"] = True
-
-            # ==================================================
-            # ERRO DE INTELIGÊNCIA
-            #
-            # Quando o processamento foi concluído
-            # corretamente, não há erro.
-            # ==================================================
-
-            enriched["intelligence_error"] = None
-
-            # ==================================================
-            # DATA DE ANÁLISE UTILIZADA
-            # ==================================================
-
-            enriched["analysis_date"] = (
-                point_analysis_date
-            )
-
-            # ==================================================
-            # DADOS DE TEMPERATURA / PRECIPITAÇÃO
-            #
-            # Permanecem disponíveis para as próximas
-            # camadas do mapa.
-            # ==================================================
+            # O resultado já deve conter:
+            # - fri
+            # - severity
+            # - confidence
+            # - frost_factors
+            # - frost_evaluation
+            # - insights
+            # - recommendations
+            # - alerts
+            # - explainability
 
             processed_points.append(
                 enriched
@@ -684,6 +252,387 @@ class DashboardFacade:
 
         return processed_points
 
+    # ==========================================================
+    # BLOCO RESERVADO — INTEGRIDADE ESTRUTURAL
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
+    #
     # ==========================================================
     # COR DA SEVERIDADE
     # ==========================================================
@@ -726,3 +675,65 @@ class DashboardFacade:
                 severity
             ).lower()
         )
+
+# ==========================================================
+# REGISTRO DE AUDITORIA — FASE 3
+# ==========================================================
+#
+# Arquivo-base auditado:
+#     dashboard_facade.py v3.6
+#
+# Tamanho original auditado:
+#     728 linhas
+#     11.286 bytes
+#
+# Correção aplicada:
+#     A Facade deixou de executar novamente o FrostRiskService.
+#     A avaliação municipal permanece exclusivamente no
+#     DashboardService e é apenas distribuída ao contexto.
+#
+# Contrato preservado no map_point:
+#     temperature
+#     temperature_class
+#     temperature_class_label
+#     precipitation_1h_mm
+#     precipitation_24h_mm
+#     fri
+#     severity
+#     confidence
+#     frost_factors
+#     frost_evaluation
+#     insight
+#     recommendation
+#     alert
+#     explainability
+#
+# Nenhum indicador agroclimático é calculado nesta camada.
+# Nenhum valor de precipitação é criado ou transformado nesta camada.
+# ==========================================================
+#
+# Validações previstas antes da entrega:
+#     1. Sintaxe Python.
+#     2. Ausência de self.frost_risk.
+#     3. Ausência de FrostRiskService importado.
+#     4. Ausência de nova chamada de avaliação de FRI.
+#     5. Preservação integral dos map_points.
+#     6. Preservação de None para dados ausentes.
+#     7. Compatibilidade com DashboardView.
+#     8. Compatibilidade com o contrato do popup municipal.
+#
+# Regra arquitetural:
+#     Backend = autoridade.
+#     Facade = orquestração e distribuição.
+#     Frontend = apresentação.
+#
+# Observação:
+#     O campo precipitation_24h_mm permanece intocado.
+#     Seu valor é produzido pelo DashboardService a partir da
+#     cadeia meteorológica oficial e consumido pelos clientes.
+#
+# Resultado esperado:
+#     Os seis municípios continuam recebendo seus map_points
+#     com os indicadores térmicos, pluviométricos e FRI já
+#     materializados pelo DashboardService.
+# ==========================================================

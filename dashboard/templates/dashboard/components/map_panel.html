@@ -125,8 +125,8 @@
 
             <strong>
 
-                {% if kpis.precipitacao is not None %}
-                    {{ kpis.precipitacao }} mm
+                {% if kpis.precipitacao_24h is not None %}
+                    {{ kpis.precipitacao_24h }} mm
                 {% else %}
                     --
                 {% endif %}
@@ -240,3 +240,18 @@
     {{ map_points|json_script:"agroclima-map-points" }}
 
 </section>
+
+
+<!-- ==============================================================
+     AUDITORIA — FASE 3 / MAP PANEL
+==================================================================
+
+     Correção aplicada:
+     - "Chuva (24h)" agora consome kpis.precipitacao_24h.
+     - O campo anterior kpis.precipitacao foi removido deste
+       indicador para evitar ambiguidade semântica.
+     - Nenhuma lógica agroclimática foi criada no template.
+     - Estrutura de integração do MapController foi preservada.
+     - O contrato map_points permanece inalterado.
+
+================================================================== -->
