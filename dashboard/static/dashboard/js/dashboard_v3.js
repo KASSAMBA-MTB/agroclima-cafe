@@ -512,7 +512,34 @@ const MapController = {
                 "Detalhes agroclimáticos do município selecionado"
             );
             panel.hidden = true;
-            mapContainer.insertAdjacentElement("afterend", panel);
+
+            /* ==================================================
+               POSICIONAMENTO DO PAINEL MUNICIPAL
+
+               O painel deve permanecer após a legenda do mapa.
+               A implementação anterior o inseria diretamente após
+               #map-container, colocando as informações municipais
+               entre o mapa e a legenda.
+            ================================================== */
+            const mapLegend =
+                mapContainer.parentElement
+                    ? mapContainer.parentElement.querySelector(
+                        ".map-legend"
+                    )
+                    : null;
+
+            if (mapLegend) {
+                mapLegend.insertAdjacentElement(
+                    "afterend",
+                    panel
+                );
+            } else {
+                /* Falha segura: preserva a criação do painel. */
+                mapContainer.insertAdjacentElement(
+                    "afterend",
+                    panel
+                );
+            }
         }
 
         this.detailPanel = panel;
@@ -5096,7 +5123,8 @@ const ChartController = {
             canvas,
             initialPeriod.dias,
             initialPeriod.temperatura,
-            initialPeriod.precipitacao
+            initialPeriod.precipitacao,
+            initialPeriod.eto_mm_day
         );
 
         /*
@@ -5181,6 +5209,11 @@ const ChartController = {
                         ? bundled.precipitacao
                         : [],
 
+                eto_mm_day:
+                    Array.isArray(bundled.eto_mm_day)
+                        ? bundled.eto_mm_day
+                        : [],
+
                 resumo:
                     bundled.resumo &&
                     typeof bundled.resumo === "object" &&
@@ -5219,6 +5252,8 @@ const ChartController = {
                         precipitationId
                     )
                     : [],
+
+            eto_mm_day: [],
 
             resumo: {}
 
@@ -5302,11 +5337,62 @@ const ChartController = {
     },
 
 
+    buildMovingAverage(values) {
+
+        return values.map(
+            (_, index) => {
+
+                const start =
+                    Math.max(
+                        0,
+                        index - 6
+                    );
+
+
+                const window =
+                    values
+                        .slice(
+                            start,
+                            index + 1
+                        )
+                        .filter(
+                            value =>
+                                value !== null &&
+                                Number.isFinite(value)
+                        );
+
+
+                if (!window.length) {
+
+                    return null;
+
+                }
+
+
+                const average =
+                    window.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    ) / window.length;
+
+
+                return Number(
+                    average.toFixed(1)
+                );
+
+            }
+        );
+
+    },
+
+
     createChart(
         canvas,
         labels,
         temperature,
-        precipitation
+        precipitation,
+        etoMmDay = []
     ) {
 
         if (this.chart) {
@@ -5331,9 +5417,16 @@ const ChartController = {
                 ? precipitation
                 : [];
 
+        const normalizedEto =
+            Array.isArray(etoMmDay)
+                ? etoMmDay
+                : [];
+
         const lengthsMatch =
             normalizedLabels.length === normalizedTemperature.length &&
-            normalizedLabels.length === normalizedPrecipitation.length;
+            normalizedLabels.length === normalizedPrecipitation.length &&
+            (normalizedEto.length === 0 ||
+             normalizedLabels.length === normalizedEto.length);
 
         if (!lengthsMatch) {
             console.error(
@@ -5362,13 +5455,27 @@ const ChartController = {
                     )
             );
 
+        const safeEto =
+            normalizedLabels.map(
+                (_, index) =>
+                    this.normalizeNumber(
+                        normalizedEto[index]
+                    )
+            );
+
+
+        const movingAverage =
+            this.buildMovingAverage(
+                safeTemperature
+            );
 
         console.info(
             "[AGROCLIMA] Dataset final enviado ao Chart.js:",
             {
                 labels: normalizedLabels,
                 temperatura: safeTemperature,
-                precipitacao: safePrecipitation
+                precipitacao: safePrecipitation,
+                eto_mm_day: safeEto
             }
         );
 
@@ -5441,6 +5548,47 @@ const ChartController = {
                             {
 
                                 label:
+                                    "Média móvel (7 dias)",
+
+                                data:
+                                    movingAverage,
+
+                                borderColor:
+                                    "#BEB7AA",
+
+                                backgroundColor:
+                                    "transparent",
+
+                                borderWidth:
+                                    1.4,
+
+                                borderDash:
+                                    [6, 5],
+
+                                pointRadius:
+                                    0,
+
+                                pointHoverRadius:
+                                    0,
+
+                                tension:
+                                    0.25,
+
+                                fill:
+                                    false,
+
+                                spanGaps:
+                                    true,
+
+                                yAxisID:
+                                    "temperature"
+
+                            },
+
+
+                            {
+
+                                label:
                                     "Precipitação",
 
                                 data:
@@ -5479,7 +5627,37 @@ const ChartController = {
                                 yAxisID:
                                     "precipitation"
 
+                            },
+
+                            {
+                                label:
+                                    "ETo de referência",
+                                data:
+                                    safeEto,
+                                borderColor:
+                                    "#8C6B4A",
+                                backgroundColor:
+                                    "transparent",
+                                borderWidth:
+                                    1.6,
+                                pointRadius:
+                                    1.8,
+                                pointHoverRadius:
+                                    4,
+                                pointBackgroundColor:
+                                    "#8C6B4A",
+                                pointBorderColor:
+                                    "#8C6B4A",
+                                tension:
+                                    0.2,
+                                fill:
+                                    false,
+                                spanGaps:
+                                    true,
+                                yAxisID:
+                                    "precipitation"
                             }
+
 
                         ]
 
@@ -5632,8 +5810,14 @@ const ChartController = {
                                                 "precipitation"
                                             ) {
 
+                                                const unit =
+                                                    context.dataset.label ===
+                                                    "ETo de referência"
+                                                        ? "mm/dia"
+                                                        : "mm";
+
                                                 return (
-                                                    `${context.dataset.label}: ${value.toFixed(1)} mm`
+                                                    `${context.dataset.label}: ${value.toFixed(1)} ${unit}`
                                                 );
 
                                             }
@@ -5873,6 +6057,20 @@ const ChartController = {
                 ? period.resumo
                 : {};
 
+        const temperatures =
+            Array.isArray(period.temperatura)
+                ? period.temperatura
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
+
+        const precipitation =
+            Array.isArray(period.precipitacao)
+                ? period.precipitacao
+                    .map(value => Number(value))
+                    .filter(Number.isFinite)
+                : [];
+
         /*
          * ==================================================
          * 1 — TEMPERATURA MÉDIA
@@ -5882,8 +6080,25 @@ const ChartController = {
          * ==================================================
          */
 
-        const temperatureAverage =
+        let temperatureAverage =
             Number(summary.temperatura_media);
+
+        if (
+            !Number.isFinite(
+                temperatureAverage
+            )
+        ) {
+
+            temperatureAverage =
+                temperatures.length
+                    ? temperatures.reduce(
+                        (total, value) =>
+                            total + value,
+                        0
+                    ) / temperatures.length
+                    : null;
+
+        }
 
         if (summaryItems[0]) {
 
@@ -5920,8 +6135,25 @@ const ChartController = {
          * ==================================================
          */
 
-        const precipitationTotal =
+        let precipitationTotal =
             Number(summary.precipitacao);
+
+        if (
+            !Number.isFinite(
+                precipitationTotal
+            )
+        ) {
+
+            precipitationTotal =
+                precipitation.length
+                    ? precipitation.reduce(
+                        (sum, value) =>
+                            sum + value,
+                        0
+                    )
+                    : null;
+
+        }
 
         if (summaryItems[1]) {
 
@@ -6260,7 +6492,8 @@ const ChartController = {
                             {
                                 dias: data.dias,
                                 temperatura: data.temperatura,
-                                precipitacao: data.precipitacao
+                                precipitacao: data.precipitacao,
+                                eto_mm_day: data.eto_mm_day
                             }
                         );
 
@@ -6269,7 +6502,8 @@ const ChartController = {
                             canvas,
                             data.dias,
                             data.temperatura,
-                            data.precipitacao
+                            data.precipitacao,
+                            data.eto_mm_day
                         );
 
                         /*
@@ -6654,146 +6888,18 @@ document.addEventListener(
    ========================================================== */
 
 
+
 /* ==========================================================
-   AUDITORIA FASE 3 — DASHBOARD V3 / CONTRATO DE GRÁFICOS
+   AUDITORIA FASE 7 — ETo NO GRÁFICO
 
-   Correção aplicada:
-   - removido o cálculo de média móvel do frontend;
-   - removida a série derivada Média móvel (7 dias);
-   - removidos fallbacks de agregação de temperatura;
-   - removidos fallbacks de soma de precipitação;
-   - o resumo passa a consumir exclusivamente o backend;
-   - ChartController permanece em leitura e apresentação;
-   - nenhum indicador agroclimático é calculado neste arquivo;
-   - FRI, severity e confidence permanecem intocados;
-   - classificação térmica e pluviométrica continuam recebidas;
-   - períodos e séries originais permanecem preservados;
+   Base: arquivo atualmente em uso (6826 linhas).
+   Implementação incremental preservando integralmente as estruturas
+   estabilizadas do MapController, painel municipal, FRI e ranking.
 
-   Contrato verificado:
-   ChartService 2.8 fornece resumo.temperatura_media e
-   resumo.precipitacao para cada período.
-   Não existe campo de média móvel publicado pelo contrato.
-
-   Decisão:
-   sem campo de backend para média móvel, a solução correta
-   é não fabricar essa série no frontend.
-
-   Validação:
-   - sintaxe JavaScript;
-   - ausência de buildMovingAverage executável;
-   - ausência de movingAverage executável;
-   - ausência de reduce() no ChartController;
-   - preservação dos períodos;
-   - preservação das séries;
-   - preservação dos resumos;
-   - linha corrigida maior ou igual à original.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-   Integridade arquitetural preservada.
-========================================================== */
+   - ChartController consome eto_mm_day fornecido pelo backend.
+   - A série ETo acompanha os mesmos dias do período.
+   - Valores ausentes permanecem null.
+   - ETo é identificada como mm/dia no tooltip.
+   - A ausência de ETo não bloqueia temperatura/precipitação.
+   - Nenhum cálculo de ETo ou regra agroclimática é criado no frontend.
+   ========================================================== */

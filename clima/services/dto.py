@@ -2,8 +2,9 @@
 ==========================================================
 AgroClima Café
 
-DTOs
+DTOs meteorológicos canônicos
 
+FASE 6 — ETo e indicadores hídricos
 ==========================================================
 """
 
@@ -49,8 +50,6 @@ class WeatherDTO:
     #
     # uv_index_max representa o índice UV máximo previsto/
     # calculado para o dia de referência da observação.
-    # A distinção evita atribuir ao campo legado um
-    # significado diferente daquele que já possui.
     # ------------------------------------------------------
 
     uv_index: float | None = None
@@ -71,8 +70,6 @@ class WeatherDTO:
     #
     # Os campos são opcionais porque nem toda fonte,
     # histórico ou observação existente possui esses dados.
-    # O Provider será responsável por preenchê-los quando
-    # a fonte disponibilizar as variáveis correspondentes.
     # ------------------------------------------------------
 
     sunrise: datetime | None = None
@@ -88,9 +85,7 @@ class WeatherDTO:
     # Os campos legados acima são preservados para manter
     # compatibilidade com os consumidores atuais.
     #
-    # precipitation continua existindo neste DTO, mas não
-    # deverá ser interpretado como precipitação de 24 horas.
-    # A migração dos consumidores ocorrerá nas fases seguintes.
+    # precipitation não representa precipitação de 24 horas.
     # ------------------------------------------------------
 
     rain_now: bool | None = None
@@ -112,3 +107,22 @@ class WeatherDTO:
     quality_status: str | None = None
 
     confidence: str | None = None
+
+    # ------------------------------------------------------
+    # Evapotranspiração de referência — FASE 6
+    # ------------------------------------------------------
+    #
+    # ETo é transportada pelo DTO como dado diário da fonte.
+    #
+    # Unidade canônica:
+    #     milímetros por dia (mm/dia)
+    #
+    # O DTO somente transporta o valor. A metodologia de
+    # cálculo e a validação pertencem à camada de serviço/
+    # provider correspondente.
+    #
+    # None significa dado indisponível e não deve ser
+    # convertido automaticamente para zero.
+    # ------------------------------------------------------
+
+    eto_mm_day: float | None = None

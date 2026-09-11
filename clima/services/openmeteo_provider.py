@@ -56,6 +56,8 @@ class OpenMeteoProvider(WeatherProvider):
                 "temperature_2m",
                 "relative_humidity_2m",
                 "apparent_temperature",
+                # Ponto de orvalho atual fornecido pela Open-Meteo.
+                "dew_point_2m",
                 "pressure_msl",
                 "precipitation",
                 "weather_code",
@@ -83,6 +85,8 @@ class OpenMeteoProvider(WeatherProvider):
                 "sunrise",
                 "sunset",
                 "daylight_duration",
+                # ETo diária segundo a referência FAO-56.
+                "et0_fao_evapotranspiration",
             ]),
 
             "past_days": 1,
@@ -472,8 +476,17 @@ class OpenMeteoProvider(WeatherProvider):
                 "temperature_2m_min",
                 "temperature_2m_max",
                 "precipitation_sum",
+                # ETo diária segundo a referência FAO-56.
+                "et0_fao_evapotranspiration",
 
             ]),
+
+            # A ETo diária é solicitada diretamente da fonte.
+            # A série horária é solicitada simultaneamente como
+            # fallback de transporte: a Open-Meteo fornece ETo
+            # horária em mm/h e a soma por data local reproduz
+            # o acumulado diário da mesma variável de origem.
+            "hourly": "et0_fao_evapotranspiration",
 
             "past_days": max(
                 0,
@@ -544,6 +557,87 @@ class OpenMeteoProvider(WeatherProvider):
             "precipitation_sum",
             [],
         )
+
+        eto_values = daily.get(
+            "et0_fao_evapotranspiration",
+            [],
+        )
+
+        # ======================================================
+        # FALLBACK DE TRANSPORTE DA ETo
+        # ======================================================
+        #
+        # A variável diária permanece a fonte preferencial.
+        # Quando a resposta não entrega a série diária, utiliza-se
+        # exclusivamente a mesma variável et0_fao_evapotranspiration
+        # retornada pela Open-Meteo em escala horária. A soma é feita
+        # por data local, sem estimativa meteorológica ou regra
+        # agronômica adicional.
+        # ======================================================
+
+        hourly = payload.get(
+            "hourly",
+            {},
+        )
+
+        hourly_times = (
+            hourly.get(
+                "time",
+                [],
+            )
+            if isinstance(hourly, dict)
+            else []
+        )
+
+        hourly_eto = (
+            hourly.get(
+                "et0_fao_evapotranspiration",
+                [],
+            )
+            if isinstance(hourly, dict)
+            else []
+        )
+
+        eto_by_date = {}
+
+        if (
+            isinstance(hourly_times, list)
+            and isinstance(hourly_eto, list)
+        ):
+            for hourly_index, raw_time in enumerate(hourly_times):
+                if hourly_index >= len(hourly_eto):
+                    break
+
+                raw_value = hourly_eto[hourly_index]
+
+                if raw_value is None:
+                    continue
+
+                try:
+                    numeric_value = float(raw_value)
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    continue
+
+                if numeric_value < 0:
+                    continue
+
+                raw_time_text = str(raw_time)
+
+                if len(raw_time_text) < 10:
+                    continue
+
+                local_date = raw_time_text[:10]
+
+                eto_by_date[local_date] = (
+                    eto_by_date.get(
+                        local_date,
+                        0.0,
+                    )
+                    + numeric_value
+                )
 
         historical = []
 
@@ -638,6 +732,18 @@ class OpenMeteoProvider(WeatherProvider):
 
                 ),
 
+
+                # ETo diária da fonte, em mm/dia.
+                # A série diária é prioritária. Quando ela estiver
+                # ausente, utiliza-se somente o fallback horário da
+                # mesma variável oficial da Open-Meteo.
+                "eto_mm_day": self._resolve_daily_eto(
+                    date_value=dates[index],
+                    daily_values=eto_values,
+                    index=index,
+                    hourly_by_date=eto_by_date,
+                ),
+
             })
 
         if len(historical) > days:
@@ -645,6 +751,55 @@ class OpenMeteoProvider(WeatherProvider):
             historical = historical[-days:]
 
         return historical
+
+    @staticmethod
+    def _resolve_daily_eto(
+        date_value,
+        daily_values,
+        index,
+        hourly_by_date,
+    ):
+        """
+        Resolve ETo diária preservando a autoridade da Open-Meteo.
+
+        Prioridade:
+            1. valor diário ``et0_fao_evapotranspiration``;
+            2. soma diária da mesma variável em escala horária;
+            3. None quando a fonte não fornece valor válido.
+        """
+
+        if (
+            isinstance(daily_values, list)
+            and index < len(daily_values)
+        ):
+            raw_daily = daily_values[index]
+
+            if raw_daily is not None:
+                try:
+                    numeric_daily = float(raw_daily)
+
+                    if numeric_daily >= 0:
+                        return round(
+                            numeric_daily,
+                            2,
+                        )
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    pass
+
+        date_key = str(date_value)[:10]
+
+        if date_key in hourly_by_date:
+            return round(
+                float(
+                    hourly_by_date[date_key]
+                ),
+                2,
+            )
+
+        return None
 
     # ======================================================
     # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
@@ -1039,6 +1194,7 @@ class OpenMeteoProvider(WeatherProvider):
                 "sunrise": None,
                 "sunset": None,
                 "daylight_duration_seconds": None,
+                "eto_mm_day": None,
             }
 
         daily = payload.get(
@@ -1052,6 +1208,7 @@ class OpenMeteoProvider(WeatherProvider):
                 "sunrise": None,
                 "sunset": None,
                 "daylight_duration_seconds": None,
+                "eto_mm_day": None,
             }
 
         dates = daily.get(
@@ -1079,6 +1236,11 @@ class OpenMeteoProvider(WeatherProvider):
             [],
         )
 
+        eto_values = daily.get(
+            "et0_fao_evapotranspiration",
+            [],
+        )
+
         if not isinstance(dates, list):
             dates = []
 
@@ -1093,6 +1255,8 @@ class OpenMeteoProvider(WeatherProvider):
 
         if not isinstance(daylight_values, list):
             daylight_values = []
+        if not isinstance(eto_values, list):
+            eto_values = []
 
         target_date = None
 
@@ -1113,6 +1277,7 @@ class OpenMeteoProvider(WeatherProvider):
                 "sunrise": None,
                 "sunset": None,
                 "daylight_duration_seconds": None,
+                "eto_mm_day": None,
             }
 
         local_timezone = ZoneInfo(
@@ -1173,6 +1338,26 @@ class OpenMeteoProvider(WeatherProvider):
                 ):
                     daylight_duration_seconds = None
 
+        eto_mm_day = None
+
+        if target_index < len(eto_values):
+            raw_eto = eto_values[target_index]
+
+            if raw_eto is not None:
+                try:
+                    numeric_eto = float(raw_eto)
+
+                    if numeric_eto >= 0:
+                        eto_mm_day = round(
+                            numeric_eto,
+                            2,
+                        )
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    eto_mm_day = None
+
         return {
             "uv_index_max": uv_index_max,
             "sunrise": sunrise,
@@ -1180,6 +1365,7 @@ class OpenMeteoProvider(WeatherProvider):
             "daylight_duration_seconds": (
                 daylight_duration_seconds
             ),
+            "eto_mm_day": eto_mm_day,
         }
 
     @staticmethod
@@ -1331,7 +1517,11 @@ class OpenMeteoProvider(WeatherProvider):
                 ]
             ),
 
-            dew_point=None,
+            dew_point=(
+                current.get(
+                    "dew_point_2m"
+                )
+            ),
 
             solar_radiation=None,
 
@@ -1362,6 +1552,15 @@ class OpenMeteoProvider(WeatherProvider):
             daylight_duration_seconds=(
                 environmental_data[
                     "daylight_duration_seconds"
+                ]
+            ),
+
+            # Evapotranspiração de referência diária — FASE 6.
+            # O Provider transporta o valor da fonte; None permanece
+            # como dado indisponível e não é convertido em zero.
+            eto_mm_day=(
+                environmental_data[
+                    "eto_mm_day"
                 ]
             ),
 

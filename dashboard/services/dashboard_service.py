@@ -24,7 +24,7 @@ Responsabilidades:
       camada de InteligÃªncia.
     â€¢ NÃ£o executar regras de InteligÃªncia.
 
-VersÃ£o..........: 3.9 — integração dos indicadores agroclimáticos da FASE 2
+VersÃ£o..........: 3.8
 ===============================================================================
 """
 
@@ -36,6 +36,7 @@ from clima.models import (
     WeatherObservation,
 )
 from clima.services.weather_service import WeatherService
+from clima.services.history_service import HistoryService
 from municipios.models import Municipio
 
 from dashboard.services.kpi_service import KPIService
@@ -49,6 +50,9 @@ from dashboard.services.thermal_classification_service import (
 )
 from dashboard.services.agroclimate_indicator_service import (
     AgroClimateIndicatorService,
+)
+from dashboard.services.historical_climate_indicator_service import (
+    HistoricalClimateIndicatorService,
 )
 
 
@@ -91,13 +95,15 @@ class DashboardService:
         # O serviço não acessa banco de dados, API, FRI ou regras de geada.
         self.thermal_classification_service = ThermalClassificationService()
 
-        # Serviço especializado da FASE 2 para consolidação dos primeiros
-        # indicadores agroclimáticos derivados. Ele recebe somente dados já
-        # estruturados neste serviço e delega a classificação térmica ao
-        # ThermalClassificationService canônico, sem duplicar faixas ou regras.
-        # Também preserva None para precipitação ausente e não interfere na
-        # avaliação oficial do FRI, executada posteriormente.
         self.agroclimate_indicator_service = AgroClimateIndicatorService()
+
+        # Histórico canônico utilizado como fonte dos indicadores derivados.
+        # O HistoryService fornece a série; o serviço especializado calcula
+        # somente os indicadores autorizados da Fase 5.
+        self.history_service = HistoryService()
+        self.historical_climate_indicator_service = (
+            HistoricalClimateIndicatorService()
+        )
 
         # Mantém os DTOs da atualização meteorológica corrente disponíveis
         # para o enriquecimento do map_point. Isso evita perder campos que
@@ -360,7 +366,9 @@ class DashboardService:
             â€¢ executa regras de InteligÃªncia.
 
         Os indicadores histÃ³ricos adicionados aqui constituem
-        evidÃªncia estruturada para a etapa posterior da FrostRule.
+        Os indicadores históricos adicionados aqui constituem
+        evidência estruturada para a etapa posterior da FrostRule.
+        O cálculo é delegado ao HistoricalClimateIndicatorService.
         """
 
         if not map_points:
@@ -507,6 +515,90 @@ class DashboardService:
         # ENRIQUECIMENTO DOS PONTOS
         # ======================================================
 
+        # ======================================================
+        # INDICADORES HISTÓRICOS — FASE 5
+        # ======================================================
+        # A série diária é obtida pelo HistoryService. O cálculo da
+        # amplitude térmica permanece exclusivamente no serviço
+        # especializado HistoricalClimateIndicatorService.
+        #
+        # O resultado é estruturado por município e será anexado ao
+        # map_point sem alterar a avaliação oficial do FRI.
+        # ======================================================
+
+        historical_indicators_by_municipality = {}
+
+        municipios = (
+            Municipio.objects
+            .filter(
+                nome__in=municipality_names
+            )
+        )
+
+        municipality_objects = {
+            municipio.nome: municipio
+            for municipio in municipios
+        }
+
+        for municipality in municipality_names:
+            municipio = municipality_objects.get(
+                municipality
+            )
+
+            if municipio is None:
+                historical_indicator_service = getattr(
+                    self,
+                    "historical_climate_indicator_service",
+                    None,
+                )
+
+                if historical_indicator_service is None:
+                    historical_indicator_service = (
+                        HistoricalClimateIndicatorService()
+                    )
+                    self.historical_climate_indicator_service = (
+                        historical_indicator_service
+                    )
+
+                historical_indicators_by_municipality[
+                    municipality
+                ] = historical_indicator_service.calculate(
+                    {}
+                )
+                continue
+
+            try:
+                historical_data = self.history_service.chart_data(
+                    municipio=municipio,
+                    days=None,
+                )
+            except Exception:
+                historical_data = {}
+
+            # Compatibilidade defensiva com testes e instanciações controladas
+            # que utilizam __new__ e, portanto, não executam __init__.
+            # Em produção, o atributo é sempre criado no __init__.
+            historical_indicator_service = getattr(
+                self,
+                "historical_climate_indicator_service",
+                None,
+            )
+
+            if historical_indicator_service is None:
+                historical_indicator_service = (
+                    HistoricalClimateIndicatorService()
+                )
+                self.historical_climate_indicator_service = (
+                    historical_indicator_service
+                )
+
+            historical_indicators_by_municipality[
+                municipality
+            ] = historical_indicator_service.calculate(
+                historical_data
+            )
+
+
         enriched_points = []
 
         for point in map_points:
@@ -567,6 +659,16 @@ class DashboardService:
             enriched["precipitation"] = None
 
             enriched["observation_time"] = None
+
+            # Indicadores históricos derivados. A ausência permanece
+            # explicitamente representada pelo contrato do serviço.
+            enriched["historical_indicators"] = (
+                historical_indicators_by_municipality.get(
+                    municipality,
+                    {},
+                )
+            )
+
 
             # ==================================================
             # DADOS DA OBSERVAÃ‡ÃƒO
@@ -748,46 +850,23 @@ class DashboardService:
                 )
 
             # ==================================================
-            # INDICADORES AGROCLIMÁTICOS DERIVADOS — FASE 2
+            # INDICADORES AGROCLIMÁTICOS — FASE 2
             # ==================================================
-            # O AgroClimateIndicatorService é o ponto especializado para os
-            # primeiros indicadores derivados desta fase. Neste momento ele
-            # consolida a classificação térmica e normaliza, sem inventar
-            # valores, os acumulados de precipitação já obtidos pela cadeia
-            # WeatherService -> WeatherDTO/WeatherObservation.
-            #
-            # A classificação térmica continua tendo uma única regra oficial:
-            # o próprio AgroClimateIndicatorService delega internamente ao
-            # ThermalClassificationService canônico. Portanto, não há nova
-            # tabela de faixas térmicas neste DashboardService.
-            #
-            # Importante: este bloco NÃO calcula FRI, severidade ou confiança.
-            # A avaliação de geada permanece exclusivamente no bloco posterior
-            # _attach_frost_intelligence(), preservando a cadeia estabilizada.
-
             agroclimate_indicators = (
                 self.agroclimate_indicator_service.calculate(
                     enriched
                 )
             )
 
-            # Materializa somente os campos autorizados pela FASE 2.
-            # Ausência de dado permanece None / unavailable / Sem dado.
-            enriched["temperature"] = (
-                agroclimate_indicators["temperature"]
-            )
-            enriched["temperature_class"] = (
-                agroclimate_indicators["temperature_class"]
-            )
-            enriched["temperature_class_label"] = (
-                agroclimate_indicators["temperature_class_label"]
-            )
-            enriched["precipitation_1h_mm"] = (
-                agroclimate_indicators["precipitation_1h_mm"]
-            )
-            enriched["precipitation_24h_mm"] = (
-                agroclimate_indicators["precipitation_24h_mm"]
-            )
+            enriched["temperature"] = agroclimate_indicators["temperature"]
+            enriched["temperature_class"] = agroclimate_indicators["temperature_class"]
+            enriched["temperature_class_label"] = agroclimate_indicators["temperature_class_label"]
+            enriched["precipitation_1h_mm"] = agroclimate_indicators["precipitation_1h_mm"]
+            enriched["precipitation_24h_mm"] = agroclimate_indicators["precipitation_24h_mm"]
+
+            # Contrato canônico da classificação pluviométrica 24h.
+            # A classificação é produzida pelo AgroClimateIndicatorService;
+            # este serviço apenas materializa o resultado no map_point.
             enriched["precipitation_24h_class"] = (
                 agroclimate_indicators["precipitation_24h_class"]
             )
@@ -795,20 +874,9 @@ class DashboardService:
                 agroclimate_indicators["precipitation_24h_class_label"]
             )
 
-            # Mantém os aliases canônicos em português sincronizados com os
-            # mesmos valores estruturados, sem qualquer novo cálculo.
-            enriched["precipitacao_1h"] = enriched[
-                "precipitation_1h_mm"
-            ]
-            enriched["precipitacao_24h"] = enriched[
-                "precipitation_24h_mm"
-            ]
-
-            # Compatibilidade legada: o campo genérico permanece representando
-            # explicitamente a precipitação da última hora, como já ocorria.
-            enriched["precipitation"] = enriched[
-                "precipitation_1h_mm"
-            ]
+            enriched["precipitacao_1h"] = agroclimate_indicators["precipitation_1h_mm"]
+            enriched["precipitacao_24h"] = agroclimate_indicators["precipitation_24h_mm"]
+            enriched["precipitation"] = agroclimate_indicators["precipitation_1h_mm"]
 
             # ==================================================
             # HISTÃ“RICO REAL DE GEADA
@@ -1066,3 +1134,95 @@ class DashboardService:
         ):
 
             return None
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 5.2 — INTEGRAÇÃO
+# ============================================================================
+#
+# Arquivo-base:
+#     dashboard_service.py v3.8
+#
+# Integração implementada:
+#     HistoryService
+#         -> HistoricalClimateIndicatorService
+#         -> map_point["historical_indicators"]
+#
+# Indicadores integrados nesta etapa:
+#     amplitude_termica_diaria
+#     amplitude_termica_media
+#     amplitude_termica_minima
+#     amplitude_termica_maxima
+#     amplitude_termica_dias_validos
+#     amplitude_termica_dias_disponiveis
+#
+# Garantias preservadas:
+#     - nenhuma regra de FRI é criada ou repetida;
+#     - FrostRiskService continua sendo a única avaliação oficial do FRI;
+#     - nenhum indicador é calculado no frontend;
+#     - HistoryService permanece responsável apenas pela série histórica;
+#     - HistoricalClimateIndicatorService permanece responsável pelo cálculo;
+#     - None permanece None quando não há dado suficiente;
+#     - os demais dados do map_point são preservados.
+#
+# A integração não altera ainda a interface visual. A apresentação dos novos
+# indicadores será tratada somente na etapa correspondente do cronograma.
+# ============================================================================
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 5.3 — INTEGRAÇÃO
+# ============================================================================
+#
+# Arquivo-base:
+#     dashboard_service.py v3.9 — integração anterior da Fase 5.
+#
+# Evolução implementada:
+#     HistoricalClimateIndicatorService v5.3
+#         -> map_point["historical_indicators"]
+#
+# Indicador acrescentado nesta etapa:
+#     frequencia_temperaturas_criticas
+#
+# Indicadores anteriores preservados:
+#     tendencia_termica
+#     tendencia_termica_diferenca
+#     tendencia_termica_dias_validos
+#     amplitude_termica_diaria
+#     amplitude_termica_media
+#     amplitude_termica_minima
+#     amplitude_termica_maxima
+#     amplitude_termica_dias_validos
+#     amplitude_termica_dias_disponiveis
+#
+# Responsabilidades preservadas:
+#     - HistoryService fornece a série histórica estruturada;
+#     - HistoricalClimateIndicatorService calcula os indicadores;
+#     - DashboardService somente integra e distribui os resultados;
+#     - frontend não calcula indicadores;
+#     - FRI continua com avaliação oficial única;
+#     - nenhuma regra de severidade, confiança, alerta ou recomendação foi criada.
+#
+# Tratamento de ausência:
+#     None permanece None quando não houver série válida suficiente.
+#
+# Nenhuma alteração visual foi realizada nesta etapa.
+# ============================================================================
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 8 / CORREÇÃO DE CONTRATO PLUVIOMÉTRICO 24H
+# ============================================================================
+#
+# Correção: materialização explícita de precipitation_24h_class e
+# precipitation_24h_class_label no map_point após a execução do
+# AgroClimateIndicatorService.
+#
+# A regra de classificação permanece exclusivamente no serviço especializado.
+# O DashboardService não cria limiares, não recalcula a classificação e não
+# altera FRI, severidade, confiança, ranking ou demais indicadores.
+#
+# Objetivo: impedir que o valor numérico precipitation_24h_mm chegue ao
+# consumidor sem os respectivos campos de classificação já produzidos pelo
+# backend.
+# ============================================================================

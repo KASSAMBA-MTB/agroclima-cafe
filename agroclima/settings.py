@@ -79,7 +79,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = "agroclima.wsgi.application"
@@ -149,11 +149,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # =============================================================================
 
 LANGUAGE_CODE = "pt-br"
-
 TIME_ZONE = "America/Sao_Paulo"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -168,3 +165,174 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# =============================================================================
+# AGROCLIMA CAFÉ
+# CONFIGURAÇÃO MUNICIPAL DO BALANÇO HÍDRICO — FASE 6.2
+# =============================================================================
+#
+# Esta seção ativa a configuração explicitamente no backend.
+#
+# IMPORTANTE:
+# - os valores não são defaults do HydricBalanceService;
+# - cada município possui uma entrada explícita;
+# - CAD = 100 mm é uma referência metodológica documentada para
+#   balanços hídricos de cafeeiros, não um valor criado pelo código;
+# - a referência utilizada é literatura técnica da Embrapa sobre
+#   balanço hídrico do cafeeiro;
+# - o armazenamento inicial de 100 mm representa a condição explícita
+#   de início em capacidade de campo para esta série de referência;
+# - esta configuração é uma hipótese metodológica de referência,
+#   não uma caracterização físico-hídrica individual de cada talhão;
+# - eventual substituição por CAD derivada de solo/localidade deverá
+#   preservar a proveniência e ser feita em etapa metodológica própria.
+#
+# Fonte metodológica:
+# Embrapa — Fenologia do Cafeeiro: Condições Agrometeorológicas e
+# Balanço Hídrico. O documento informa CAD de 100 mm para representar
+# a maioria dos solos das principais regiões cafeeiras e relaciona a
+# CAD às propriedades físico-hídricas do solo e à profundidade efetiva
+# das raízes.
+#
+# A aplicação atualmente fornece ao serviço a chave municipal pelo
+# nome normalizado do município. Por isso, as chaves abaixo reproduzem
+# exatamente os nomes usados pelo fluxo DashboardService.
+#
+# Códigos IBGE de referência territorial:
+# Águas da Prata             3500402
+# Andradas                   3102605
+# Espírito Santo do Pinhal   3515186
+# Poços de Caldas            3151800
+# São João da Boa Vista      3549102
+# Vargem Grande do Sul       3556404
+#
+# =============================================================================
+
+AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
+    "Águas da Prata": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+
+    "Andradas": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+
+    "Espírito Santo do Pinhal": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+
+    "Poços de Caldas": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+
+    "São João da Boa Vista": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+
+    "Vargem Grande do Sul": {
+        "cad_mm": 100.0,
+        "cad_provenance": {
+            "source": "Embrapa",
+            "reference": (
+                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
+                "e Balanço Hídrico"
+            ),
+            "basis": (
+                "CAD de referência de 100 mm para balanços hídricos "
+                "do cafeeiro, conforme literatura técnica citada."
+            ),
+            "municipality_specific": False,
+            "methodological_status": "REFERENCE_ASSUMPTION",
+        },
+        "initial_arm_mm": 100.0,
+        "initial_arm_method": "EXPLICIT",
+    },
+}
+
+
+# =============================================================================
+# FIM DA CONFIGURAÇÃO MUNICIPAL DO BALANÇO HÍDRICO
+# =============================================================================
+#
+# A configuração acima é consumida exclusivamente por
+# HydricBalanceConfigurationService.
+#
+# Nenhum cálculo de balanço é realizado neste arquivo.
+# Nenhum indicador é calculado no frontend.
+# =============================================================================

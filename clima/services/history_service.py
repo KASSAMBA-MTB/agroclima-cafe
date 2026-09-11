@@ -2,7 +2,7 @@
 ==========================================================
 AgroClima Café
 
-History Service
+History Service — Correção do contrato do gráfico
 ==========================================================
 
 Responsável pelo fornecimento de dados históricos
@@ -20,10 +20,24 @@ Responsabilidades:
     - suportar histórico completo disponível;
     - identificar ocorrências históricas de geada;
     - preservar lacunas quando não existirem dados.
+    - transportar ETo diária persistida em HistoricalWeatherDaily.
+
+ETo — FASE 6
+------------
+A ETo diária é transportada a partir do campo persistido
+HistoricalWeatherDaily.eto_mm_day. Na consolidação regional, o valor diário
+é obtido pela média dos valores disponíveis entre os registros das estações.
+Valores ausentes permanecem None e não são convertidos em zero.
 
 IMPORTANTE
 ----------
 Nenhum valor histórico é inventado, replicado ou estimado.
+
+Correção desta versão:
+    - padroniza os rótulos da série em DD/MM;
+    - mantém todas as séries do contrato do gráfico alinhadas;
+    - aproveita umidade e vento reais quando existem em WeatherObservation;
+    - mantém índice agroclimático fora deste serviço, sem cálculo artificial.
 
 Uma ocorrência histórica de geada é identificada exclusivamente
 quando a temperatura mínima observada registrada em
@@ -35,7 +49,7 @@ A camada de inteligência não pertence a este serviço.
 
 from datetime import timedelta
 
-from django.db.models import Avg, Sum, Min
+from django.db.models import Avg, Sum, Min, Max
 from django.utils import timezone
 
 from clima.models import (
@@ -276,6 +290,8 @@ class HistoryService:
             "temperatura": [...],
             "precipitacao": [...],
             "umidade": [...],
+            "vento": [...],
+            "indice_agroclima": [...],
             "geadas": 0
         }
 
@@ -448,6 +464,14 @@ class HistoryService:
                 temperatura_minima_regiao=Min(
                     "temperatura_minima"
                 ),
+
+                temperatura_maxima_regiao=Max(
+                    "temperatura_maxima"
+                ),
+
+                eto_media_regiao=Avg(
+                    "eto_mm_day"
+                ),
             )
             .order_by("data")
         )
@@ -486,6 +510,18 @@ class HistoryService:
                 )
             )
 
+            temperatura_maxima = (
+                record.get(
+                    "temperatura_maxima_regiao"
+                )
+            )
+
+            eto_mm_day = (
+                record.get(
+                    "eto_media_regiao"
+                )
+            )
+
             frost = False
 
             if temperatura_minima is not None:
@@ -519,6 +555,20 @@ class HistoryService:
                     else None
                 ),
 
+                "temperatura_maxima": (
+                    float(
+                        temperatura_maxima
+                    )
+                    if temperatura_maxima is not None
+                    else None
+                ),
+
+                "eto_mm_day": (
+                    float(eto_mm_day)
+                    if eto_mm_day is not None
+                    else None
+                ),
+
                 "geada": frost,
             }
 
@@ -538,18 +588,24 @@ class HistoryService:
         # ======================================================
 
         if data_inicio <= data_fim:
+            recent_filters = self._station_filter(
+                municipio=municipio,
+                provider=provider,
+            )
+
             recent_observations = (
                 WeatherObservation.objects
                 .filter(
                     observation_time__date__gte=data_inicio,
                     observation_time__date__lte=data_fim,
-                    station__provider=provider,
-                    station__ativa=True,
+                    **recent_filters,
                 )
                 .values(
                     "observation_time",
                     "temperatura",
                     "precipitacao",
+                    "umidade",
+                    "velocidade_vento",
                 )
                 .order_by(
                     "observation_time",
@@ -578,6 +634,8 @@ class HistoryService:
                     {
                         "temperaturas": [],
                         "precipitacoes": [],
+                        "umidades": [],
+                        "ventos": [],
                     },
                 )
 
@@ -596,6 +654,24 @@ class HistoryService:
                 if precipitacao_observada is not None:
                     entry["precipitacoes"].append(
                         float(precipitacao_observada)
+                    )
+
+                umidade_observada = observation.get(
+                    "umidade",
+                )
+
+                if umidade_observada is not None:
+                    entry["umidades"].append(
+                        float(umidade_observada)
+                    )
+
+                vento_observado = observation.get(
+                    "velocidade_vento",
+                )
+
+                if vento_observado is not None:
+                    entry["ventos"].append(
+                        float(vento_observado)
                     )
 
             for observation_date, values in observation_by_date.items():
@@ -626,6 +702,22 @@ class HistoryService:
                         1,
                     )
 
+                umidade_fallback = None
+                if values["umidades"]:
+                    umidade_fallback = round(
+                        sum(values["umidades"])
+                        / len(values["umidades"]),
+                        1,
+                    )
+
+                vento_fallback = None
+                if values["ventos"]:
+                    vento_fallback = round(
+                        sum(values["ventos"])
+                        / len(values["ventos"]),
+                        1,
+                    )
+
                 daily_data[observation_date] = {
                     "temperatura": (
                         temperatura_historica
@@ -637,8 +729,16 @@ class HistoryService:
                         if precipitacao_historica is not None
                         else precipitacao_fallback
                     ),
+                    "umidade": umidade_fallback,
+                    "vento": vento_fallback,
                     "temperatura_minima": existing.get(
                         "temperatura_minima",
+                    ),
+                    "temperatura_maxima": existing.get(
+                        "temperatura_maxima",
+                    ),
+                    "eto_mm_day": existing.get(
+                        "eto_mm_day",
                     ),
                     "geada": existing.get(
                         "geada",
@@ -658,6 +758,16 @@ class HistoryService:
 
         umidade = []
 
+        vento = []
+
+        temperatura_minima = []
+
+        temperatura_maxima = []
+
+        eto_mm_day = []
+
+        indice_agroclima = []
+
         geadas = 0
 
         if days is None:
@@ -673,6 +783,11 @@ class HistoryService:
                     temperatura,
                     precipitacao,
                     umidade,
+                    vento,
+                    temperatura_minima,
+                    temperatura_maxima,
+                    eto_mm_day,
+                    indice_agroclima,
                 )
 
                 if frost:
@@ -701,6 +816,11 @@ class HistoryService:
                     temperatura,
                     precipitacao,
                     umidade,
+                    vento,
+                    temperatura_minima,
+                    temperatura_maxima,
+                    eto_mm_day,
+                    indice_agroclima,
                 )
 
                 if frost:
@@ -721,6 +841,16 @@ class HistoryService:
 
             "umidade": umidade,
 
+            "vento": vento,
+
+            "temperatura_minima": temperatura_minima,
+
+            "temperatura_maxima": temperatura_maxima,
+
+            "eto_mm_day": eto_mm_day,
+
+            "indice_agroclima": indice_agroclima,
+
             "geadas": geadas,
         }
 
@@ -736,6 +866,11 @@ class HistoryService:
         temperatura,
         precipitacao,
         umidade,
+        vento,
+        temperatura_minima,
+        temperatura_maxima,
+        eto_mm_day,
+        indice_agroclima,
     ):
         """
         Adiciona um dia à série mantendo lacunas como None.
@@ -745,6 +880,8 @@ class HistoryService:
             False -> sem ocorrência de geada.
         """
 
+        # O ChartService integra o dia atual usando o mesmo formato
+        # visual da série: DD/MM. Manter ISO aqui quebra essa integração.
         dias.append(
             data.strftime(
                 "%d/%m"
@@ -769,6 +906,26 @@ class HistoryService:
                 None
             )
 
+            vento.append(
+                None
+            )
+
+            temperatura_minima.append(
+                None
+            )
+
+            temperatura_maxima.append(
+                None
+            )
+
+            eto_mm_day.append(
+                None
+            )
+
+            indice_agroclima.append(
+                None
+            )
+
             return False
 
         temperatura.append(
@@ -787,6 +944,38 @@ class HistoryService:
         # umidade diária consolidada.
 
         umidade.append(
+            record.get(
+                "umidade",
+            )
+        )
+
+        vento.append(
+            record.get(
+                "vento",
+            )
+        )
+
+        temperatura_minima.append(
+            record.get(
+                "temperatura_minima",
+            )
+        )
+
+        temperatura_maxima.append(
+            record.get(
+                "temperatura_maxima",
+            )
+        )
+
+        eto_mm_day.append(
+            record.get(
+                "eto_mm_day",
+            )
+        )
+
+        # O índice agroclimático pertence à camada de inteligência.
+        # O HistoryService não calcula nem inventa esse indicador.
+        indice_agroclima.append(
             None
         )
 
@@ -814,5 +1003,47 @@ class HistoryService:
 
             "umidade": [],
 
+            "vento": [],
+
+            "temperatura_minima": [],
+
+            "temperatura_maxima": [],
+
+            "eto_mm_day": [],
+
+            "indice_agroclima": [],
+
             "geadas": 0,
         }
+
+# ============================================================================
+# REGISTRO DE AUDITORIA - FASE 6.1 ETo
+# ============================================================================
+#
+# Objetivo:
+#     Transportar a ETo diária persistida para a série histórica consumida
+#     pelos serviços especializados de indicadores.
+#
+# Fonte:
+#     HistoricalWeatherDaily.eto_mm_day.
+#
+# Consolidação regional:
+#     média dos valores de ETo disponíveis para a mesma data.
+#
+# Tratamento de ausência:
+#     None permanece None; ausência não é convertida em zero.
+#
+# Observações recentes:
+#     WeatherObservation não é utilizado como fallback para ETo, pois o
+#     campo pertence atualmente ao histórico diário persistido. Quando uma
+#     observação recente completa uma lacuna de outras variáveis, a ETo
+#     histórica existente é preservada.
+#
+# Segurança arquitetural:
+#     - sem cálculo de ETo;
+#     - sem fórmula meteorológica neste serviço;
+#     - sem ORM adicional além da leitura histórica já existente;
+#     - sem frontend;
+#     - sem FRI;
+#     - sem recomendações agronômicas.
+# ============================================================================

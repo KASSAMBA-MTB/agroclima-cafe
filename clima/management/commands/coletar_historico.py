@@ -185,6 +185,8 @@ class Command(BaseCommand):
 
         erros = 0
 
+        eto_validos_total = 0
+
         # ==================================================
         # COLETA DOS MUNICÍPIOS
         # ==================================================
@@ -229,6 +231,14 @@ class Command(BaseCommand):
                         days=days,
                     )
                 )
+
+                eto_validos_municipio = sum(
+                    1
+                    for registro in historico
+                    if registro.get("eto_mm_day") is not None
+                )
+
+                eto_validos_total += eto_validos_municipio
 
                 # ==========================================
                 # PERSISTÊNCIA
@@ -296,6 +306,13 @@ class Command(BaseCommand):
                                         ]
                                     ),
 
+                                    # ETo diaria oficial da Open-Meteo.
+                                    # None permanece None; ausencia de dado
+                                    # nao e convertida em zero.
+                                    "eto_mm_day": registro.get(
+                                        "eto_mm_day"
+                                    ),
+
                                 },
 
                             )
@@ -346,7 +363,9 @@ class Command(BaseCommand):
                         f"T máx: "
                         f"{registro['temperatura_max']} °C | "
                         f"Precipitação: "
-                        f"{registro['precipitacao']} mm"
+                        f"{registro['precipitacao']} mm | "
+                        f"ETo: "
+                        f"{registro.get('eto_mm_day')} mm/dia"
                     )
 
             except Exception as exc:
@@ -409,6 +428,11 @@ class Command(BaseCommand):
         )
 
         self.stdout.write(
+            f"ETo válida recebida: "
+            f"{eto_validos_total}"
+        )
+
+        self.stdout.write(
             f"Municípios com erro: "
             f"{erros}"
         )
@@ -434,3 +458,16 @@ class Command(BaseCommand):
             )
 
         self.stdout.write("")
+
+# ==========================================================
+# AUDITORIA DA CORRECAO - FASE 6 ETo
+# ==========================================================
+# Persistencia:
+# OpenMeteoProvider -> registro["eto_mm_day"]
+# -> HistoricalWeatherDaily.update_or_create()
+# -> HistoryService -> HistoricalClimateIndicatorService
+# -> ChartService -> DashboardService -> dashboard_v3.js
+#
+# None permanece None e nao e convertido em zero.
+# O comando nao calcula ETo e nao altera FRI/geada.
+# ==========================================================

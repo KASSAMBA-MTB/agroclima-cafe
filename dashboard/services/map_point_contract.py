@@ -33,6 +33,7 @@ CANONICAL_MAP_POINT_FIELDS = (
     "temperature_class_label",
     "precipitation_1h_mm",
     "precipitation_24h_mm",
+    "historical_indicators",
     "observation_time",
     "frost",
     "frost_occurrences",
@@ -94,6 +95,7 @@ def ensure_map_point_contract(point):
         "insight",
         "recommendation",
         "alert",
+        "historical_indicators",
     }
 
     defaults = {
@@ -118,3 +120,53 @@ def ensure_map_point_contract(point):
                 normalized[field] = default
 
     return normalized
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 5.5
+# ============================================================================
+#
+# Objetivo:
+#     Consolidar no contrato municipal canônico a estrutura de indicadores
+#     históricos produzida pelo HistoricalClimateIndicatorService.
+#
+# Campo incorporado ao contrato:
+#     historical_indicators
+#
+# Responsabilidade:
+#     O map_point_contract somente declara e preserva a estrutura.
+#     Nenhum indicador pluviométrico ou térmico é calculado nesta camada.
+#
+# Indicadores pluviométricos esperados dentro de historical_indicators:
+#     precipitação diária;
+#     acumulados;
+#     frequência de dias chuvosos;
+#     período sem chuva;
+#     extremos de precipitação.
+#
+# Regra de qualidade:
+#     ausência de dado permanece None;
+#     zero representa precipitação efetivamente registrada igual a zero;
+#     nenhuma ausência é convertida automaticamente em zero.
+#
+# Cadeia de distribuição:
+#     HistoryService
+#         -> HistoricalClimateIndicatorService
+#         -> DashboardService
+#         -> map_point["historical_indicators"]
+#         -> DashboardFacade / consumidores.
+#
+# Segurança arquitetural:
+#     - sem ORM;
+#     - sem API;
+#     - sem cálculo de indicadores;
+#     - sem FRI;
+#     - sem severidade;
+#     - sem recomendações;
+#     - frontend permanece somente apresentação.
+#
+# Integridade:
+#     O campo foi adicionado à lista canônica e ao conjunto de campos
+#     estruturados, garantindo default {} quando não houver indicadores
+#     disponíveis, sem apagar valores previamente produzidos.
+# ============================================================================

@@ -21,7 +21,7 @@ Responsabilidades:
 - Não inventar ocorrências históricas de geada;
 - Não executar regras de inteligência climática.
 
-Versão..........: 2.7
+Versão..........: 2.9 — exposição da série de ETo para a Fase 7
 ===============================================================================
 """
 
@@ -122,6 +122,10 @@ class ChartService:
             municipio=None,
             days=None,
         )
+        historico = self._integrate_current_day(
+            historico,
+            current_kpis,
+        )
 
         return {
             "hoje": self._format(
@@ -153,7 +157,7 @@ class ChartService:
             return data
 
         dias = data.get("dias", [])
-        hoje = timezone.localdate().isoformat()
+        hoje = timezone.localdate().strftime("%d/%m")
 
         if hoje not in dias:
             return data
@@ -169,7 +173,7 @@ class ChartService:
 
         if indice < len(precipitacoes):
             precipitacoes[indice] = current_kpis.get(
-                "precipitacao"
+                "precipitacao_1h"
             )
 
         integrado = dict(data)
@@ -205,12 +209,12 @@ class ChartService:
 
         if current_kpis is not None:
             return {
-                "dias": [hoje.isoformat()],
+                "dias": [hoje.strftime("%d/%m")],
                 "temperatura": [
                     current_kpis.get("temperatura_media")
                 ],
                 "precipitacao": [
-                    current_kpis.get("precipitacao")
+                    current_kpis.get("precipitacao_1h")
                 ],
                 "umidade": [None],
                 "vento": [None],
@@ -263,7 +267,11 @@ class ChartService:
 
         precipitations = self._valid_numbers(
             [
-                observation.precipitacao
+                getattr(
+                    observation,
+                    "precipitacao_1h",
+                    observation.precipitacao,
+                )
                 for observation in latest_observations
             ]
         )
@@ -322,7 +330,7 @@ class ChartService:
 
         return {
             "dias": [
-                hoje.isoformat(),
+                hoje.strftime("%d/%m"),
             ],
             "temperatura": [
                 temperature_value,
@@ -424,10 +432,16 @@ class ChartService:
             None,
         )
 
+        eto_mm_day = data.get(
+            "eto_mm_day",
+            [],
+        )
+
         return {
             "dias": dias,
             "temperatura": temperatura,
             "precipitacao": precipitacao,
+            "eto_mm_day": eto_mm_day,
             "umidade": umidade,
             "vento": vento,
             "indice_agroclima": indice_agroclima,
@@ -435,6 +449,7 @@ class ChartService:
             "resumo": cls._build_summary(
                 temperatura=temperatura,
                 precipitacao=precipitacao,
+                eto_mm_day=eto_mm_day,
                 geadas=geadas,
             ),
         }
@@ -448,6 +463,7 @@ class ChartService:
         cls,
         temperatura,
         precipitacao,
+        eto_mm_day=None,
         geadas=None,
     ):
         """
@@ -474,6 +490,10 @@ class ChartService:
             precipitacao
         )
 
+        eto_validos = cls._valid_numbers(
+            eto_mm_day
+        )
+
         temperatura_media = None
 
         if temperaturas_validas:
@@ -494,6 +514,22 @@ class ChartService:
                 1,
             )
 
+        eto_media_diaria = None
+
+        if eto_validos:
+            eto_media_diaria = round(
+                mean(eto_validos),
+                2,
+            )
+
+        eto_acumulada = None
+
+        if eto_validos:
+            eto_acumulada = round(
+                sum(eto_validos),
+                2,
+            )
+
         geadas_resumo = None
 
         if geadas is not None:
@@ -502,6 +538,9 @@ class ChartService:
         return {
             "temperatura_media": temperatura_media,
             "precipitacao": precipitacao_total,
+            "eto_media_diaria": eto_media_diaria,
+            "eto_acumulada": eto_acumulada,
+            "eto_dias_validos": len(eto_validos),
             "geadas": geadas_resumo,
             "tendencia": cls._temperature_trend(
                 temperaturas_validas
@@ -599,12 +638,62 @@ class ChartService:
             "precipitacao": [],
             "umidade": [],
             "vento": [],
+            "eto_mm_day": [],
             "indice_agroclima": [],
             "geadas": None,
             "resumo": {
                 "temperatura_media": None,
                 "precipitacao": None,
+                "eto_media_diaria": None,
+                "eto_acumulada": None,
+                "eto_dias_validos": 0,
                 "geadas": None,
                 "tendencia": None,
             },
         }
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 7 — SÉRIE DE ETo
+# ============================================================================
+#
+# Arquivo-base auditado: chart_service.py — versão 2.8.
+# Tamanho original: 618 linhas.
+#
+# Alteração desta etapa:
+#     HistoryService
+#         -> chart_periods
+#         -> ChartService
+#         -> eto_mm_day + resumo de ETo
+#
+# O ChartService não calcula ETo. Apenas preserva a série diária fornecida pelo
+# HistoryService e consolida média, acumulado e quantidade de dias válidos.
+# None permanece None e não é convertido em zero.
+#
+# O período Hoje mantém ETo como None porque o contrato atual de current_kpis
+# não fornece ETo corrente. Nenhum valor é inventado.
+#
+# FRI, indicadores térmicos, precipitação e geadas permanecem preservados.
+# Nenhuma regra agronômica é criada nesta etapa.
+# ============================================================================
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 7 — CONTRATO VAZIO COMPLETO
+# ============================================================================
+#
+# Correção aplicada após a validação da série de ETo no Dashboard.
+#
+# O contrato vazio de ``ChartService`` passa a declarar explicitamente os
+# mesmos campos de resumo produzidos por ``_build_summary`` para uma série
+# com dados. Isso evita contratos diferentes entre estado com dados e estado
+# sem dados.
+#
+# Regras preservadas:
+#     - ausência de ETo permanece ``None``;
+#     - ``eto_dias_validos`` permanece 0 quando não há valores;
+#     - nenhum valor meteorológico é inventado;
+#     - nenhuma regra agroclimática é criada no frontend;
+#     - FRI, geadas, temperatura e precipitação permanecem inalterados.
+#
+# A alteração é exclusivamente contratual e defensiva para a Fase 7.
+# ============================================================================

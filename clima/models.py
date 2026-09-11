@@ -1,3 +1,10 @@
+# ==========================================================
+# AUDITORIA FASE 6 — ETo
+# Base: arquivo enviado em 07/09/2026
+# Alteração: inclusão de eto_mm_day em HistoricalWeatherDaily
+# Regra: conteúdo existente preservado integralmente
+# ==========================================================
+
 """
 ==========================================================
 AgroClima Café
@@ -347,6 +354,22 @@ class HistoricalWeatherDaily(models.Model):
         decimal_places=1,
         default=0,
         verbose_name="Precipitação",
+    )
+
+    # ----------------------------------------------------------
+    # EVAPOTRANSPIRAÇÃO DE REFERÊNCIA — FASE 6
+    # ----------------------------------------------------------
+    # Valor diário de ETo fornecido pelo provider meteorológico.
+    # Unidade canônica: milímetros por dia (mm/dia).
+    # None representa dado indisponível e não deve ser convertido
+    # automaticamente para zero.
+    # ----------------------------------------------------------
+    eto_mm_day = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="ETo diária (mm/dia)",
     )
 
     criado_em = models.DateTimeField(
