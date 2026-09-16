@@ -173,11 +173,36 @@ class DashboardFacade:
             else []
         )
 
-        context["alerts"] = (
-            [alert]
-            if alert is not None
-            else []
-        )
+        # ------------------------------------------------------
+        # ALERTAS TERRITORIAIS
+        #
+        # Alertas são consolidados a partir dos map_points já
+        # avaliados pelo DashboardService. O alerta singular do
+        # município principal NÃO é acrescentado novamente, pois
+        # ele já integra a coleção territorial.
+        #
+        # Isso evita duplicação do mesmo alerta e preserva alertas
+        # legítimos de outros municípios.
+        # ------------------------------------------------------
+
+        territorial_alerts = []
+
+        for point in map_points:
+            point_alerts = point.get(
+                "alerts",
+                []
+            )
+
+            if not isinstance(point_alerts, list):
+                continue
+
+            territorial_alerts.extend(
+                alert_item
+                for alert_item in point_alerts
+                if alert_item is not None
+            )
+
+        context["alerts"] = territorial_alerts
 
         context["explainability"] = (
             primary_point.get(

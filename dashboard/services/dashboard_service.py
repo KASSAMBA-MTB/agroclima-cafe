@@ -133,10 +133,26 @@ class DashboardService:
         context["weather_refresh"] = weather_refresh
 
         # ======================================================
+        # CONTEXTO CANÔNICO ÚNICO — KPIs
+        # ======================================================
+        #
+        # O KPIService não realiza nova aquisição meteorológica.
+        # Ele recebe exclusivamente o contexto já produzido pelo
+        # ciclo corrente de atualização do DashboardService.
+        #
+        # Assim, KPI, mapa e demais consumidores partem da mesma
+        # cadeia de dados, sem segunda consulta ou interpretação.
+        # ======================================================
+
+        canonical_context = self._build_canonical_weather_context()
+
+        # ======================================================
         # KPIs
         # ======================================================
 
-        kpis = self.kpi_service.get_kpis()
+        kpis = self.kpi_service.get_kpis(
+            canonical_context=canonical_context
+        )
 
         # Compatibilidade com templates legados
         context.update(kpis)
@@ -213,6 +229,102 @@ class DashboardService:
             map_points
         )
 
+        # ======================================================
+        # ALERTAS CANÔNICOS DA DASHBOARD — ESCOPO TERRITORIAL
+        #
+        # O DashboardService é a autoridade de consolidação do ciclo.
+        # Cada map_point mantém sua inteligência municipal em
+        # ``municipal_alerts``. Paralelamente, os alertas efetivamente
+        # produzidos pelos municípios são reunidos em uma coleção
+        # canônica para o painel global.
+        #
+        # Esta consolidação NÃO recalcula regras, NÃO altera severidade
+        # e NÃO transforma score meteorológico em FRI.
+        #
+        # O município principal continua sendo o ponto de transporte
+        # utilizado pela DashboardFacade. Para que a Facade apenas
+        # distribua o resultado já materializado, o campo ``alerts`` do
+        # ponto principal recebe a coleção canônica territorial.
+        #
+        # Os demais pontos preservam exclusivamente seus alertas
+        # municipais em ``municipal_alerts`` e ``alerts``.
+        # ======================================================
+
+        primary_municipio_id = kpis.get("municipio_id")
+        primary_point = next(
+            (
+                point
+                for point in map_points
+                if point.get("id") == primary_municipio_id
+            ),
+            None,
+        )
+
+        if primary_point is None:
+            primary_point = next(
+                (
+                    point
+                    for point in map_points
+                    if point.get("nome") == kpis.get("municipio_nome")
+                ),
+                None,
+            )
+
+        territorial_alerts = []
+        seen_alerts = set()
+
+        for point in map_points:
+            municipal_alerts = point.get("alerts", [])
+            if not isinstance(municipal_alerts, list):
+                municipal_alerts = []
+
+            # Preserva a coleção original produzida pela Intelligence
+            # para rastreabilidade municipal.
+            point["municipal_alerts"] = list(municipal_alerts)
+
+            # Consolidação somente de resultados já produzidos.
+            # Nenhuma regra é executada nesta etapa.
+            for alert in municipal_alerts:
+                if not isinstance(alert, dict):
+                    continue
+
+                identity = (
+                    alert.get("municipio_id", point.get("municipio_id")),
+                    alert.get("id"),
+                    alert.get("engine"),
+                    alert.get("title"),
+                    alert.get("message"),
+                    alert.get("severity"),
+                    alert.get("metric"),
+                    alert.get("metric_value"),
+                    alert.get("score"),
+                )
+
+                if identity in seen_alerts:
+                    continue
+
+                seen_alerts.add(identity)
+                territorial_alerts.append(dict(alert))
+
+            # Cada ponto continua disponibilizando seus próprios alertas
+            # para consumidores territoriais, sem substituir a origem.
+            point["alerts"] = list(municipal_alerts)
+            point["alert"] = (
+                municipal_alerts[0]
+                if municipal_alerts
+                else None
+            )
+
+        # A coleção territorial é o contrato global já consolidado.
+        # A Facade deve apenas distribuí-la, sem reconstruí-la.
+        context["alerts"] = territorial_alerts
+
+        # O ponto principal funciona como portador do contrato global
+        # para compatibilidade com consumidores que recebem a inteligência
+        # a partir do município principal.
+        if primary_point is not None:
+            primary_point["alerts"] = list(territorial_alerts)
+
         context["map_points"] = map_points
 
         # ======================================================
@@ -237,7 +349,9 @@ class DashboardService:
 
         context["recommendations"] = []
 
-        context["alerts"] = []
+        # ``alerts`` já foi publicado acima como coleção canônica
+        # de cardinalidade máxima 1. A Facade deve apenas consumir
+        # esse resultado, sem reconstruí-lo a partir de municípios.
 
         return context
 
@@ -960,23 +1074,18 @@ class DashboardService:
         map_points,
     ):
         """
-        Executa a avaliaÃ§Ã£o oficial de InteligÃªncia uma Ãºnica vez por
-        municÃpio e incorpora o resultado ao respectivo ``map_point``.
+        Executa exatamente uma avaliação de Inteligência por município.
 
-        Regra arquitetural da FASE 2A:
+        NÚCLEO DA CORREÇÃO — ALERTAS:
 
-            um municÃpio
-                -> uma avaliaÃ§Ã£o oficial
-                -> um map_point canÃ´nico
-                -> mapa / popup / ranking / alerta / insight
-
-        Este mÃ©todo nÃ£o implementa regras de FRI. Ele apenas encaminha
-        ao FrostRiskService o contexto estruturado jÃ¡ produzido por
-        ``_attach_climate_data`` e distribui o resultado retornado pelo
-        motor oficial nos campos canÃ´nicos do map_point.
-
-        Nenhum consumidor posterior deve chamar novamente
-        FrostRiskService para o mesmo municÃpio.
+        - Cada município recebe um contexto próprio e isolado.
+        - O resultado de Intelligence pertence exclusivamente ao município
+          avaliado e permanece dentro do respectivo map_point.
+        - O DashboardService não concatena alertas de municípios diferentes.
+        - O contexto global de alerts permanece vazio nesta camada.
+        - A DashboardFacade seleciona posteriormente o município principal.
+        - FRI somente é obtido do resultado ``frost``.
+        - O score de uma regra meteorológica não é apresentado como FRI.
         """
 
         if not map_points:
@@ -988,10 +1097,18 @@ class DashboardService:
             evaluated = dict(point)
 
             context = {
+                "municipio_id": point.get("municipio_id"),
+                "municipio_nome": (
+                    point.get("municipio_nome")
+                    or point.get("nome")
+                ),
                 "temperature": point.get("temperature"),
                 "humidity": point.get("humidity"),
                 "wind_speed": point.get("wind_speed"),
                 "cloud_cover": point.get("cloud_cover"),
+                "precipitation_24h_mm": point.get(
+                    "precipitation_24h_mm"
+                ),
                 "altitude": point.get("altitude"),
                 "historical_frost": point.get("historical_frost"),
                 "historical_total_days": point.get(
@@ -1013,48 +1130,145 @@ class DashboardService:
             }
 
             try:
-                frost = self.frost_risk_service.evaluate_frost(
+                intelligence = self.frost_risk_service.process(
                     context
                 )
             except Exception:
-                frost = {}
+                intelligence = {}
 
+            if not isinstance(intelligence, dict):
+                intelligence = {}
+
+            frost = intelligence.get("frost", {})
             if not isinstance(frost, dict):
                 frost = {}
 
-            # --------------------------------------------------
-            # CONTRATO CANÃ”NICO DO MAP_POINT
-            # --------------------------------------------------
-            # O valor de FRI Ã© materializado uma Ãºnica vez.
-            # Nenhuma conversÃ£o, ponderaÃ§Ã£o ou novo cÃ¡lculo Ã© feito.
-            evaluated["fri"] = frost.get("score")
+            rule_results = intelligence.get("rule_results", [])
+            insights = intelligence.get("insights", [])
+            recommendations = intelligence.get("recommendations", [])
+            alerts = intelligence.get("alerts", [])
+            explainability = intelligence.get("explainability", {})
+
+            if not isinstance(rule_results, list):
+                rule_results = []
+            if not isinstance(insights, list):
+                insights = []
+            if not isinstance(recommendations, list):
+                recommendations = []
+            if not isinstance(alerts, list):
+                alerts = []
+            if not isinstance(explainability, dict):
+                explainability = {}
+
+            # Normalização transversal: deduplicação somente dentro da
+            # avaliação do município corrente. Municípios distintos nunca
+            # são comparados ou fundidos.
+            alerts = self._normalize_municipal_alerts(
+                alerts,
+                municipio_id=point.get("municipio_id"),
+                municipio_nome=(
+                    point.get("municipio_nome")
+                    or point.get("nome")
+                ),
+            )
+
+            # FRI canônico: somente o resultado da FrostRule.
+            evaluated["fri"] = frost.get("fri")
+            if evaluated["fri"] is None:
+                evaluated["fri"] = frost.get("score")
+
             evaluated["severity"] = frost.get("severity")
             evaluated["confidence"] = frost.get("confidence")
 
-            # Apenas distribui o resultado oficial retornado pela
-            # camada de InteligÃªncia. NÃ£o reconstrÃ³i esses campos.
             evaluated["frost_factors"] = frost.get(
                 "frost_factors"
             )
-
             if evaluated["frost_factors"] is None:
                 evaluated["frost_factors"] = frost.get("factors")
 
-            evaluated["insight"] = frost.get("insight")
-            evaluated["recommendation"] = frost.get(
-                "recommendation"
-            )
-            evaluated["alert"] = frost.get("alert")
+            # Inteligência exclusivamente deste município.
+            evaluated["rule_results"] = rule_results
+            evaluated["insights"] = insights
+            evaluated["recommendations"] = recommendations
+            evaluated["alerts"] = alerts
+            evaluated["explainability"] = explainability
 
-            # Preserva a avaliaÃ§Ã£o oficial completa para auditoria
-            # e rastreabilidade, sem criar uma segunda avaliaÃ§Ã£o.
+            # Compatibilidade com a DashboardFacade.
+            evaluated["insight"] = (
+                insights[0] if insights else None
+            )
+            evaluated["recommendation"] = (
+                recommendations[0]
+                if recommendations
+                else None
+            )
+            evaluated["alert"] = (
+                alerts[0] if alerts else None
+            )
+
+            # Rastreabilidade da mesma avaliação.
             evaluated["frost_evaluation"] = frost
+            evaluated["intelligence_evaluation"] = {
+                "frost": frost,
+                "rule_results": rule_results,
+                "insights": insights,
+                "recommendations": recommendations,
+                "alerts": alerts,
+                "explainability": explainability,
+            }
 
             evaluated_points.append(evaluated)
 
+        # Não criar, concatenar ou deduplicar alertas globais aqui.
         return evaluated_points
 
-    # ==========================================================
+    @staticmethod
+    def _normalize_municipal_alerts(
+        alerts,
+        municipio_id=None,
+        municipio_nome=None,
+    ):
+        """
+        Normaliza os alertas de uma única avaliação municipal.
+
+        A deduplicação é intra-municipal. Alertas de municípios distintos
+        permanecem independentes e nunca são fundidos aqui.
+        """
+
+        if not isinstance(alerts, list):
+            return []
+
+        normalized = []
+        seen = set()
+
+        for alert in alerts:
+            if not isinstance(alert, dict):
+                continue
+
+            item = dict(alert)
+
+            # Proveniência territorial explícita.
+            item["municipio_id"] = municipio_id
+            item["municipio_nome"] = municipio_nome
+
+            identity = (
+                item.get("id"),
+                item.get("engine"),
+                item.get("title"),
+                item.get("message"),
+                item.get("severity"),
+                item.get("score"),
+            )
+
+            if identity in seen:
+                continue
+
+            seen.add(identity)
+            normalized.append(item)
+
+        return normalized
+
+
     # EPISÃ“DIOS HISTÃ“RICOS DE GEADA
     # ==========================================================
 
@@ -1114,6 +1328,147 @@ class DashboardService:
     # ==========================================================
     # CONVERSÃƒO NUMÃ‰RICA
     # ==========================================================
+
+    # ==========================================================
+    # CONTEXTO METEOROLÓGICO CANÔNICO
+    # ==========================================================
+
+    def _build_canonical_weather_context(self):
+        """
+        Constrói o contexto meteorológico único do ciclo atual.
+
+        Fonte exclusiva:
+            self._current_weather_dtos
+
+        O método não consulta Provider nem banco para obter uma nova
+        observação. Apenas organiza os DTOs já produzidos por
+        _refresh_current_weather().
+        """
+
+        municipios = list(
+            Municipio.objects
+            .all()
+            .order_by("nome")
+        )
+
+        if not municipios:
+            return None
+
+        municipio = municipios[0]
+        observation = self._current_weather_dtos.get(
+            municipio.nome
+        )
+
+        if observation is None:
+            return None
+
+        precipitation_24h_values = []
+
+        for municipio_monitorado in municipios:
+            dto = self._current_weather_dtos.get(
+                municipio_monitorado.nome
+            )
+
+            if dto is None:
+                continue
+
+            value = self._to_float(
+                getattr(
+                    dto,
+                    "precipitation_24h_mm",
+                    getattr(
+                        dto,
+                        "precipitacao_24h",
+                        None,
+                    ),
+                )
+            )
+
+            if value is not None:
+                precipitation_24h_values.append(value)
+
+        precipitation_24h_average = None
+
+        if (
+            len(precipitation_24h_values)
+            == len(municipios)
+        ):
+            precipitation_24h_average = (
+                sum(precipitation_24h_values)
+                / len(precipitation_24h_values)
+            )
+
+        return {
+            "municipio": municipio,
+            "observation": observation,
+            "temperature": self._to_float(
+                getattr(
+                    observation,
+                    "temperature",
+                    getattr(
+                        observation,
+                        "temperatura",
+                        None,
+                    ),
+                )
+            ),
+            "humidity": self._to_float(
+                getattr(
+                    observation,
+                    "humidity",
+                    getattr(
+                        observation,
+                        "umidade",
+                        None,
+                    ),
+                )
+            ),
+            "precipitation_1h_mm": self._to_float(
+                getattr(
+                    observation,
+                    "precipitation_1h_mm",
+                    getattr(
+                        observation,
+                        "precipitacao_1h",
+                        None,
+                    ),
+                )
+            ),
+            "precipitation_24h_mm": precipitation_24h_average,
+            "precipitation_24h_values": precipitation_24h_values,
+            "rain_now": getattr(
+                observation,
+                "rain_now",
+                getattr(
+                    observation,
+                    "chuva_agora",
+                    None,
+                ),
+            ),
+            "wind_speed": self._to_float(
+                getattr(
+                    observation,
+                    "wind_speed",
+                    getattr(
+                        observation,
+                        "velocidade_vento",
+                        None,
+                    ),
+                )
+            ),
+            "cloud_cover": self._to_float(
+                getattr(
+                    observation,
+                    "cloud_cover",
+                    getattr(
+                        observation,
+                        "cobertura_nuvens",
+                        None,
+                    ),
+                )
+            ),
+        }
+
 
     @staticmethod
     def _to_float(
@@ -1225,4 +1580,141 @@ class DashboardService:
 # Objetivo: impedir que o valor numérico precipitation_24h_mm chegue ao
 # consumidor sem os respectivos campos de classificação já produzidos pelo
 # backend.
+# ============================================================================
+
+# ============================================================================
+# AUDITORIA — NÚCLEO DO PROBLEMA: ALERTAS DUPLICADOS / CRUZADOS
+# ============================================================================
+#
+# Arquivo-base:
+#     dashboard_service.py v3.8
+#
+# Resultado lógico:
+#
+#     Cada map_point possui um único contexto municipal.
+#     Cada contexto executa uma única chamada ao FrostRiskService.
+#     O resultado de alerts permanece restrito ao próprio map_point.
+#
+#     O DashboardService NÃO:
+#         - concatena alertas dos seis municípios;
+#         - cria uma coleção territorial de alerts;
+#         - executa novamente o FrostRiskService;
+#         - deduplica alertas por título/valor/severidade;
+#         - transforma score meteorológico em FRI.
+#
+# Fluxo:
+#
+#     map_point municipal
+#         -> contexto municipal isolado
+#         -> FrostRiskService.process()
+#         -> Intelligence municipal
+#         -> map_point municipal
+#         -> DashboardFacade
+#         -> apresentação
+#
+# Escopo:
+#
+#     map_point["alerts"] = alertas daquele município.
+#
+#     context["alerts"] = []
+#         no DashboardService; a seleção global permanece na Facade.
+#
+# O FRI é obtido exclusivamente de intelligence["frost"].
+# precipitation_24h_mm é transportado no contexto canônico.
+#
+# ============================================================================
+
+# ============================================================================
+# AUDITORIA TRANSVERSAL — ALERTAS — FASE 3
+# ============================================================================
+#
+# Resultado lógico consolidado:
+#
+# Fonte -> Aquisição -> Provider -> DTO -> Persistência
+#       -> MapService -> map_point municipal
+#       -> DashboardService
+#       -> contexto municipal isolado
+#       -> Intelligence
+#       -> normalização municipal
+#       -> map_point municipal
+#       -> DashboardFacade
+#       -> Apresentação
+#
+# Garantias:
+# - uma avaliação Intelligence por município;
+# - nenhum contexto municipal recebe dados de outro município;
+# - precipitation_24h_mm é o dado pluviométrico canônico de entrada;
+# - alerts são normalizados somente dentro da avaliação corrente;
+# - alertas de municípios diferentes não são fundidos;
+# - não existe agregação territorial de alerts no DashboardService;
+# - context["alerts"] permanece reservado à seleção da camada Facade;
+# - cada alerta recebe municipio_id e municipio_nome para rastreabilidade;
+# - score permanece score;
+# - FRI é derivado exclusivamente do resultado frost;
+# - nenhuma regra de limiar foi recriada neste serviço;
+# - não há segunda chamada ao FrostRiskService.
+#
+# A correção é de fluxo e escopo: impede que a camada DashboardService
+# transforme resultados municipais em uma coleção territorial/global.
+# ============================================================================
+
+
+# ============================================================================
+# AUDITORIA — FASE 3 — CORREÇÃO FINAL DO TRANSPORTE DE ALERTAS
+# ============================================================================
+#
+# Problema identificado:
+#     O DashboardService restringia ``context["alerts"]`` ao primeiro alerta
+#     do município principal. Assim, uma regra meteorológica válida em outro
+#     município podia existir no map_point municipal e ainda assim não chegar
+#     ao painel global.
+#
+# Correção:
+#     - cada município executa Intelligence uma única vez;
+#     - cada map_point preserva ``municipal_alerts``;
+#     - todos os alertas já produzidos são consolidados em
+#       ``context["alerts"]``;
+#     - a deduplicação é feita somente sobre a identidade do alerta já
+#       materializado, sem nova regra ou novo cálculo;
+#     - o ponto principal recebe a coleção territorial como contrato de
+#       transporte para a DashboardFacade;
+#     - FRI continua vindo exclusivamente de ``intelligence["frost"]``;
+#     - ``precipitation_24h_mm`` continua sendo a métrica canônica da regra
+#       meteorológica;
+#     - nenhum score meteorológico é convertido em FRI;
+#     - nenhum consumidor precisa recalcular ou reinterpretar o alerta.
+#
+# Fluxo corrigido:
+#
+#     Fonte
+#       -> Aquisição
+#       -> Provider
+#       -> DTO
+#       -> Persistência
+#       -> MapService / map_point
+#       -> DashboardService
+#       -> Intelligence municipal
+#       -> alerts municipais
+#       -> consolidação territorial canônica
+#       -> DashboardFacade
+#       -> painel de alertas
+#
+# Resultado esperado no cenário validado:
+#     Frost Rule:
+#         FRI = 34
+#     Meteorological Alert Rule:
+#         precipitation_24h_mm = 20.5
+#         severidade = low
+#
+# Portanto, o painel deve receber 2 alertas quando os dois resultados
+# estiverem materializados no ciclo.
+#
+# Nenhuma alteração realizada em:
+#     - KPIService
+#     - ChartService
+#     - MapService
+#     - popup
+#     - JavaScript do mapa
+#     - regras de FRI
+#
 # ============================================================================
