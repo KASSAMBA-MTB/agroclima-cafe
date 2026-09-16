@@ -31,6 +31,7 @@ class OpenMeteoProvider(WeatherProvider):
     def __init__(self):
 
         self.last_payload = None
+        self.last_retrieved_at = None
 
     # ======================================================
     # CLIMA ATUAL
@@ -123,9 +124,11 @@ class OpenMeteoProvider(WeatherProvider):
 
             ) from exc
 
+        retrieved_at = timezone.now()
         payload = response.json()
 
         self.last_payload = payload
+        self.last_retrieved_at = retrieved_at
 
         return self._to_dto(
 
@@ -143,14 +146,19 @@ class OpenMeteoProvider(WeatherProvider):
         self,
         payload,
         municipio,
+        retrieved_at=None,
     ):
+        """
+        Converte um payload previamente adquirido sem perder sua
+        proveniência temporal.
 
+        ``retrieved_at`` representa a aquisição original do payload,
+        não o momento em que o cache foi consultado.
+        """
         return self._to_dto(
-
             payload,
-
             municipio,
-
+            retrieved_at=retrieved_at,
         )
 
     # ======================================================
@@ -720,16 +728,13 @@ class OpenMeteoProvider(WeatherProvider):
 
                 ),
 
-                "precipitacao": round(
-
-                    float(
-                        rain
-                        if rain is not None
-                        else 0
-                    ),
-
-                    1,
-
+                "precipitacao": (
+                    round(
+                        float(rain),
+                        1,
+                    )
+                    if rain is not None
+                    else None
                 ),
 
 
@@ -1414,6 +1419,7 @@ class OpenMeteoProvider(WeatherProvider):
         self,
         payload,
         municipio,
+        retrieved_at=None,
     ):
 
         current = payload["current"]
@@ -1611,7 +1617,9 @@ class OpenMeteoProvider(WeatherProvider):
             ),
 
             retrieved_at=(
-                timezone.now()
+                retrieved_at
+                if retrieved_at is not None
+                else timezone.now()
             ),
 
             quality_status="MODEL_ESTIMATE",
