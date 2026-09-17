@@ -10,7 +10,8 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.8
+Versão..........: 3.9 — Fase 3
+Status..........: IMPLEMENTADO / ALERTA METEOROLÓGICO
 """
 
 from datetime import datetime
@@ -18,12 +19,20 @@ from datetime import datetime
 
 class AlertEngine:
     """
-    Converte recomendações em alertas estruturados.
+    Converte recomendações e resultados de regras de alerta
+    em alertas estruturados.
 
     Recomendações com severity="none" permanecem como
     recomendações, mas não são tratadas como alertas.
 
     Somente low, medium, high e critical geram alertas ativos.
+
+    IMPORTANTE:
+    - O campo ``score`` é preservado somente quando fornecido
+      pela origem.
+    - Métricas meteorológicas não são convertidas em score/FRI.
+    - Campos específicos da origem são preservados para garantir
+      rastreabilidade e permitir a apresentação correta do alerta.
     """
 
     PRIORITY = {
@@ -73,13 +82,17 @@ class AlertEngine:
         """
         Gera somente alertas ativos, ordenados por prioridade.
 
-        A recomendação "none" continua disponível na camada
-        RecommendationEngine, mas não entra na coleção alerts.
+        A coleção recebida pode conter tanto recomendações
+        provenientes de engines de recomendação quanto resultados
+        de regras explicitamente marcadas com ``channel="alert"``.
+
+        Cada alerta mantém os campos específicos existentes na
+        origem, sem reinterpretar a métrica de origem.
         """
 
         alerts = []
 
-        for recommendation in recommendations:
+        for sequence, recommendation in enumerate(recommendations):
 
             severity = str(
                 recommendation.get(
@@ -95,76 +108,131 @@ class AlertEngine:
             if severity not in self.ACTIVE_SEVERITIES:
                 continue
 
-            alerts.append(
-                {
-                    "id": recommendation.get(
-                        "id"
-                    ),
+            # --------------------------------------------------
+            # CONTRATO BASE DO ALERTA
+            # --------------------------------------------------
 
-                    "engine": recommendation.get(
-                        "engine"
-                    ),
+            alert = {
+                "id": recommendation.get(
+                    "id"
+                ),
 
-                    "title": recommendation.get(
-                        "title"
-                    ),
+                "engine": recommendation.get(
+                    "engine"
+                ),
 
-                    "message": recommendation.get(
-                        "recommendation"
-                    ),
+                "title": recommendation.get(
+                    "title"
+                ),
 
-                    "severity": severity,
+                "message": recommendation.get(
+                    "recommendation"
+                ),
 
-                    "severity_label": self.LABELS.get(
-                        severity,
-                        "Desconhecido"
-                    ),
+                "severity": severity,
 
-                    "priority": self.PRIORITY.get(
-                        severity,
-                        99
-                    ),
+                "severity_label": self.LABELS.get(
+                    severity,
+                    "Desconhecido"
+                ),
 
-                    "score": recommendation.get(
-                        "score",
-                        0
-                    ),
+                "priority": self.PRIORITY.get(
+                    severity,
+                    99
+                ),
 
-                    "confidence": recommendation.get(
-                        "confidence",
-                        0
-                    ),
+                # --------------------------------------------------
+                # SCORE / FRI
+                # --------------------------------------------------
+                # Preserva somente o score efetivamente fornecido
+                # pela origem. A ausência permanece None.
+                # Uma métrica meteorológica como precipitation_24h_mm
+                # NÃO é transformada em score ou FRI.
+                "score": recommendation.get(
+                    "score"
+                ),
 
-                    "icon": self.ICONS.get(
-                        severity,
-                        "bi-info-circle-fill"
-                    ),
+                "confidence": recommendation.get(
+                    "confidence",
+                    0
+                ),
 
-                    "color": self.COLORS.get(
-                        severity,
-                        "secondary"
-                    ),
+                "icon": self.ICONS.get(
+                    severity,
+                    "bi-info-circle-fill"
+                ),
 
-                    "factors": recommendation.get(
-                        "factors",
-                        []
-                    ),
+                "color": self.COLORS.get(
+                    severity,
+                    "secondary"
+                ),
 
-                    "active": True,
+                "factors": recommendation.get(
+                    "factors",
+                    []
+                ),
 
-                    "created_at": datetime.now(),
-                }
+                "active": True,
+
+                "created_at": datetime.now(),
+            }
+
+            # --------------------------------------------------
+            # RASTREABILIDADE DA ORIGEM
+            # --------------------------------------------------
+            # Os campos abaixo são transportados somente quando
+            # presentes na origem. Nenhum deles é reinterpretado.
+
+            source_fields = (
+                "channel",
+                "metric",
+                "metric_value",
+                "precipitation_24h_mm",
+                "precipitation_24h_class",
+                "precipitation_24h_class_label",
+                "municipio_id",
+                "municipio_nome",
+                "analysis_date",
             )
+
+            for field in source_fields:
+                if field in recommendation:
+                    alert[field] = recommendation.get(field)
+
+            # --------------------------------------------------
+            # ALIASES DE RASTREABILIDADE — SOMENTE ORIGEM
+            # --------------------------------------------------
+            # Mantém campos adicionais de identificação que possam
+            # existir em uma regra sem alterar sua semântica.
+
+            if "rule_id" in recommendation:
+                alert["rule_id"] = recommendation.get("rule_id")
+
+            if "rule_name" in recommendation:
+                alert["rule_name"] = recommendation.get("rule_name")
+
+            # Guarda a posição original para uma ordenação estável.
+            # Não utiliza score porque diferentes tipos de alerta
+            # podem possuir métricas incomparáveis.
+            alert["_sequence"] = sequence
+
+            alerts.append(alert)
 
         # ------------------------------------------------------
         # ORDENAÇÃO
         # ------------------------------------------------------
+        # A prioridade de severidade é comparável entre os alertas.
+        # O segundo critério é apenas a ordem original, preservando
+        # estabilidade e evitando comparar métricas heterogêneas.
 
         alerts.sort(
             key=lambda alert: (
                 alert["priority"],
-                -alert["score"],
+                alert["_sequence"],
             )
         )
+
+        for alert in alerts:
+            alert.pop("_sequence", None)
 
         return alerts

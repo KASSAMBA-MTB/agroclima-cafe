@@ -109,19 +109,26 @@ const MapController = {
        Vargem Grande do Sul = 3556404
        ====================================================== */
 
-    territoryGeoJsonUrl:
+    /* ======================================================
+       FONTE TERRITORIAL CANÔNICA
 
-        "https://geo.infrasa.gov.br/server/rest/services/Hosted/BR_Municipios_2024/FeatureServer/0/query" +
+       A malha municipal é carregada diretamente pela API
+       oficial de malhas do IBGE, um município por requisição.
+       O retorno é normalizado para o contrato territorial
+       interno antes de chegar ao Leaflet.
 
-        "?where=cd_mun%20in%20(%273500402%27%2C%273102605%27%2C%273151800%27%2C%273515186%27%2C%273556404%27%2C%273549102%27)" +
+       Isso elimina a dependência do endpoint ArcGIS usado
+       anteriormente para a apresentação dos polígonos.
+       ====================================================== */
 
-        "&outFields=cd_mun%2Cnm_mun%2Csigla_uf" +
+    territoryGeoJsonBaseUrl:
 
-        "&returnGeometry=true" +
+        "https://servicodados.ibge.gov.br/api/v3/malhas/municipios/",
 
-        "&outSR=4326" +
 
-        "&f=geojson",
+    territoryFormat:
+
+        "?formato=application/vnd.geo+json&qualidade=maxima",
 
 
     /* ======================================================
@@ -406,14 +413,14 @@ const MapController = {
         ================================================== */
 
         L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png",
             {
 
                 maxZoom:
                     19,
 
                 attribution:
-                    "&copy; OpenStreetMap"
+                    "dados &copy; <a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener\">OpenStreetMap</a> / <a href=\"https://www.openstreetmap.fr/\" target=\"_blank\" rel=\"noopener\">OSM France</a>"
 
             }
         ).addTo(
@@ -445,6 +452,23 @@ const MapController = {
 
         this.bindLayerButtons();
         this.updateLegend();
+
+
+        const activeMapButton =
+            document.querySelector(
+                "[data-map-layer].active"
+            );
+
+
+        if (
+            activeMapButton &&
+            activeMapButton.dataset.mapLayer
+        ) {
+
+            this.activeLayer =
+                activeMapButton.dataset.mapLayer;
+
+        }
 
 
         this.loadPoints();
@@ -860,234 +884,221 @@ const MapController = {
         }
 
 
+        const monitoredCodes =
+            Object.keys(
+                this.monitoredMunicipalities
+            );
+
+
+        const monitoredUf = {
+
+            "3500402": "SP",
+
+            "3102605": "MG",
+
+            "3515186": "SP",
+
+            "3151800": "MG",
+
+            "3549102": "SP",
+
+            "3556404": "SP"
+
+        };
+
+
         try {
 
             console.info(
-                "[AGROCLIMA] Consultando fonte territorial..."
+                "[AGROCLIMA] Carregando malhas municipais pelo IBGE..."
             );
 
 
-            const response =
-                await fetch(
-                    this.territoryGeoJsonUrl,
-                    {
+            const requests =
+                monitoredCodes.map(
+                    async code => {
 
-                        method:
-                            "GET",
+                        const response =
+                            await fetch(
+                                this.territoryGeoJsonBaseUrl +
+                                code +
+                                this.territoryFormat,
+                                {
+                                    method:
+                                        "GET",
 
-                        headers: {
+                                    headers: {
+                                        Accept:
+                                            "application/geo+json, application/json"
+                                    },
 
-                            Accept:
-                                "application/geo+json, application/json"
+                                    cache:
+                                        "no-store"
+                                }
+                            );
+
+
+                        if (
+                            !response.ok
+                        ) {
+
+                            throw new Error(
+                                `IBGE ${code}: HTTP ${response.status}`
+                            );
 
                         }
 
-                    }
-                );
+
+                        const payload =
+                            await response.json();
 
 
-            if (
-                !response.ok
-            ) {
-
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
-
-            }
+                        let feature = null;
 
 
-            const geojson =
-                await response.json();
+                        if (
+                            payload &&
+                            Array.isArray(
+                                payload.features
+                            ) &&
+                            payload.features.length
+                        ) {
+
+                            feature =
+                                payload.features[0];
+
+                        } else if (
+                            payload &&
+                            payload.type ===
+                            "Feature"
+                        ) {
+
+                            feature =
+                                payload;
+
+                        }
 
 
-            if (
-                !geojson ||
-                !Array.isArray(
-                    geojson.features
-                )
-            ) {
+                        if (
+                            !feature ||
+                            !feature.geometry
+                        ) {
 
-                throw new Error(
-                    "GeoJSON territorial inválido."
-                );
+                            throw new Error(
+                                `IBGE ${code}: GeoJSON sem geometria.`
+                            );
 
-            }
+                        }
 
 
-            /* ==================================================
-               DIAGNÓSTICO DA FONTE
-            ================================================== */
+                        /*
+                         * O endpoint de malha pode variar os nomes
+                         * dos metadados. O contrato interno é fixado
+                         * aqui usando o código monitorado como chave.
+                         */
+                        feature.properties = {
 
-            console.info(
-                "[AGROCLIMA] Total de polígonos recebidos:",
-                geojson.features.length
-            );
+                            ...(feature.properties || {}),
 
+                            cd_mun:
+                                code,
 
-            const municipalities =
-                geojson.features.map(
-                    feature => {
+                            nm_mun:
+                                this.monitoredMunicipalities[
+                                    code
+                                ],
 
-                        const properties =
-                            feature.properties ||
-                            {};
-
-
-                        return {
-
-                            code:
-                                properties.cd_mun ||
-                                properties.CD_MUN ||
-                                null,
-
-                            name:
-                                properties.nm_mun ||
-                                properties.NM_MUN ||
-                                "",
-
-                            uf:
-                                properties.sigla_uf ||
-                                properties.SIGLA_UF ||
-                                ""
+                            sigla_uf:
+                                monitoredUf[
+                                    code
+                                ]
 
                         };
 
+
+                        return feature;
+
                     }
                 );
 
 
-            console.info(
-                "[AGROCLIMA] Municípios territoriais recebidos:",
-                municipalities
-            );
-
-
-            /* ==================================================
-               VALIDAR OS SEIS MUNICÍPIOS MONITORADOS
-            ================================================== */
-
-            const monitoredCodes =
-                Object.keys(
-                    this.monitoredMunicipalities
+            const results =
+                await Promise.allSettled(
+                    requests
                 );
 
 
             const monitoredFeatures =
-                geojson.features.filter(
-                    feature => {
-
-                        const code =
-                            this.getTerritoryCode(
-                                feature
-                            );
+                [];
 
 
-                        return monitoredCodes.includes(
-                            code
+            results.forEach(
+                (
+                    result,
+                    index
+                ) => {
+
+                    const code =
+                        monitoredCodes[
+                            index
+                        ];
+
+
+                    if (
+                        result.status ===
+                        "fulfilled"
+                    ) {
+
+                        monitoredFeatures.push(
+                            result.value
+                        );
+
+                        console.info(
+                            `[AGROCLIMA] Território IBGE carregado: ${this.monitoredMunicipalities[code]} (${code})`
+                        );
+
+                    } else {
+
+                        console.error(
+                            `[AGROCLIMA] Falha ao carregar território IBGE: ${this.monitoredMunicipalities[code]} (${code})`,
+                            result.reason
                         );
 
                     }
-                );
 
-
-            const loadedCodes =
-                monitoredFeatures.map(
-                    feature =>
-                        this.getTerritoryCode(
-                            feature
-                        )
-                );
-
-
-            const missingMunicipalities =
-                monitoredCodes
-                    .filter(
-                        code =>
-                            !loadedCodes.includes(
-                                code
-                            )
-                    )
-                    .map(
-                        code =>
-                            `${this.monitoredMunicipalities[code]} (${code})`
-                    );
-
-
-            console.info(
-                "[AGROCLIMA] Polígonos dos municípios monitorados:",
-                monitoredFeatures.length
-            );
-
-
-            console.info(
-                "[AGROCLIMA] Municípios monitorados encontrados:",
-                monitoredFeatures.map(
-                    feature =>
-                        `${this.getTerritoryName(feature)} (${this.getTerritoryCode(feature)})`
-                )
+                }
             );
 
 
             if (
-                missingMunicipalities.length
+                monitoredFeatures.length !==
+                monitoredCodes.length
             ) {
 
                 console.error(
-                    "[AGROCLIMA] Municípios monitorados sem polígono:",
-                    missingMunicipalities
-                );
+                    "[AGROCLIMA] Validação territorial incompleta:",
+                    {
+                        esperados:
+                            monitoredCodes.length,
 
-            } else {
-
-                console.info(
-                    "[AGROCLIMA] VALIDAÇÃO TERRITORIAL: 6/6 municípios encontrados."
+                        carregados:
+                            monitoredFeatures.length
+                    }
                 );
 
             }
 
 
-            /* ==================================================
-               VALIDAÇÃO ESPECÍFICA DE VARGEM GRANDE DO SUL
-            ================================================== */
-
-            const vargem =
-                monitoredFeatures.find(
-                    feature =>
-                        this.getTerritoryCode(
-                            feature
-                        ) ===
-                        "3556404"
-                );
-
-
             if (
-                vargem
+                !monitoredFeatures.length
             ) {
 
-                console.info(
-                    "[AGROCLIMA] Vargem Grande do Sul encontrada no GeoJSON: 3556404."
-                );
-
-            } else {
-
-                console.error(
-                    "[AGROCLIMA] ERRO TERRITORIAL: Vargem Grande do Sul (3556404) não foi retornada pela fonte."
+                throw new Error(
+                    "Nenhum território municipal foi carregado pelo IBGE."
                 );
 
             }
 
-
-            /* ==================================================
-               FIXAÇÃO DO RECORTE TERRITORIAL VALIDADO
-
-               A máscara e todas as operações territoriais devem
-               utilizar exclusivamente as feições já validadas
-               em monitoredFeatures.
-
-               Isso impede que qualquer feição adicional retornada
-               futuramente pela fonte territorial entre no recorte.
-            ================================================== */
 
             this.territoryGeoJson = {
 
@@ -1100,31 +1111,9 @@ const MapController = {
             };
 
 
-            /* ==================================================
-               CRIAR CAMADA TERRITORIAL
-
-               Somente os seis municípios monitorados são
-               adicionados ao mapa.
-
-               Isso impede que um município externo, como
-               Santo Antônio do Jardim, seja desenhado caso
-               a fonte retorne alguma feição adicional.
-            ================================================== */
-
-            const monitoredGeoJson = {
-
-                type:
-                    "FeatureCollection",
-
-                features:
-                    monitoredFeatures
-
-            };
-
-
             this.territoryLayer =
                 L.geoJSON(
-                    monitoredGeoJson,
+                    this.territoryGeoJson,
                     {
 
                         pane:
@@ -1162,13 +1151,15 @@ const MapController = {
                 true;
 
 
-            this.updateTerritoryStyle();
-            this.refreshFRISurface();
+            /*
+             * O botão .active do template é a fonte do estado
+             * visual inicial. Reaplicamos a camada depois que
+             * os polígonos existem.
+             */
+            this.changeLayer(
+                this.activeLayer
+            );
 
-
-            /* ==================================================
-               ENQUADRAMENTO AUTOMÁTICO
-            ================================================== */
 
             const bounds =
                 this.territoryLayer
@@ -1198,6 +1189,22 @@ const MapController = {
             }
 
 
+            setTimeout(
+                () => {
+
+                    if (
+                        this.map
+                    ) {
+
+                        this.map.invalidateSize();
+
+                    }
+
+                },
+                100
+            );
+
+
         } catch (error) {
 
             console.error(
@@ -1208,7 +1215,6 @@ const MapController = {
         }
 
     },
-
 
     /* ======================================================
        IDENTIFICAÇÃO TERRITORIAL
@@ -1441,16 +1447,116 @@ const MapController = {
     getPrecipitationClass(point) {
 
         if (!point) {
+
             return "none";
+
         }
 
-        const classification =
-            String(
-                point.precipitation_24h_class ||
-                ""
-            ).trim();
 
-        return classification || "none";
+        const raw =
+            point.precipitation_24h_class ??
+            point.precipitation_class ??
+            point.precipitation_classification ??
+            point.chuva_24h_class ??
+            point.chuva_24h_classificacao ??
+            "";
+
+
+        const value =
+            String(
+                raw
+            )
+                .trim()
+                .toLowerCase()
+                .normalize(
+                    "NFD"
+                )
+                .replace(
+                    /[\u0300-\u036f]/g,
+                    ""
+                );
+
+
+        const aliases = {
+
+            "none":
+                "none",
+
+            "sem chuva":
+                "none",
+
+            "no rain":
+                "none",
+
+            "low":
+                "low",
+
+            "baixa":
+                "low",
+
+            "moderate":
+                "moderate",
+
+            "moderada":
+                "moderate",
+
+            "high":
+                "high",
+
+            "alta":
+                "high",
+
+            "veryhigh":
+                "veryHigh",
+
+            "very high":
+                "veryHigh",
+
+            "muito alta":
+                "veryHigh",
+
+            "extreme":
+                "extreme",
+
+            "extrema":
+                "extreme"
+
+        };
+
+
+        if (
+            aliases[value]
+        ) {
+
+            return aliases[value];
+
+        }
+
+
+        /*
+         * Fallback estritamente visual para o contrato atual:
+         * precipitação 24h exatamente igual a zero significa
+         * "Sem chuva". Nenhum limiar agroclimático é criado.
+         */
+        const value24h =
+            Number(
+                point.precipitation_24h_mm
+            );
+
+
+        if (
+            Number.isFinite(
+                value24h
+            ) &&
+            value24h === 0
+        ) {
+
+            return "none";
+
+        }
+
+
+        return "none";
 
     },
 
@@ -4949,6 +5055,30 @@ const ChartController = {
         }
 
 
+        const initialChartContainer =
+            canvas.closest(
+                ".chart-container"
+            );
+
+
+        if (initialChartContainer) {
+
+            initialChartContainer.style.position =
+                "relative";
+
+            initialChartContainer.style.minHeight =
+                "320px";
+
+            initialChartContainer.style.height =
+                "320px";
+
+        }
+
+
+        canvas.style.display =
+            "block";
+
+
         if (typeof Chart === "undefined") {
 
             console.error(
@@ -5079,9 +5209,19 @@ const ChartController = {
 
         if (
             !this.periods[initialKey] ||
-            !this.periods[initialKey].dias.length
+            this.periods[initialKey].dias.length < 2
         ) {
-            initialKey = "7";
+
+            if (
+                this.periods["7"] &&
+                this.periods["7"].dias.length
+            ) {
+
+                initialKey =
+                    "7";
+
+            }
+
         }
 
 
@@ -5110,6 +5250,19 @@ const ChartController = {
             console.warn(
                 "[AGROCLIMA] Nenhum dado de evolução climática disponível."
             );
+
+            this.showNoDataState(
+                canvas,
+                "Não há dados históricos disponíveis para exibir neste momento."
+            );
+
+            this.updatePeriodSummary(
+                initialPeriod
+            );
+
+            this.bindPeriodButtons();
+
+            this.initialized = true;
 
             return;
 
@@ -5387,6 +5540,131 @@ const ChartController = {
     },
 
 
+    /* ==================================================
+       ESTADO EXPLÍCITO DE AUSÊNCIA DE DADOS
+
+       Este bloco trata exclusivamente da apresentação.
+       Nenhum dado é criado, estimado ou substituído.
+       Quando o backend não entrega observações para um
+       período, o usuário recebe um estado visual explícito
+       em vez de um gráfico aparentemente vazio.
+    ================================================== */
+
+    showNoDataState(
+        canvas,
+        message = "Não há dados disponíveis para exibir."
+    ) {
+
+        if (!canvas) {
+            return;
+        }
+
+        if (this.chart) {
+
+            this.chart.destroy();
+
+            this.chart = null;
+
+        }
+
+        canvas.style.display = "none";
+
+        const container =
+            canvas.closest(
+                ".chart-container"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        let state =
+            container.querySelector(
+                ".chart-no-data-state"
+            );
+
+        if (!state) {
+
+            state =
+                document.createElement(
+                    "div"
+                );
+
+            state.className =
+                "chart-no-data-state d-flex flex-column justify-content-center align-items-center text-secondary text-center";
+
+            state.style.minHeight =
+                "320px";
+
+            state.style.padding =
+                "2rem";
+
+            state.style.borderRadius =
+                "0.5rem";
+
+            state.innerHTML =
+                `
+                    <i class="bi bi-bar-chart-line mb-2" aria-hidden="true"></i>
+                    <strong class="chart-no-data-title">Sem dados para exibir</strong>
+                    <small class="chart-no-data-message"></small>
+                `;
+
+            container.appendChild(
+                state
+            );
+
+        }
+
+        const messageElement =
+            state.querySelector(
+                ".chart-no-data-message"
+            );
+
+        if (messageElement) {
+
+            messageElement.textContent =
+                message;
+
+        }
+
+        state.hidden = false;
+
+    },
+
+
+    hideNoDataState(
+        canvas
+    ) {
+
+        if (!canvas) {
+            return;
+        }
+
+        canvas.style.display = "block";
+
+        const container =
+            canvas.closest(
+                ".chart-container"
+            );
+
+        if (!container) {
+            return;
+        }
+
+        const state =
+            container.querySelector(
+                ".chart-no-data-state"
+            );
+
+        if (state) {
+
+            state.hidden = true;
+
+        }
+
+    },
+
+
     createChart(
         canvas,
         labels,
@@ -5394,6 +5672,44 @@ const ChartController = {
         precipitation,
         etoMmDay = []
     ) {
+
+        this.hideNoDataState(
+            canvas
+        );
+
+
+        /*
+         * Área física garantida para o Chart.js.
+         */
+        const chartContainer =
+            canvas.closest(
+                ".chart-container"
+            );
+
+
+        if (chartContainer) {
+
+            chartContainer.style.position =
+                "relative";
+
+            chartContainer.style.minHeight =
+                "320px";
+
+            chartContainer.style.height =
+                "320px";
+
+        }
+
+
+        canvas.style.display =
+            "block";
+
+        canvas.style.width =
+            "100%";
+
+        canvas.style.height =
+            "100%";
+
 
         if (this.chart) {
 
@@ -5496,7 +5812,7 @@ const ChartController = {
 
                     data: {
 
-                        labels: labels,
+                        labels: normalizedLabels,
 
 
                         datasets: [
@@ -6016,6 +6332,24 @@ const ChartController = {
         window.weatherChart =
             this.chart;
 
+        requestAnimationFrame(
+            () => {
+
+                if (
+                    this.chart
+                ) {
+
+                    this.chart.resize();
+
+                    this.chart.update(
+                        "none"
+                    );
+
+                }
+
+            }
+        );
+
     },
 
 
@@ -6457,7 +6791,7 @@ const ChartController = {
                          * aparentemente selecionada sem atualizar
                          * o gráfico.
                          */
-                        if (
+                                        if (
                             !data ||
                             !Array.isArray(data.dias) ||
                             !data.dias.length
@@ -6467,6 +6801,30 @@ const ChartController = {
                                 "[AGROCLIMA] Período sem dados:",
                                 period
                             );
+
+                            const emptyCanvas =
+                                document.getElementById(
+                                    "weatherChart"
+                                );
+
+                            if (emptyCanvas) {
+
+                                this.showNoDataState(
+                                    emptyCanvas,
+                                    "Não há dados disponíveis para o período selecionado."
+                                );
+
+                                this.updatePeriodSummary(
+                                    data || {
+                                        dias: [],
+                                        temperatura: [],
+                                        precipitacao: [],
+                                        eto_mm_day: [],
+                                        resumo: {}
+                                    }
+                                );
+
+                            }
 
                             return;
 
@@ -6783,45 +7141,6 @@ document.addEventListener(
 
     }
 );
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
-/* AUDITORIA DE COMPATIBILIDADE — linha preservada para rastreabilidade. */
 
 /* ==========================================================
    ETAPA 9 — PAINEL MUNICIPAL ESTÁTICO DESDE O CARREGAMENTO
@@ -6902,4 +7221,23 @@ document.addEventListener(
    - ETo é identificada como mm/dia no tooltip.
    - A ausência de ETo não bloqueia temperatura/precipitação.
    - Nenhum cálculo de ETo ou regra agroclimática é criado no frontend.
+   ========================================================== */
+
+/* ==========================================================
+   AGROCLIMA CAFÉ — CORREÇÃO FINAL DO GRÁFICO
+   - área física do container/canvas garantida;
+   - resize pós-layout executado;
+   - dados continuam provenientes do backend;
+   - "Hoje" usa 7 dias quando não possui série temporal suficiente;
+   - nenhuma regra agroclimática é calculada no frontend.
+   ========================================================== */
+
+/* ==========================================================
+   AGROCLIMA CAFÉ — VERSÃO AUDITADA PARA TESTE
+   - território municipal: API oficial IBGE;
+   - 6 municípios normalizados por código IBGE;
+   - camada ativa sincronizada com o template;
+   - precipitação normalizada sem criação de regra agroclimática;
+   - Chart.js com área física e resize pós-layout;
+   - backend permanece autoridade dos indicadores.
    ========================================================== */

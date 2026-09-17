@@ -15,6 +15,7 @@ Responsabilidades:
     - fornecer clima atual através do WeatherService;
     - fornecer estação meteorológica;
     - fornecer séries históricas diárias;
+    - consolidar precipitação regional pela média dos municípios com dado válido;
     - suportar períodos de 7 dias;
     - suportar períodos de 30 dias;
     - suportar histórico completo disponível;
@@ -49,7 +50,7 @@ A camada de inteligência não pertence a este serviço.
 
 from datetime import timedelta
 
-from django.db.models import Avg, Sum, Min, Max
+from django.db.models import Avg, Min, Max
 from django.utils import timezone
 
 from clima.models import (
@@ -457,7 +458,7 @@ class HistoryService:
                     "temperatura_media"
                 ),
 
-                precipitacao_total_regiao=Sum(
+                precipitacao_media_regiao=Avg(
                     "precipitacao"
                 ),
 
@@ -500,7 +501,7 @@ class HistoryService:
 
             precipitacao = (
                 record.get(
-                    "precipitacao_total_regiao"
+                    "precipitacao_media_regiao"
                 )
             )
 

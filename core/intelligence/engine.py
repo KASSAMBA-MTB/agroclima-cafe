@@ -13,6 +13,7 @@ Versão..........: 3.7
 """
 
 from core.intelligence.rules.frost_rule import FrostRule
+from core.intelligence.rules.meteorological_alert_rule import MeteorologicalAlertRule
 from core.intelligence.insight_engine import InsightEngine
 from core.intelligence.recommendation_engine import RecommendationEngine
 from core.intelligence.alert_engine import AlertEngine
@@ -98,6 +99,10 @@ class IntelligenceEngine:
             FrostRule()
         )
 
+        self.rule_engine.register(
+            MeteorologicalAlertRule()
+        )
+
     # ==========================================================
     # PROCESSAMENTO CENTRAL
     # ==========================================================
@@ -134,8 +139,14 @@ class IntelligenceEngine:
         # 2. Geração de insights
         # ------------------------------------------------------
 
+        insight_rule_results = [
+            result
+            for result in rule_results
+            if result.get("channel") != "alert"
+        ]
+
         insights = self.insight_engine.generate(
-            rule_results
+            insight_rule_results
         )
 
         # ------------------------------------------------------
@@ -150,8 +161,17 @@ class IntelligenceEngine:
         # 4. Geração de alertas
         # ------------------------------------------------------
 
+        alert_rule_results = [
+            result
+            for result in rule_results
+            if result.get("channel") == "alert"
+        ]
+
+        alert_inputs = list(recommendations)
+        alert_inputs.extend(alert_rule_results)
+
         alerts = self.alert_engine.generate(
-            recommendations
+            alert_inputs
         )
 
         # ------------------------------------------------------

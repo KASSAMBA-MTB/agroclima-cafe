@@ -173,7 +173,7 @@ class ChartService:
 
         if indice < len(precipitacoes):
             precipitacoes[indice] = current_kpis.get(
-                "precipitacao_1h"
+                "precipitacao_24h"
             )
 
         integrado = dict(data)
@@ -214,7 +214,7 @@ class ChartService:
                     current_kpis.get("temperatura_media")
                 ],
                 "precipitacao": [
-                    current_kpis.get("precipitacao_1h")
+                    current_kpis.get("precipitacao_24h")
                 ],
                 "umidade": [None],
                 "vento": [None],
@@ -269,7 +269,7 @@ class ChartService:
             [
                 getattr(
                     observation,
-                    "precipitacao_1h",
+                    "precipitacao_24h",
                     observation.precipitacao,
                 )
                 for observation in latest_observations

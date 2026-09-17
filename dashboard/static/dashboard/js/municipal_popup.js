@@ -302,14 +302,16 @@
             return MISSING;
         }
 
-        const alertLabel =
-            point.alert &&
-            normalizeText(point.alert.severity_label);
-
-        if (alertLabel) {
-            return alertLabel;
-        }
-
+        /*
+         * CONTRATO CANÔNICO:
+         *
+         * Este campo representa exclusivamente a severidade do FRI.
+         * A severidade de um alerta meteorológico é outro domínio e
+         * não pode sobrescrever a severidade do indicador de risco
+         * de geada.
+         *
+         * Portanto, a apresentação do FRI utiliza somente point.severity.
+         */
         const raw = normalizeText(point.severity);
 
         if (!raw) {
@@ -664,9 +666,11 @@
             return null;
         }
 
-        return point.precipitation_accumulated_mm ??
-            point.precipitacao_acumulada_mm ??
-            null;
+        // Contrato canônico: o acumulado disponível exibido no popup
+        // corresponde ao mesmo acumulado oficial das últimas 24 horas.
+        // Não consultar campos paralelos nem criar uma segunda janela
+        // temporal no frontend.
+        return point.precipitation_24h_mm ?? null;
     }
 
 
@@ -1875,6 +1879,7 @@
 
    Compatibilidade:
    - severity = "none" é apresentado como "Sem risco";
+   - a severidade do alerta não sobrescreve a severidade canônica do FRI;
    - AgroClimaMunicipalPopup.build permanece a API pública;
    - buildObservationMeta permanece disponível internamente;
    - campos do map_point permanecem os mesmos;
@@ -1912,4 +1917,30 @@
    - versão original auditada: 1880 linhas;
    - versão corrigida: quantidade igual ou superior;
    - nenhuma alteração realizada na lógica do backend.
+============================================================ */
+
+
+/* ============================================================
+   AUDITORIA — CORREÇÃO DO ACUMULADO DISPONÍVEL
+
+   Correção aplicada:
+   - "Acumulado disponível" utiliza exclusivamente
+     precipitation_24h_mm;
+   - o valor é o mesmo acumulado oficial de 24 horas já exibido
+     pelo cartão "24h";
+   - campos precipitation_accumulated_mm e
+     precipitacao_acumulada_mm deixam de participar desta apresentação;
+   - nenhuma precipitação é calculada no frontend;
+   - ausência permanece como "Não disponível" por meio do contrato
+     existente de formatação.
+
+   Cadeia preservada:
+   Fonte → Provider → DTO → Persistência → Indicadores → map_point
+   → Popup municipal → apresentação.
+
+   Resultado esperado para Águas da Prata:
+   24h = 21,2 mm
+   Acumulado disponível = 21,2 mm
+
+   FRI e severidade permanecem independentes da precipitação.
 ============================================================ */

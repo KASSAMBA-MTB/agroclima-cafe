@@ -105,13 +105,23 @@
                         </span>
 
 
-                        <span>
-                            <i class="bi bi-speedometer2"></i>
+                        {% if alert.engine == 'Frost Rule' or alert.engine == 'frost' %}
+                            <span>
+                                <i class="bi bi-speedometer2"></i>
 
-                            FRI:
-                            {{ alert.score|default:"0" }}
+                                FRI:
+                                {{ alert.score|default:"0" }}
 
-                        </span>
+                            </span>
+                        {% elif alert.engine == 'Meteorological Alert Rule' %}
+                            <span>
+                                <i class="bi bi-cloud-rain"></i>
+
+                                Precipitação 24h:
+                                {{ alert.precipitation_24h_mm|default:"0" }} mm
+
+                            </span>
+                        {% endif %}
 
 
                         <span>
@@ -209,11 +219,44 @@
             <i class="bi bi-shield-check"></i>
 
             Os alertas são provenientes da camada de Inteligência.
-            Severidade, FRI, confiança e fatores são apresentados
-            sem alteração dos dados produzidos pelo sistema.
+            A métrica exibida depende do tipo de alerta: FRI para
+            alertas da Frost Rule e precipitação acumulada em 24h
+            para alertas da Meteorological Alert Rule. Os valores
+            são apresentados sem alteração dos dados produzidos
+            pelo sistema.
 
         </small>
 
     </div>
 
 </section>
+
+
+<!-- ==========================================================
+     REGISTRO DE AUDITORIA — FASE 3
+     ==========================================================
+
+     Arquivo-base auditado:
+         alerts_panel.html
+
+     Anomalia corrigida:
+         O painel utilizava alert.score como FRI para qualquer tipo
+         de alerta. Na Meteorological Alert Rule, score representa
+         precipitação acumulada em 24h e não FRI.
+
+     Contrato corrigido:
+         Frost Rule                  -> FRI = alert.score
+         Meteorological Alert Rule   -> Precipitação 24h =
+                                        alert.precipitation_24h_mm
+
+     Garantias:
+         - nenhum cálculo é realizado no frontend;
+         - nenhum valor é reinterpretado;
+         - precipitation_24h_mm é apresentado como precipitação;
+         - FRI não é atribuído a alertas meteorológicos;
+         - severidade continua sendo a severidade do alerta;
+         - context["alerts"] permanece a única fonte do componente.
+
+     Resultado:
+         A apresentação deixa de confundir score pluviométrico com FRI.
+     ========================================================== -->
