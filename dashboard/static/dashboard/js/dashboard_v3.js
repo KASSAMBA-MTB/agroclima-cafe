@@ -610,7 +610,6 @@ const MapController = {
         panel.dataset.municipio = point.nome || "";
         panel.dataset.layer = this.activeLayer;
 
-        this.updateContextualMapKPIs(point);
     },
 
 
