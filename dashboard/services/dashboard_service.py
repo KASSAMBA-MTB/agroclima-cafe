@@ -1201,7 +1201,7 @@ class DashboardService:
             # são comparados ou fundidos.
             alerts = self._normalize_municipal_alerts(
                 alerts,
-                municipio_id=point.get("municipio_id"),
+                municipio_id=point.get("id"),
                 municipio_nome=(
                     point.get("municipio_nome")
                     or point.get("nome")
