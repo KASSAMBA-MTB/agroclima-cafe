@@ -14,6 +14,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import requests
+import time
 from django.utils import timezone
 
 from .dto import WeatherDTO
@@ -24,7 +25,11 @@ class OpenMeteoProvider(WeatherProvider):
 
     BASE_URL = "https://api.open-meteo.com/v1/forecast"
 
-    TIMEOUT = 15
+    TIMEOUT = 30
+
+    REQUEST_RETRIES = 3
+
+    RETRY_BACKOFF_SECONDS = 2
 
     TIMEZONE = "America/Sao_Paulo"
 
@@ -32,6 +37,76 @@ class OpenMeteoProvider(WeatherProvider):
 
         self.last_payload = None
         self.last_retrieved_at = None
+
+    # ======================================================
+    # COMUNICAÇÃO RESILIENTE COM OPEN-METEO
+    # ======================================================
+
+    def _request_with_retry(
+        self,
+        params,
+    ):
+        """
+        Executa uma consulta à Open-Meteo com tolerância a
+        falhas transitórias de rede.
+
+        A consulta é repetida somente para erros de conexão,
+        timeout e respostas HTTP temporariamente indisponíveis.
+        O conteúdo retornado pela Open-Meteo não é alterado.
+
+        Política:
+            - timeout por tentativa: TIMEOUT segundos;
+            - até REQUEST_RETRIES tentativas adicionais;
+            - espera progressiva entre tentativas.
+
+        Se todas as tentativas falharem, preserva-se a exceção
+        original como RuntimeError para manter o contrato atual
+        do provider.
+        """
+
+        last_exception = None
+
+        for attempt in range(
+            self.REQUEST_RETRIES + 1
+        ):
+
+            try:
+
+                response = requests.get(
+
+                    self.BASE_URL,
+
+                    params=params,
+
+                    timeout=self.TIMEOUT,
+
+                )
+
+                if response.status_code >= 500:
+
+                    response.raise_for_status()
+
+                response.raise_for_status()
+
+                return response
+
+            except requests.RequestException as exc:
+
+                last_exception = exc
+
+                if attempt >= self.REQUEST_RETRIES:
+                    break
+
+                time.sleep(
+                    self.RETRY_BACKOFF_SECONDS
+                    * (attempt + 1)
+                )
+
+        raise RuntimeError(
+            "Erro ao consultar Open-Meteo após "
+            f"{self.REQUEST_RETRIES + 1} tentativas: "
+            f"{last_exception}"
+        ) from last_exception
 
     # ======================================================
     # CLIMA ATUAL
@@ -104,17 +179,11 @@ class OpenMeteoProvider(WeatherProvider):
 
         try:
 
-            response = requests.get(
-
-                self.BASE_URL,
+            response = self._request_with_retry(
 
                 params=params,
 
-                timeout=self.TIMEOUT,
-
             )
-
-            response.raise_for_status()
 
         except requests.RequestException as exc:
 
@@ -249,17 +318,11 @@ class OpenMeteoProvider(WeatherProvider):
 
         try:
 
-            response = requests.get(
-
-                self.BASE_URL,
+            response = self._request_with_retry(
 
                 params=params,
 
-                timeout=self.TIMEOUT,
-
             )
-
-            response.raise_for_status()
 
         except requests.RequestException as exc:
 
@@ -513,17 +576,11 @@ class OpenMeteoProvider(WeatherProvider):
 
         try:
 
-            response = requests.get(
-
-                self.BASE_URL,
+            response = self._request_with_retry(
 
                 params=params,
 
-                timeout=self.TIMEOUT,
-
             )
-
-            response.raise_for_status()
 
         except requests.RequestException as exc:
 

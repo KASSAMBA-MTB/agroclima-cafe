@@ -142,8 +142,8 @@ class ChartService:
             ),
         }
 
-    @staticmethod
     def _integrate_current_day(
+        self,
         data,
         current_kpis=None,
     ):
@@ -162,9 +162,12 @@ class ChartService:
         if hoje not in dias:
             return data
 
-        indice = dias.index(hoje)
+        # Em "historico", o mesmo dia/mês pode existir em vários anos.
+        # O ponto a atualizar é necessariamente a ocorrência mais recente.
+        indice = len(dias) - 1 - dias[::-1].index(hoje)
         temperaturas = list(data.get("temperatura", []))
         precipitacoes = list(data.get("precipitacao", []))
+        eto_mm_day = list(data.get("eto_mm_day", []))
 
         if indice < len(temperaturas):
             temperaturas[indice] = current_kpis.get(
@@ -176,9 +179,15 @@ class ChartService:
                 "precipitacao_24h"
             )
 
+        # ETo não é recalculada nem substituída neste serviço.
+        # O HistoryService já fornece a série diária persistida.
+        # Preservamos o valor recebido para evitar que uma segunda consulta
+        # retorne None e apague a ETo histórica do dia atual.
+
         integrado = dict(data)
         integrado["temperatura"] = temperaturas
         integrado["precipitacao"] = precipitacoes
+        integrado["eto_mm_day"] = eto_mm_day
 
         return integrado
 
@@ -207,6 +216,9 @@ class ChartService:
 
         hoje = timezone.localdate()
 
+        # ETo de referência não pertence ao KPI corrente.
+        # A fonte autoritativa para o gráfico é a série diária
+        # persistida e entregue pelo HistoryService.
         if current_kpis is not None:
             return {
                 "dias": [hoje.strftime("%d/%m")],
@@ -215,6 +227,9 @@ class ChartService:
                 ],
                 "precipitacao": [
                     current_kpis.get("precipitacao_24h")
+                ],
+                "eto_mm_day": [
+                    None
                 ],
                 "umidade": [None],
                 "vento": [None],
@@ -338,6 +353,9 @@ class ChartService:
             "precipitacao": [
                 precipitation_value,
             ],
+            "eto_mm_day": [
+                None,
+            ],
             "umidade": [
                 humidity_value,
             ],
@@ -347,6 +365,53 @@ class ChartService:
             "indice_agroclima": [],
             "geadas": self._get_today_frost_count(),
         }
+
+    # ==========================================================
+    # ETo DO DIA ATUAL
+    # ==========================================================
+
+    def _get_today_eto(self):
+        """
+        Retorna a ETo diária persistida para hoje quando consultada
+        diretamente.
+
+        Este método não participa mais da integração dos períodos.
+        A série histórica recebida do HistoryService deve ser preservada
+        sem sobrescrita.
+        """
+
+        data = self.history.chart_data(
+            municipio=None,
+            days=1,
+        )
+
+        if not data:
+            return None
+
+        valores = data.get(
+            "eto_mm_day",
+            [],
+        )
+
+        if not isinstance(valores, list) or not valores:
+            return None
+
+        valor = valores[0]
+
+        if valor is None:
+            return None
+
+        try:
+            return round(
+                float(valor),
+                1,
+            )
+        except (
+            TypeError,
+            ValueError,
+        ):
+            return None
+
 
     # ==========================================================
     # GEADAS DO DIA ATUAL

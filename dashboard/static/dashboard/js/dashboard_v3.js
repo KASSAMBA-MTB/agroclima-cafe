@@ -5968,7 +5968,7 @@ const ChartController = {
                                 fill:
                                     false,
                                 spanGaps:
-                                    true,
+                                    false,
                                 yAxisID:
                                     "precipitation"
                             }
