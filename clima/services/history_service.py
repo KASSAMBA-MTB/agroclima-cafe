@@ -856,6 +856,180 @@ class HistoryService:
         }
 
     # ==========================================================
+    # PRECIPITAÇÃO ACUMULADA — MÉTRICAS CANÔNICAS
+    # ==========================================================
+
+    def precipitation_7d_mm(
+        self,
+        municipio=None,
+        provider=Provider.OPEN_METEO,
+        reference_date=None,
+    ):
+        """
+        Retorna a precipitação acumulada nos 7 dias corridos
+        definidos pelo contrato temporal do MD-01.
+
+        Janela:
+            D-6 ... D
+
+        onde D é a data de referência no timezone local do projeto.
+
+        Fonte de autoridade:
+            HistoricalWeatherDaily.precipitacao
+
+        Regra:
+            soma dos valores diários consolidados.
+
+        Retorno:
+            float | None
+
+        None é retornado quando não existe dado histórico para
+        pelo menos uma das datas da janela. Nenhum valor é
+        estimado, replicado ou substituído por precipitação_24h.
+        """
+        return self._precipitation_accumulated_days(
+            days=7,
+            municipio=municipio,
+            provider=provider,
+            reference_date=reference_date,
+        )
+
+    def precipitation_30d_mm(
+        self,
+        municipio=None,
+        provider=Provider.OPEN_METEO,
+        reference_date=None,
+    ):
+        """
+        Retorna a precipitação acumulada nos 30 dias corridos
+        definidos pelo contrato temporal do MD-01.
+
+        Janela:
+            D-29 ... D
+
+        onde D é a data de referência no timezone local do projeto.
+
+        Fonte de autoridade:
+            HistoricalWeatherDaily.precipitacao
+
+        Regra:
+            soma dos valores diários consolidados.
+
+        Retorno:
+            float | None
+
+        None é retornado quando não existe dado histórico para
+        pelo menos uma das datas da janela. Nenhum valor é
+        estimado, replicado ou substituído por precipitação_24h.
+        """
+        return self._precipitation_accumulated_days(
+            days=30,
+            municipio=municipio,
+            provider=provider,
+            reference_date=reference_date,
+        )
+
+    def _precipitation_accumulated_days(
+        self,
+        days,
+        municipio=None,
+        provider=Provider.OPEN_METEO,
+        reference_date=None,
+    ):
+        """
+        Calcula um acumulado histórico diário de precipitação.
+
+        Contrato temporal:
+            timezone      = America/Sao_Paulo (via timezone.localdate())
+            referência D  = reference_date ou data local corrente
+            janela        = D-(days-1) ... D
+            granularidade = diária
+            agregação     = soma
+
+        A consolidação regional segue a mesma regra de HistoryService:
+        para cada data, a precipitação é a média dos municípios/estações
+        com registro válido naquela data; os valores diários regionais
+        são então somados.
+
+        A fonte é exclusivamente HistoricalWeatherDaily. Não utiliza
+        WeatherObservation.precipitacao, porque esse campo não possui
+        semântica temporal suficiente para definir acumulados históricos.
+
+        Se uma das datas da janela não possuir registro histórico,
+        retorna None. Não completa lacunas com zero nem com estimativas.
+        """
+        try:
+            days = int(days)
+        except (TypeError, ValueError):
+            return None
+
+        if days <= 0:
+            return None
+
+        data_fim = (
+            reference_date
+            if reference_date is not None
+            else timezone.localdate()
+        )
+
+        data_inicio = (
+            data_fim
+            - timedelta(days=days - 1)
+        )
+
+        filters = self._station_filter(
+            municipio=municipio,
+            provider=provider,
+        )
+
+        daily = (
+            HistoricalWeatherDaily.objects
+            .filter(
+                **filters,
+                data__gte=data_inicio,
+                data__lte=data_fim,
+            )
+            .values("data")
+            .annotate(
+                precipitacao_media_regiao=Avg(
+                    "precipitacao"
+                ),
+            )
+            .order_by("data")
+        )
+
+        precipitation_by_date = {
+            record["data"]: record.get(
+                "precipitacao_media_regiao"
+            )
+            for record in daily
+            if record.get("data") is not None
+        }
+
+        expected_dates = [
+            data_inicio + timedelta(days=offset)
+            for offset in range(days)
+        ]
+
+        # A métrica canônica somente existe quando a janela inteira
+        # possui dado histórico. Isso impede que uma lacuna seja
+        # silenciosamente interpretada como 0 mm.
+        if any(
+            precipitation_by_date.get(data) is None
+            for data in expected_dates
+        ):
+            return None
+
+        total = sum(
+            float(
+                precipitation_by_date[data]
+            )
+            for data in expected_dates
+        )
+
+        return round(total, 1)
+
+    # ==========================================================
     # ADICIONAR DIA À SÉRIE
     # ==========================================================
 

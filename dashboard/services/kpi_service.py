@@ -131,6 +131,10 @@ class KPIService:
             canonical_context.get("precipitation_24h_mm")
         )
 
+        precipitation_7d = self._to_float(
+            canonical_context.get("precipitation_7d_mm")
+        )
+
         precipitation_24h_values = canonical_context.get(
             "precipitation_24h_values",
             []
@@ -190,6 +194,12 @@ class KPIService:
         # ======================================================
         # ÍNDICE AGROCLIMA
         # ======================================================
+        #
+        # O componente pluviométrico do IAC utiliza a janela
+        # canônica de 7 dias (mm/semana). A precipitação de 24h
+        # permanece exclusiva dos KPIs operacionais e não é usada
+        # como substituto.
+        #
 
         indice = self.iac.calculate(
 
@@ -206,8 +216,8 @@ class KPIService:
             ),
 
             precipitation=(
-                precipitation
-                if precipitation is not None
+                precipitation_7d
+                if precipitation_7d is not None
                 else 0
             ),
 

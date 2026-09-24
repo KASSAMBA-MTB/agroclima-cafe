@@ -21,7 +21,7 @@ Responsabilidades:
 - Não inventar ocorrências históricas de geada;
 - Não executar regras de inteligência climática.
 
-Versão..........: 2.9 — exposição da série de ETo para a Fase 7
+Versão..........: 2.10 — correção da semântica da série diária
 ===============================================================================
 """
 
@@ -147,49 +147,29 @@ class ChartService:
         data,
         current_kpis=None,
     ):
-        """Integra temperatura e precipitação de hoje usando
-        os mesmos KPIs já consolidados pelo Dashboard.
-
-        Nenhuma outra data é alterada e None permanece None.
         """
+        Preserva integralmente as séries históricas recebidas do
+        HistoryService.
 
-        if not data or current_kpis is None:
-            return data
+        Este método permanece como ponto de compatibilidade do fluxo
+        existente, mas não substitui o valor diário do período histórico
+        por KPIs correntes.
 
-        dias = data.get("dias", [])
-        hoje = timezone.localdate().strftime("%d/%m")
+        Regra canônica:
+            - 7 dias, 30 dias e Histórico são séries diárias;
+            - precipitation_24h_mm é uma janela móvel de 24 horas;
+            - portanto, precipitation_24h_mm não pode ocupar a posição
+              de precipitação diária do dia atual;
+            - temperatura corrente não substitui a temperatura média
+              diária histórica;
+            - ETo histórica permanece sob autoridade do HistoryService.
 
-        if hoje not in dias:
-            return data
+        O parâmetro current_kpis é mantido na assinatura para preservar
+        compatibilidade com os consumidores existentes.
 
-        # Em "historico", o mesmo dia/mês pode existir em vários anos.
-        # O ponto a atualizar é necessariamente a ocorrência mais recente.
-        indice = len(dias) - 1 - dias[::-1].index(hoje)
-        temperaturas = list(data.get("temperatura", []))
-        precipitacoes = list(data.get("precipitacao", []))
-        eto_mm_day = list(data.get("eto_mm_day", []))
-
-        if indice < len(temperaturas):
-            temperaturas[indice] = current_kpis.get(
-                "temperatura_media"
-            )
-
-        if indice < len(precipitacoes):
-            precipitacoes[indice] = current_kpis.get(
-                "precipitacao_24h"
-            )
-
-        # ETo não é recalculada nem substituída neste serviço.
-        # O HistoryService já fornece a série diária persistida.
-        # Preservamos o valor recebido para evitar que uma segunda consulta
-        # retorne None e apague a ETo histórica do dia atual.
-
-        integrado = dict(data)
-        integrado["temperatura"] = temperaturas
-        integrado["precipitacao"] = precipitacoes
-        integrado["eto_mm_day"] = eto_mm_day
-
-        return integrado
+        Nenhum dado da série é alterado aqui.
+        """
+        return data
 
     # ==========================================================
     # PERÍODO "HOJE"
@@ -761,4 +741,37 @@ class ChartService:
 #     - FRI, geadas, temperatura e precipitação permanecem inalterados.
 #
 # A alteração é exclusivamente contratual e defensiva para a Fase 7.
+# ============================================================================
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE MD-01 — CORREÇÃO DA SEMÂNTICA DA SÉRIE DIÁRIA
+# ============================================================================
+#
+# Base:
+#     chart_service.py — versão 2.9 / Fase 7 ETo.
+#
+# Problema confirmado:
+#     _integrate_current_day() substituía o valor diário do dia atual nos
+#     períodos 7 dias, 30 dias e Histórico por:
+#
+#         current_kpis["precipitacao_24h"]
+#
+#     Isso misturava uma janela móvel de 24 horas com uma série de
+#     precipitação diária proveniente do HistoryService.
+#
+# Correção:
+#     _integrate_current_day() deixou de modificar as séries históricas.
+#
+# Resultado:
+#     - 7 dias, 30 dias e Histórico preservam os valores entregues pelo
+#       HistoryService;
+#     - precipitation_24h não é mais inserida em uma série diária;
+#     - temperatura corrente não é mais inserida como temperatura média diária;
+#     - ETo permanece sob autoridade do HistoryService;
+#     - o parâmetro current_kpis permanece na assinatura por compatibilidade.
+#
+# Esta etapa NÃO implementa ainda precipitation_7d_mm/30d_mm e NÃO altera
+# a política de dados ausentes do HistoryService. Essas responsabilidades
+# permanecem na próxima etapa do contrato canônico.
+#
 # ============================================================================

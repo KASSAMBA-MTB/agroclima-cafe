@@ -1494,6 +1494,16 @@ class DashboardService:
             if dto is not None
         ]
 
+        # Acumulados históricos canônicos de precipitação.
+        # A fonte é exclusivamente HistoricalWeatherDaily através do
+        # HistoryService; não há substituição por precipitation_24h_mm.
+        precipitation_7d_mm = (
+            self.history_service.precipitation_7d_mm()
+        )
+        precipitation_30d_mm = (
+            self.history_service.precipitation_30d_mm()
+        )
+
         rain_states = [
             getattr(
                 dto,
@@ -1540,6 +1550,11 @@ class DashboardService:
                 precipitation_24h_values
             ),
             "precipitation_24h_values": precipitation_24h_values,
+
+            # Métricas temporais canônicas para consumidores derivados.
+            "precipitation_7d_mm": precipitation_7d_mm,
+            "precipitation_30d_mm": precipitation_30d_mm,
+
             "rain_now": rain_now,
 
             # Campos estruturados adicionais.
