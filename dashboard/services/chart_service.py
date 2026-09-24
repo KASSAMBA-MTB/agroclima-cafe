@@ -21,7 +21,7 @@ Responsabilidades:
 - Não inventar ocorrências históricas de geada;
 - Não executar regras de inteligência climática.
 
-Versão..........: 2.10 — correção da semântica da série diária
+Versão..........: 2.11 — integração da ETo no período Hoje
 ===============================================================================
 """
 
@@ -196,9 +196,12 @@ class ChartService:
 
         hoje = timezone.localdate()
 
-        # ETo de referência não pertence ao KPI corrente.
-        # A fonte autoritativa para o gráfico é a série diária
-        # persistida e entregue pelo HistoryService.
+        # ETo diária não pertence ao KPI corrente.
+        # A fonte autoritativa para o gráfico é o HistoryService.
+        # Portanto, mesmo quando current_kpis existe, a ETo de hoje
+        # deve ser obtida da série diária persistida.
+        today_eto = self._get_today_eto()
+
         if current_kpis is not None:
             return {
                 "dias": [hoje.strftime("%d/%m")],
@@ -209,7 +212,7 @@ class ChartService:
                     current_kpis.get("precipitacao_24h")
                 ],
                 "eto_mm_day": [
-                    None
+                    today_eto
                 ],
                 "umidade": [None],
                 "vento": [None],
@@ -323,6 +326,10 @@ class ChartService:
                 1,
             )
 
+        # ETo diária vem exclusivamente do HistoryService.
+        # Não é calculada a partir das observações meteorológicas correntes.
+        today_eto = self._get_today_eto()
+
         return {
             "dias": [
                 hoje.strftime("%d/%m"),
@@ -334,7 +341,7 @@ class ChartService:
                 precipitation_value,
             ],
             "eto_mm_day": [
-                None,
+                today_eto,
             ],
             "umidade": [
                 humidity_value,
@@ -741,6 +748,32 @@ class ChartService:
 #     - FRI, geadas, temperatura e precipitação permanecem inalterados.
 #
 # A alteração é exclusivamente contratual e defensiva para a Fase 7.
+# ============================================================================
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — FASE 7 — ETo DO PERÍODO "HOJE"
+# ============================================================================
+#
+# Base:
+#     chart_service.py — versão 2.10.
+#
+# Problema confirmado:
+#     _get_today_period() declarava eto_mm_day como [None], mesmo quando
+#     a ETo diária já estava persistida e disponível pelo HistoryService.
+#
+# Correção:
+#     o período "Hoje" passa a obter a ETo exclusivamente por
+#     _get_today_eto(), cuja fonte é HistoryService.chart_data(days=1).
+#
+# Regras preservadas:
+#     - ChartService não calcula ETo;
+#     - HistoryService permanece autoridade da série diária;
+#     - current_kpis não fornece nem substitui ETo;
+#     - 7 dias, 30 dias e Histórico continuam inalterados;
+#     - ausência de ETo permanece None;
+#     - nenhum valor meteorológico é inventado.
+#
 # ============================================================================
 
 # ============================================================================

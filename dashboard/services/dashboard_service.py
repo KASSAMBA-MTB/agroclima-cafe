@@ -24,7 +24,7 @@ Responsabilidades:
       camada de InteligÃªncia.
     â€¢ NÃ£o executar regras de InteligÃªncia.
 
-VersÃ£o..........: 3.8
+VersÃ£o..........: 3.12
 ===============================================================================
 """
 
@@ -764,6 +764,10 @@ class DashboardService:
             enriched["precipitation_24h_mm"] = None
             enriched["precipitacao_24h"] = None
 
+            # ETo diária corrente recebida diretamente do WeatherDTO.
+            # Ausência permanece None; não há cálculo ou estimativa aqui.
+            enriched["eto_mm_day"] = None
+
             # Campo legado: mantido por compatibilidade.
             enriched["precipitation"] = None
 
@@ -956,6 +960,11 @@ class DashboardService:
                     current_dto,
                     "source_type",
                     None,
+                )
+
+                # ETo diária corrente: transporte direto do WeatherDTO.
+                enriched["eto_mm_day"] = self._to_float(
+                    getattr(current_dto, "eto_mm_day", None)
                 )
 
             # ==================================================
@@ -1389,6 +1398,8 @@ class DashboardService:
             - ``precipitation_24h_mm`` representa a média regional do
               acumulado de 24 horas quando todos os municípios possuem
               valor válido;
+            - ``eto_mm_day`` representa a média regional da ETo diária
+              corrente quando todos os municípios possuem valor válido;
             - ``rain_now`` representa ocorrência de chuva no território
               quando todos os estados municipais são conhecidos;
             - ``municipio`` permanece como compatibilidade e identifica o
@@ -1483,6 +1494,14 @@ class DashboardService:
             for dto in dto_by_name.values()
             if dto is not None
         ]
+        eto_values = [
+            dto_value(
+                dto,
+                "eto_mm_day",
+            )
+            for dto in dto_by_name.values()
+            if dto is not None
+        ]
         wind_speed_values = [
             dto_value(dto, "wind_speed", "velocidade_vento")
             for dto in dto_by_name.values()
@@ -1550,6 +1569,8 @@ class DashboardService:
                 precipitation_24h_values
             ),
             "precipitation_24h_values": precipitation_24h_values,
+            "eto_mm_day": aggregate(eto_values),
+            "eto_values": eto_values,
 
             # Métricas temporais canônicas para consumidores derivados.
             "precipitation_7d_mm": precipitation_7d_mm,
@@ -1837,4 +1858,39 @@ class DashboardService:
 #
 # Resultado esperado:
 #     28 testes OK, sem regressão.
+# ============================================================================
+
+
+# ============================================================================
+# REGISTRO DE AUDITORIA — VERSÃO 3.12 — CONTRATO CANÔNICO ETo
+# ============================================================================
+#
+# Base: dashboard_service.py corrente auditado em 24/09/2026.
+#
+# Correção aplicada:
+#     1. WeatherDTO.eto_mm_day passa a integrar o contexto meteorológico
+#        canônico regional.
+#     2. A ETo regional é agregada pela mesma regra estrutural dos demais
+#        indicadores regionais: média dos seis municípios quando todos
+#        possuem valor válido; ausência permanece None.
+#     3. eto_values preserva a evidência municipal utilizada na agregação.
+#     4. map_point passa a transportar eto_mm_day diretamente do WeatherDTO,
+#        sem cálculo, estimativa ou nova aquisição.
+#
+# Responsabilidades preservadas:
+#     - WeatherService continua responsável pela aquisição;
+#     - WeatherDTO continua sendo a origem corrente;
+#     - DashboardService somente transporta e agrega o contexto canônico;
+#     - KPIService será o consumidor seguinte do novo campo;
+#     - ChartService permanece sem nova regra de aquisição;
+#     - FRI, Inteligência, ranking, alertas e mapa-base permanecem preservados.
+#
+# Regra de ausência:
+#     None permanece None quando qualquer município monitorado não possui
+#     ETo válida. Nenhum valor é inventado ou substituído por zero.
+#
+# Critério de regressão desta etapa:
+#     canonical_context["eto_mm_day"] deve refletir a média dos municípios
+#     com ETo válida somente quando todos os seis municípios estiverem
+#     disponíveis; map_points devem preservar eto_mm_day municipal.
 # ============================================================================

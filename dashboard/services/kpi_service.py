@@ -16,12 +16,11 @@ Descrição.......:
 Serviço responsável por consolidar os indicadores (KPIs) exibidos no
 Dashboard Principal.
 
-Os dados meteorológicos são obtidos pelo WeatherService através de
-WeatherDTO. O KPIService utiliza os nomes de atributos definidos pelo DTO
-e disponibiliza também os campos estruturados utilizados pela camada
-de Inteligência.
+Os dados meteorológicos chegam pelo contexto canônico fornecido pelo
+DashboardService. O KPIService consolida a apresentação dos KPIs e
+encaminha ao Índice AgroClima a janela pluviométrica correta.
 
-Versão..........: 2.5
+Versão..........: 2.7
 ===============================================================================
 """
 
@@ -39,17 +38,36 @@ class KPIService:
 
     Responsabilidades:
 
-    - obter a observação meteorológica atual;
-    - calcular o Índice AgroClima;
+    - consumir exclusivamente o contexto meteorológico canônico;
     - preparar os KPIs visuais;
+    - calcular o Índice AgroClima com a precipitação de 7 dias;
     - disponibilizar os dados estruturados para a camada de Inteligência;
+    - manter evidência histórica real de geadas;
     - manter um retorno seguro quando não existem municípios.
+
+    Semântica de precipitação:
+
+        chuva_agora
+            condição meteorológica atual.
+
+        precipitacao_1h
+            janela móvel de 1 hora.
+
+        precipitacao_24h
+            janela móvel de 24 horas.
+
+        precipitation
+            alias legado do indicador operacional de 24 horas.
+            É mantido apenas para compatibilidade.
+
+        precipitation_7d_mm
+            janela histórica D-6 ... D, utilizada pelo IAC.
+            A fonte e a agregação pertencem ao DashboardService/
+            HistoryService; o KPIService não recalcula essa janela.
     """
 
     def __init__(self):
-
         self.weather = WeatherService()
-
         self.iac = AgroClimaIndex()
 
     # ==========================================================
@@ -62,15 +80,9 @@ class KPIService:
 
         O DashboardService fornece o contexto meteorológico canônico.
 
-        O KPIService não realiza aquisição meteorológica própria.
-        Para precipitação, o contrato canônico distingue explicitamente:
-
-            rain_now
-            precipitation_1h_mm
-            precipitation_24h_mm
-
-        O atributo legado precipitation permanece apenas para
-        compatibilidade com a cadeia existente.
+        O KPIService não realiza aquisição meteorológica própria e não
+        calcula janelas temporais. Para precipitação, preserva a separação
+        entre condição atual, 1h, 24h e 7 dias.
         """
 
         municipios = list(
@@ -80,34 +92,23 @@ class KPIService:
         )
 
         if not municipios:
-
             return self._empty()
 
         # ======================================================
-        # OBSERVAÇÃO METEOROLÓGICA DO MUNICÍPIO DE REFERÊNCIA
-        # ======================================================
-        #
-        # Temperatura, umidade, vento, nuvens e Índice AgroClima
-        # permanecem associados ao primeiro município da cadeia
-        # histórica desta classe.
-        #
-        # A precipitação de 24h, porém, é consolidada separadamente
-        # para TODOS os municípios monitorados.
+        # MUNICÍPIO DE REFERÊNCIA
         # ======================================================
 
-        municipio = canonical_context.get("municipio") if canonical_context else None
+        municipio = (
+            canonical_context.get("municipio")
+            if canonical_context
+            else None
+        )
 
         if municipio is None:
             municipio = municipios[0]
 
         # ======================================================
         # CONTEXTO METEOROLÓGICO CANÔNICO
-        # ======================================================
-        #
-        # FASE 3:
-        # O KPIService não consulta o Provider nem executa nova
-        # aquisição. Os valores devem chegar normalizados pelo
-        # contexto comum de entrega.
         # ======================================================
 
         if canonical_context is None:
@@ -127,7 +128,7 @@ class KPIService:
             canonical_context.get("precipitation_1h_mm")
         )
 
-        precipitation_24h_average = self._to_float(
+        precipitation_24h = self._to_float(
             canonical_context.get("precipitation_24h_mm")
         )
 
@@ -135,31 +136,19 @@ class KPIService:
             canonical_context.get("precipitation_7d_mm")
         )
 
-        precipitation_24h_values = canonical_context.get(
-            "precipitation_24h_values",
-            []
+        eto_mm_day = self._to_float(
+            canonical_context.get("eto_mm_day")
         )
 
-        # O valor de 24h do KPI é proveniente do contexto canônico.
-        precipitation_24h = precipitation_24h_average
+        precipitation_24h_values = canonical_context.get(
+            "precipitation_24h_values",
+            [],
+        )
 
         # ======================================================
-        # CONTRATO METEOROLÓGICO CANÔNICO — FASE 1
+        # CONTRATO METEOROLÓGICO CANÔNICO
         # ======================================================
-        #
-        # Chuva ocorrendo agora e volumes de precipitação são
-        # variáveis semanticamente distintas.
-        #
-        # rain_now:
-        #     condição meteorológica atual.
-        #
-        # precipitation_1h_mm:
-        #     precipitação da última hora disponibilizada pelo
-        #     provider.
-        #
-        # precipitation_24h_mm:
-        #     acumulado de 24 horas. Não é inferido a partir
-        #     de precipitation_1h_mm.
+
         rain_now = canonical_context.get("rain_now")
 
         wind_speed = self._to_float(
@@ -170,6 +159,7 @@ class KPIService:
             canonical_context.get("cloud_cover")
         )
 
+        # Compatibilidade com WeatherObservation legado.
         rain_now = self._weather_value(
             observation,
             "rain_now",
@@ -184,45 +174,36 @@ class KPIService:
             )
         )
 
-        # O valor de 24h do KPI é a MÉDIA MUNICIPAL.
-        precipitation_24h = precipitation_24h_average
-
-        # Campo legado preservado para consumidores ainda não
-        # migrados. Seu valor segue o indicador atual oficial de 24h.
-        precipitation = precipitation_24h
-
         # ======================================================
         # ÍNDICE AGROCLIMA
         # ======================================================
         #
         # O componente pluviométrico do IAC utiliza a janela
-        # canônica de 7 dias (mm/semana). A precipitação de 24h
-        # permanece exclusiva dos KPIs operacionais e não é usada
-        # como substituto.
+        # canônica de 7 dias (mm/semana).
         #
+        # A precipitação de 24h permanece exclusiva dos KPIs
+        # operacionais e não é usada como substituto.
+        #
+        # Nenhuma agregação temporal é executada aqui.
+        # ======================================================
 
         indice = self.iac.calculate(
-
             temperature=(
                 temperature
                 if temperature is not None
                 else 0
             ),
-
             humidity=(
                 humidity
                 if humidity is not None
                 else 0
             ),
-
             precipitation=(
                 precipitation_7d
                 if precipitation_7d is not None
                 else 0
             ),
-
             frost_level="low",
-
             hail_level="low",
         )
 
@@ -234,43 +215,26 @@ class KPIService:
 
         analysis_date = (
             observation.observation_time
-            if observation.observation_time is not None
+            if observation is not None
+            and observation.observation_time is not None
             else now
         )
 
         # ======================================================
         # HISTÓRICO REAL DE GEADAS
-        #
-        # Fonte exclusiva:
-        #     HistoricalWeatherDaily
-        #
-        # Critério objetivo:
-        #     temperatura_minima <= 0 °C
-        #
-        # O histórico é calculado para o mesmo município utilizado
-        # pelo KPIService como contexto principal. Nenhum dado
-        # fictício, previsão ou valor decorativo é introduzido.
         # ======================================================
 
-        historical = (
-            self._get_historical_frost_context(
-                municipio
-            )
+        historical = self._get_historical_frost_context(
+            municipio
         )
 
         # ======================================================
-        # CONTEXTO CONSOLIDADO
+        # RETORNO CONSOLIDADO
         # ======================================================
 
         return {
-
             # ==================================================
             # IDENTIDADE DO MUNICÍPIO DE REFERÊNCIA
-            # ==================================================
-            #
-            # A DashboardFacade utiliza estes identificadores para localizar
-            # o map_point canônico que já contém a avaliação FRI.
-            # O KPIService não calcula nem reconstrói o FRI.
             # ==================================================
 
             "municipio_id": municipio.id,
@@ -284,21 +248,32 @@ class KPIService:
             "temperatura_media": (
                 round(
                     temperature,
-                    1
+                    1,
                 )
                 if temperature is not None
                 else None
             ),
 
-            # Campo legado: mantido temporariamente para
-            # compatibilidade. Seu significado agora é explícito:
-            # precipitação da última hora.
+            # ETo diária regional proveniente exclusivamente do
+            # contexto meteorológico canônico.
+            "eto_mm_day": (
+                round(
+                    eto_mm_day,
+                    2,
+                )
+                if eto_mm_day is not None
+                else None
+            ),
+
+            # Campo legado preservado para compatibilidade.
+            # Sua semântica é explicitamente a mesma janela
+            # operacional de 24h exposta por precipitacao_24h.
             "precipitacao": (
                 round(
-                    precipitation,
-                    1
+                    precipitation_24h,
+                    1,
                 )
-                if precipitation is not None
+                if precipitation_24h is not None
                 else None
             ),
 
@@ -308,7 +283,7 @@ class KPIService:
             "precipitacao_1h": (
                 round(
                     precipitation_1h,
-                    1
+                    1,
                 )
                 if precipitation_1h is not None
                 else None
@@ -317,7 +292,7 @@ class KPIService:
             "precipitacao_24h": (
                 round(
                     precipitation_24h,
-                    1
+                    1,
                 )
                 if precipitation_24h is not None
                 else None
@@ -326,19 +301,48 @@ class KPIService:
             # Média municipal utilizada pelo cartão "Chuva (24h)".
             "precipitacao_24h_media": (
                 round(
-                    precipitation_24h_average,
-                    2
+                    precipitation_24h,
+                    2,
                 )
-                if precipitation_24h_average is not None
+                if precipitation_24h is not None
                 else None
             ),
 
             "precipitacao_24h_municipios": (
                 len(precipitation_24h_values)
+                if isinstance(
+                    precipitation_24h_values,
+                    (list, tuple),
+                )
+                else 0
             ),
 
             "precipitacao_24h_total_municipios": (
                 len(municipios)
+            ),
+
+            # As janelas 7d/30d permanecem no contexto canônico.
+            # São expostas também aqui apenas como leitura do mesmo
+            # contrato, sem nova consulta ou recálculo.
+            "precipitacao_7d": (
+                round(
+                    precipitation_7d,
+                    1,
+                )
+                if precipitation_7d is not None
+                else None
+            ),
+
+            "precipitacao_30d": (
+                self._to_float(
+                    canonical_context.get(
+                        "precipitation_30d_mm"
+                    )
+                )
+                if canonical_context.get(
+                    "precipitation_30d_mm"
+                ) is not None
+                else None
             ),
 
             # ==================================================
@@ -390,9 +394,7 @@ class KPIService:
             # ==================================================
 
             "status_dashboard": {
-
                 "status": "normal",
-
                 "mensagem": (
                     f'Condição '
                     f'{indice["classification"]}'
@@ -417,17 +419,29 @@ class KPIService:
                 else None
             ),
 
-            # Compatibilidade com a camada de Inteligência:
-            # precipitation representa explicitamente a janela
-            # de 1 hora nesta etapa.
-            "precipitation": precipitation,
+            # Alias legado: preserva a semântica de 24h.
+            "precipitation": precipitation_24h,
 
-            # Variáveis canônicas disponíveis aos consumidores.
+            # Variáveis canônicas.
             "rain_now": rain_now,
 
             "precipitation_1h_mm": precipitation_1h,
 
             "precipitation_24h_mm": precipitation_24h,
+
+            "precipitation_7d_mm": precipitation_7d,
+
+            "precipitation_30d_mm": (
+                self._to_float(
+                    canonical_context.get(
+                        "precipitation_30d_mm"
+                    )
+                )
+                if canonical_context.get(
+                    "precipitation_30d_mm"
+                ) is not None
+                else None
+            ),
 
             "analysis_date": analysis_date,
 
@@ -435,7 +449,9 @@ class KPIService:
             # EVIDÊNCIA HISTÓRICA REAL DE GEADAS
             # ==================================================
 
-            "historical_frost": historical["historical_frost"],
+            "historical_frost": (
+                historical["historical_frost"]
+            ),
 
             "historical_total_days": (
                 historical["historical_total_days"]
@@ -464,61 +480,13 @@ class KPIService:
             "scores": indice["scores"],
         }
 
+    # ==========================================================
+    # AUDITORIA ETO — VERSÃO 2.7
+    # ==========================================================
+    # ETo é somente transportada do contexto canônico.
+    # Não há aquisição, cálculo ou nova agregação neste serviço.
+    # ==========================================================
 
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
-        # FASE 3 — preservação estrutural do contrato existente.
     # ==========================================================
     # HISTÓRICO REAL DE GEADAS
     # ==========================================================
@@ -578,7 +546,6 @@ class KPIService:
             ):
                 minimum_temperature = minimum
 
-            # Critério real e único de geada.
             if minimum <= 0:
                 frost_days += 1
 
@@ -665,14 +632,11 @@ class KPIService:
         """
         Lê um atributo meteorológico preservando o contrato do DTO.
 
-        O contrato principal desta camada utiliza os nomes em inglês
-        definidos por WeatherDTO. Como proteção de compatibilidade,
-        também reconhece os nomes persistidos em português do modelo
-        WeatherObservation.
+        O contrato principal utiliza os nomes em inglês definidos pelo
+        WeatherDTO. Como proteção de compatibilidade, também reconhece
+        os nomes persistidos em português do modelo WeatherObservation.
 
         Esta compatibilidade não cria dados nem altera valores.
-        Apenas evita que uma diferença de representação entre camadas
-        interrompa a consolidação dos KPIs.
         """
 
         if observation is None:
@@ -704,18 +668,15 @@ class KPIService:
         """
 
         if value is None:
-
             return None
 
         try:
-
             return float(value)
 
         except (
             TypeError,
             ValueError,
         ):
-
             return None
 
     # ==========================================================
@@ -730,9 +691,8 @@ class KPIService:
         now = timezone.localtime()
 
         return {
-
             # ==================================================
-            # IDENTIDADE DO MUNICÍPIO DE REFERÊNCIA
+            # IDENTIDADE
             # ==================================================
 
             "municipio_id": None,
@@ -758,6 +718,12 @@ class KPIService:
             "precipitacao_24h_municipios": 0,
 
             "precipitacao_24h_total_municipios": 0,
+
+            "precipitacao_7d": None,
+
+            "eto_mm_day": None,
+
+            "precipitacao_30d": None,
 
             "geadas": 0,
 
@@ -796,9 +762,7 @@ class KPIService:
             # ==================================================
 
             "status_dashboard": {
-
                 "status": "offline",
-
                 "mensagem": (
                     "Nenhum município cadastrado."
                 ),
@@ -826,6 +790,10 @@ class KPIService:
 
             "precipitation_24h_mm": None,
 
+            "precipitation_7d_mm": None,
+
+            "precipitation_30d_mm": None,
+
             "analysis_date": now,
 
             # ==================================================
@@ -850,24 +818,3 @@ class KPIService:
 
             "scores": {},
         }
-
-# ==========================================================
-# AUDITORIA — FASE 3 / MAP PANEL
-# ==========================================================
-#
-# Este arquivo foi auditado para verificar o contrato utilizado
-# pelo painel geoespacial para o indicador "Chuva (24h)".
-#
-# Resultado:
-# - KPIService disponibiliza "precipitacao_24h" como campo oficial.
-# - "precipitacao_24h_media" registra explicitamente a média
-#   municipal de precipitação em 24 horas.
-# - O campo "precipitacao" permanece como alias/compatibilidade
-#   dentro desta versão do serviço.
-# - Portanto, a correção necessária está no template map_panel.html:
-#       kpis.precipitacao
-#   deve ser substituído por:
-#       kpis.precipitacao_24h
-#
-# Nenhuma alteração funcional foi aplicada ao KPIService nesta etapa.
-# ==========================================================
