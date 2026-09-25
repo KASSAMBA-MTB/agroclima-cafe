@@ -1,6 +1,6 @@
 # =============================================================================
 # Django settings for agroclima project.
-# Configuração saneada: nenhuma credencial real deve permanecer neste arquivo.
+# Configuracao saneada: nenhuma credencial real deve permanecer neste arquivo.
 # =============================================================================
 
 from pathlib import Path
@@ -15,15 +15,15 @@ load_dotenv(BASE_DIR / ".env")
 
 
 # =============================================================================
-# Segurança
+# Seguranca
 # =============================================================================
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 if not SECRET_KEY:
     raise ImproperlyConfigured(
-        "DJANGO_SECRET_KEY não configurada. "
-        "Defina a variável de ambiente antes de iniciar o Django."
+        "DJANGO_SECRET_KEY nao configurada. "
+        "Defina a variavel de ambiente antes de iniciar o Django."
     )
 
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "geadas",
     "dashboard",
     "relatorios",
+    "core.intelligence.apps.IntelligenceConfig",
 ]
 
 MIDDLEWARE = [
@@ -87,8 +88,8 @@ WSGI_APPLICATION = "agroclima.wsgi.application"
 
 # =============================================================================
 # PostgreSQL
-# PostgreSQL é a única persistência oficial do projeto.
-# Nenhuma senha ou credencial é armazenada no código.
+# PostgreSQL e a unica persistencia oficial do projeto.
+# Nenhuma senha ou credencial e armazenada no codigo.
 # =============================================================================
 
 DB_NAME = os.getenv("DB_NAME")
@@ -109,7 +110,7 @@ _missing_db = [
 
 if _missing_db:
     raise ImproperlyConfigured(
-        "Variáveis PostgreSQL ausentes: " + ", ".join(_missing_db)
+        "Variaveis PostgreSQL ausentes: " + ", ".join(_missing_db)
     )
 
 DATABASES = {
@@ -168,45 +169,45 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # =============================================================================
-# AGROCLIMA CAFÉ
-# CONFIGURAÇÃO MUNICIPAL DO BALANÇO HÍDRICO — FASE 6.2
+# AGROCLIMA CAFE
+# CONFIGURACAO MUNICIPAL DO BALANCO HIDRICO — FASE 6.2
 # =============================================================================
-#
-# Esta seção ativa a configuração explicitamente no backend.
+
+# Esta secao ativa a configuracao explicitamente no backend.
 #
 # IMPORTANTE:
-# - os valores não são defaults do HydricBalanceService;
-# - cada município possui uma entrada explícita;
-# - CAD = 100 mm é uma referência metodológica documentada para
-#   balanços hídricos de cafeeiros, não um valor criado pelo código;
-# - a referência utilizada é literatura técnica da Embrapa sobre
-#   balanço hídrico do cafeeiro;
-# - o armazenamento inicial de 100 mm representa a condição explícita
-#   de início em capacidade de campo para esta série de referência;
-# - esta configuração é uma hipótese metodológica de referência,
-#   não uma caracterização físico-hídrica individual de cada talhão;
-# - eventual substituição por CAD derivada de solo/localidade deverá
-#   preservar a proveniência e ser feita em etapa metodológica própria.
-#
-# Fonte metodológica:
-# Embrapa — Fenologia do Cafeeiro: Condições Agrometeorológicas e
-# Balanço Hídrico. O documento informa CAD de 100 mm para representar
-# a maioria dos solos das principais regiões cafeeiras e relaciona a
-# CAD às propriedades físico-hídricas do solo e à profundidade efetiva
-# das raízes.
-#
-# A aplicação atualmente fornece ao serviço a chave municipal pelo
-# nome normalizado do município. Por isso, as chaves abaixo reproduzem
+# - os valores nao sao defaults do HydricBalanceService;
+# - cada municipio possui uma entrada explicita;
+# - CAD = 100 mm e uma referencia metodologica documentada para
+#   balancos hidricos de cafeeiros, nao um valor criado pelo codigo;
+# - a referencia utilizada e literatura tecnica da Embrapa sobre
+#   balanco hidrico do cafeeiro;
+# - o armazenamento inicial de 100 mm representa a condicao explicita
+#   de inicio em capacidade de campo para esta serie de referencia;
+# - esta configuracao e uma hipotese metodologica de referencia,
+#   nao uma caracterizacao fisico-hidrica individual de cada talhao;
+# - eventual substituicao por CAD derivada de solo/localidade devera
+#   preservar a proveniencia e ser feita em etapa metodologica propria.
+
+# Fonte metodologica:
+# Embrapa — Fenologia do Cafeeiro: Condicoes Agrometeorologicas e
+# Balanco Hidrico. O documento informa CAD de 100 mm para representar
+# a maioria dos solos das principais regioes cafeeiras e relaciona a
+# CAD as propriedades fisico-hidricas do solo e a profundidade efetiva
+# das raizes.
+
+# A aplicacao atualmente fornece ao servico a chave municipal pelo
+# nome normalizado do municipio. Por isso, as chaves abaixo reproduzem
 # exatamente os nomes usados pelo fluxo DashboardService.
-#
-# Códigos IBGE de referência territorial:
-# Águas da Prata             3500402
+
+# Codigos IBGE de referencia territorial:
+# Aguas da Prata             3500402
 # Andradas                   3102605
-# Espírito Santo do Pinhal   3515186
-# Poços de Caldas            3151800
-# São João da Boa Vista      3549102
+# Espirito Santo do Pinhal   3515186
+# Pocos de Caldas            3151800
+# Sao Joao da Boa Vista      3549102
 # Vargem Grande do Sul       3556404
-#
+
 # =============================================================================
 
 AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
@@ -215,12 +216,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -234,12 +235,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -253,12 +254,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -272,12 +273,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -291,12 +292,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -310,12 +311,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
         "cad_provenance": {
             "source": "Embrapa",
             "reference": (
-                "Fenologia do Cafeeiro: Condições Agrometeorológicas "
-                "e Balanço Hídrico"
+                "Fenologia do Cafeeiro: Condicoes Agrometeorologicas "
+                "e Balanco Hidrico"
             ),
             "basis": (
-                "CAD de referência de 100 mm para balanços hídricos "
-                "do cafeeiro, conforme literatura técnica citada."
+                "CAD de referencia de 100 mm para balancos hidricos "
+                "do cafeeiro, conforme literatura tecnica citada."
             ),
             "municipality_specific": False,
             "methodological_status": "REFERENCE_ASSUMPTION",
@@ -327,12 +328,12 @@ AGROCLIMA_HYDRIC_BALANCE_CONFIG = {
 
 
 # =============================================================================
-# FIM DA CONFIGURAÇÃO MUNICIPAL DO BALANÇO HÍDRICO
+# FIM DA CONFIGURACAO MUNICIPAL DO BALANCO HIDRICO
 # =============================================================================
-#
-# A configuração acima é consumida exclusivamente por
+
+# A configuracao acima e consumida exclusivamente por
 # HydricBalanceConfigurationService.
 #
-# Nenhum cálculo de balanço é realizado neste arquivo.
-# Nenhum indicador é calculado no frontend.
+# Nenhum calculo de balanco e realizado neste arquivo.
+# Nenhum indicador e calculado no frontend.
 # =============================================================================
