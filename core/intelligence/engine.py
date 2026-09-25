@@ -9,7 +9,7 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 3.7
+Versão..........: 4.1
 """
 
 from core.intelligence.rules.frost_rule import FrostRule
@@ -18,6 +18,7 @@ from core.intelligence.insight_engine import InsightEngine
 from core.intelligence.recommendation_engine import RecommendationEngine
 from core.intelligence.alert_engine import AlertEngine
 from core.intelligence.explainability_engine import ExplainabilityEngine
+from core.intelligence.interpretation_coordinator import InterpretationCoordinator
 
 
 class RuleEngine:
@@ -67,6 +68,7 @@ class IntelligenceEngine:
     Responsável por coordenar:
 
     - avaliação das regras;
+    - coordenação das interpretações;
     - geração de insights;
     - geração de recomendações;
     - geração de alertas;
@@ -75,6 +77,10 @@ class IntelligenceEngine:
 
     def __init__(self):
         self.rule_engine = RuleEngine()
+
+        self.interpretation_coordinator = (
+            InterpretationCoordinator()
+        )
 
         self.insight_engine = InsightEngine()
 
@@ -117,14 +123,18 @@ class IntelligenceEngine:
                 ↓
             RuleEngine
                 ↓
+            InterpretationCoordinator
+                ↓
             Insights
                 ↓
             Recomendações
                 ↓
             Alertas
+                ↓
+            Explainability
 
-        A explicabilidade é processada diretamente a partir
-        do contexto original.
+        A explicabilidade recebe os resultados coordenados
+        efetivamente produzidos pela camada de Inteligência.
         """
 
         # ------------------------------------------------------
@@ -136,12 +146,23 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 2. Geração de insights
+        # 2. Coordenação das interpretações
+        # ------------------------------------------------------
+
+        coordinated_results = (
+            self.interpretation_coordinator.coordinate(
+                context,
+                rule_results,
+            )
+        )
+
+        # ------------------------------------------------------
+        # 3. Geração de insights
         # ------------------------------------------------------
 
         insight_rule_results = [
             result
-            for result in rule_results
+            for result in coordinated_results
             if result.get("channel") != "alert"
         ]
 
@@ -150,7 +171,7 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 3. Geração de recomendações
+        # 4. Geração de recomendações
         # ------------------------------------------------------
 
         recommendations = self.recommendation_engine.generate(
@@ -158,12 +179,12 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 4. Geração de alertas
+        # 5. Geração de alertas
         # ------------------------------------------------------
 
         alert_rule_results = [
             result
-            for result in rule_results
+            for result in coordinated_results
             if result.get("channel") == "alert"
         ]
 
@@ -175,29 +196,33 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 5. Explicabilidade
+        # 6. Explicabilidade
         # ------------------------------------------------------
 
         explainability = self.explainability_engine.process(
-            context
+            context,
+            coordinated_results,
         )
 
         # ------------------------------------------------------
-        # 6. Resultado específico de geada
+        # 7. Resultado específico de geada
         # ------------------------------------------------------
 
         frost = {}
 
-        if rule_results:
-            frost = rule_results[0]
+        for result in coordinated_results:
+            if result.get("rule_id") == FrostRule.id:
+                frost = result
+                break
 
         # ------------------------------------------------------
-        # 7. Resultado consolidado
+        # 8. Resultado consolidado
         # ------------------------------------------------------
 
         return {
             "frost": frost,
             "rule_results": rule_results,
+            "coordinated_results": coordinated_results,
             "insights": insights,
             "recommendations": recommendations,
             "alerts": alerts,

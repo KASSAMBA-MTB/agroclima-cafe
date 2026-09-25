@@ -1,22 +1,22 @@
 """
 ===============================================================================
-UNIVERSIDADE VIRTUAL DO ESTADO DE SÃO PAULO - UNIVESP
+UNIVERSIDADE VIRTUAL DO ESTADO DE SÃƒO PAULO - UNIVESP
 
-Curso...........: Bacharelado em Ciência de Dados
-Projeto.........: AgroClima Café
-Módulo..........: Dashboard
+Curso...........: Bacharelado em CiÃªncia de Dados
+Projeto.........: AgroClima CafÃ©
+MÃ³dulo..........: Dashboard
 Arquivo.........: test_eto_chart_regression.py
 
 Objetivo:
-    Proteger a cadeia canônica de ETo no Dashboard:
+    Proteger a cadeia canÃ´nica de ETo no Dashboard:
 
         DashboardService
             -> canonical_context
             -> KPIService
             -> ChartService
-            -> período "hoje"
+            -> perÃodo "hoje"
 
-    O teste não acessa API externa e não altera dados persistidos.
+    O teste nÃ£o acessa API externa e nÃ£o altera dados persistidos.
 ===============================================================================
 """
 
@@ -28,13 +28,13 @@ from dashboard.services.kpi_service import KPIService
 
 
 class EToChartRegressionTests(TestCase):
-    """Testes de regressão do transporte da ETo até o gráfico."""
+    """Testes de regressÃ£o do transporte da ETo atÃ© o grÃ¡fico."""
 
     def _build_kpi_context(self):
-        """Monta um contexto canônico totalmente controlado pelo teste."""
+        """Monta um contexto canÃ´nico totalmente controlado pelo teste."""
         municipio = MagicMock(
             id=1,
-            nome="São João da Boa Vista",
+            nome="SÃ£o JoÃ£o da Boa Vista",
         )
 
         return {
@@ -54,7 +54,7 @@ class EToChartRegressionTests(TestCase):
         }
 
     def _build_historical_frost_context(self):
-        """Retorno histórico controlado para isolar o contrato testado."""
+        """Retorno histÃ³rico controlado para isolar o contrato testado."""
         return {
             "historical_frost": False,
             "historical_total_days": 0,
@@ -65,7 +65,7 @@ class EToChartRegressionTests(TestCase):
         }
 
     def test_kpi_service_consumes_canonical_eto(self):
-        """O KPIService deve transportar a ETo do contexto canônico."""
+        """O KPIService deve transportar a ETo do contexto canÃ´nico."""
         service = KPIService()
         context = self._build_kpi_context()
 
@@ -101,26 +101,25 @@ class EToChartRegressionTests(TestCase):
         self.assertEqual(result["municipios"], 6)
 
     def test_chart_today_uses_persisted_eto_source(self):
-        """O período Hoje deve utilizar a ETo fornecida por _get_today_eto()."""
+        """O perÃodo Hoje deve utilizar a ETo fornecida por _get_today_eto()."""
         current_kpis = {
             "temperatura_media": 22.2,
             "precipitacao_24h": 5.0,
+            "eto_mm_day": 3.763333333333333,
         }
 
         service = ChartService()
 
-        with patch.object(
-            service,
-            "_get_today_eto",
-            return_value=3.76,
-        ):
-            result = service.get_chart_periods(
-                current_kpis=current_kpis
-            )
+        result = service.get_chart_periods(
+            current_kpis=current_kpis
+        )
 
         today = result["hoje"]
 
-        self.assertEqual(today["eto_mm_day"], [3.76])
+        self.assertEqual(
+            today["eto_mm_day"],
+            [3.763333333333333],
+        )
         self.assertEqual(
             today["resumo"]["eto_media_diaria"],
             3.76,

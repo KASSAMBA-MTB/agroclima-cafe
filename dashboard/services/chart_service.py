@@ -21,7 +21,7 @@ Responsabilidades:
 - Não inventar ocorrências históricas de geada;
 - Não executar regras de inteligência climática.
 
-Versão..........: 2.11 — integração da ETo no período Hoje
+Versão..........: 2.12 — correção da integração da ETo corrente no gráfico
 ===============================================================================
 """
 
@@ -167,8 +167,51 @@ class ChartService:
         O parâmetro current_kpis é mantido na assinatura para preservar
         compatibilidade com os consumidores existentes.
 
-        Nenhum dado da série é alterado aqui.
+        Exceção controlada:
+            - somente a posição correspondente ao dia atual pode receber
+              a ETo corrente de current_kpis;
+            - nenhuma outra série histórica é alterada;
+            - se a ETo corrente for None, a ausência permanece None.
         """
+        if not isinstance(data, dict):
+            return data
+
+        if not isinstance(current_kpis, dict):
+            return data
+
+        eto_current = current_kpis.get("eto_mm_day")
+
+        if eto_current is None:
+            return data
+
+        dias = data.get("dias")
+        eto_values = data.get("eto_mm_day")
+
+        if not isinstance(dias, list):
+            return data
+
+        if not isinstance(eto_values, list):
+            return data
+
+        if not dias or not eto_values:
+            return data
+
+        hoje = timezone.localdate().strftime("%d/%m")
+
+        if dias[-1] != hoje:
+            return data
+
+        if len(eto_values) != len(dias):
+            return data
+
+        try:
+            eto_current = round(float(eto_current), 2)
+        except (TypeError, ValueError):
+            return data
+
+        eto_values[-1] = eto_current
+        data["eto_mm_day"] = eto_values
+
         return data
 
     # ==========================================================
@@ -196,11 +239,13 @@ class ChartService:
 
         hoje = timezone.localdate()
 
-        # ETo diária não pertence ao KPI corrente.
-        # A fonte autoritativa para o gráfico é o HistoryService.
-        # Portanto, mesmo quando current_kpis existe, a ETo de hoje
-        # deve ser obtida da série diária persistida.
-        today_eto = self._get_today_eto()
+        # ETo corrente vem do mesmo contrato que alimenta os KPIs.
+        # O ChartService não calcula nem estima ETo.
+        today_eto = (
+            current_kpis.get("eto_mm_day")
+            if isinstance(current_kpis, dict)
+            else None
+        )
 
         if current_kpis is not None:
             return {
@@ -362,9 +407,9 @@ class ChartService:
         Retorna a ETo diária persistida para hoje quando consultada
         diretamente.
 
-        Este método não participa mais da integração dos períodos.
-        A série histórica recebida do HistoryService deve ser preservada
-        sem sobrescrita.
+        Este método permanece disponível para compatibilidade.
+        O período "Hoje", quando recebe current_kpis, usa
+        current_kpis["eto_mm_day"] como fonte corrente.
         """
 
         data = self.history.chart_data(
