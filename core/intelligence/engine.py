@@ -9,11 +9,12 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 4.1
+Versão..........: 4.2
 """
 
 from core.intelligence.rules.frost_rule import FrostRule
 from core.intelligence.rules.meteorological_alert_rule import MeteorologicalAlertRule
+from core.intelligence.rules.hydric_pressure_rule import HydricPressureRule
 from core.intelligence.insight_engine import InsightEngine
 from core.intelligence.recommendation_engine import RecommendationEngine
 from core.intelligence.alert_engine import AlertEngine
@@ -38,6 +39,7 @@ class RuleEngine:
         """
         Registra uma regra no motor.
         """
+
         self.rules.append(rule)
 
     # ==========================================================
@@ -68,19 +70,19 @@ class IntelligenceEngine:
     Responsável por coordenar:
 
     - avaliação das regras;
-    - coordenação das interpretações;
+    - coordenação das interpretações produzidas pelas regras;
     - geração de insights;
     - geração de recomendações;
     - geração de alertas;
     - explicabilidade das decisões.
     """
 
+    FROST_RULE_ID = "FROST_001"
+
     def __init__(self):
         self.rule_engine = RuleEngine()
 
-        self.interpretation_coordinator = (
-            InterpretationCoordinator()
-        )
+        self.interpretation_coordinator = InterpretationCoordinator()
 
         self.insight_engine = InsightEngine()
 
@@ -109,6 +111,10 @@ class IntelligenceEngine:
             MeteorologicalAlertRule()
         )
 
+        self.rule_engine.register(
+            HydricPressureRule()
+        )
+
     # ==========================================================
     # PROCESSAMENTO CENTRAL
     # ==========================================================
@@ -130,8 +136,6 @@ class IntelligenceEngine:
             Recomendações
                 ↓
             Alertas
-                ↓
-            Explainability
 
         A explicabilidade recebe os resultados coordenados
         efetivamente produzidos pela camada de Inteligência.
@@ -163,7 +167,7 @@ class IntelligenceEngine:
         insight_rule_results = [
             result
             for result in coordinated_results
-            if result.get("channel") != "alert"
+            if result.get("channel") not in {"alert", "context"}
         ]
 
         insights = self.insight_engine.generate(
@@ -207,13 +211,21 @@ class IntelligenceEngine:
         # ------------------------------------------------------
         # 7. Resultado específico de geada
         # ------------------------------------------------------
+        #
+        # A identificação da FrostRule é feita pelo seu ID.
+        # A posição da regra na lista não é utilizada como
+        # critério de seleção.
+        # ------------------------------------------------------
 
-        frost = {}
-
-        for result in coordinated_results:
-            if result.get("rule_id") == FrostRule.id:
-                frost = result
-                break
+        frost = next(
+            (
+                result
+                for result in coordinated_results
+                if result.get("rule_id") == self.FROST_RULE_ID
+                or result.get("id") == self.FROST_RULE_ID
+            ),
+            {},
+        )
 
         # ------------------------------------------------------
         # 8. Resultado consolidado
@@ -299,3 +311,4 @@ class IntelligenceEngine:
             "rule_results",
             []
         )
+
