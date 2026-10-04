@@ -60,6 +60,9 @@ from dashboard.services.hydric_pressure_regional_service import (
 from dashboard.services.hydric_pressure_regional_synthesis_service import (
     HydricPressureRegionalSynthesisService,
 )
+from dashboard.services.hydric_pressure_regional_dominance_service import (
+    HydricPressureRegionalDominanceService,
+)
 
 
 class DashboardService:
@@ -118,6 +121,9 @@ class DashboardService:
         )
         self.hydric_pressure_regional_synthesis_service = (
             HydricPressureRegionalSynthesisService()
+        )
+        self.hydric_pressure_regional_dominance_service = (
+            HydricPressureRegionalDominanceService()
         )
 
         # Mantém os DTOs da atualização meteorológica corrente disponíveis
@@ -250,6 +256,7 @@ class DashboardService:
             map_points=map_points,
             primary_municipio_id=kpis.get("municipio_id"),
         )
+        self._attach_hydric_pressure_regional_dominance(context)
 
         # ======================================================
         # ALERTAS CANÔNICOS DA DASHBOARD — ESCOPO TERRITORIAL
@@ -1441,6 +1448,31 @@ class DashboardService:
         if primary_point is not None:
             primary_point["hydric_pressure_regional"] = regional_context
             primary_point["hydric_pressure_regional_synthesis"] = synthesis
+
+        return context
+
+    def _attach_hydric_pressure_regional_dominance(self, context):
+        """Acrescenta MP-01.9 consumindo a evidência MP-01.7 existente."""
+        if (
+            not isinstance(context, dict)
+            or "hydric_pressure_regional_synthesis" not in context
+        ):
+            return context
+
+        service = getattr(
+            self,
+            "hydric_pressure_regional_dominance_service",
+            None,
+        )
+        if service is None:
+            service = HydricPressureRegionalDominanceService()
+            self.hydric_pressure_regional_dominance_service = service
+
+        dominance = service.analyze(
+            context["hydric_pressure_regional_synthesis"]
+        )
+        if dominance is not None:
+            context["hydric_pressure_regional_dominance"] = dominance
 
         return context
 
