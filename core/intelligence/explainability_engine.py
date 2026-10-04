@@ -88,7 +88,7 @@ class ExplainabilityEngine:
 
             explanations.append(explanation)
 
-        return {
+        explanation = {
             "version": self.VERSION,
             "municipio_id": context.get("municipio_id"),
             "municipio_nome": context.get("municipio_nome"),
@@ -96,3 +96,12 @@ class ExplainabilityEngine:
             "rule_count": len(explanations),
             "rules": explanations,
         }
+
+        # A síntese regional já foi produzida pela MP-01.7. A explicabilidade
+        # apenas a preserva como evidência, sem reconstruir seus dados.
+        if context.get("hydric_pressure_regional_synthesis") is not None:
+            explanation["regional_evidence"] = context[
+                "hydric_pressure_regional_synthesis"
+            ]
+
+        return explanation

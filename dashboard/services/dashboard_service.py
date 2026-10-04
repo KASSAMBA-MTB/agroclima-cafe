@@ -54,6 +54,12 @@ from dashboard.services.agroclimate_indicator_service import (
 from dashboard.services.historical_climate_indicator_service import (
     HistoricalClimateIndicatorService,
 )
+from dashboard.services.hydric_pressure_regional_service import (
+    HydricPressureRegionalService,
+)
+from dashboard.services.hydric_pressure_regional_synthesis_service import (
+    HydricPressureRegionalSynthesisService,
+)
 
 
 class DashboardService:
@@ -103,6 +109,15 @@ class DashboardService:
         self.history_service = HistoryService()
         self.historical_climate_indicator_service = (
             HistoricalClimateIndicatorService()
+        )
+
+        # Composição regional dos resultados já produzidos por
+        # HYDRIC_PRESSURE_001. Este serviço não recalcula balanço nem regra.
+        self.hydric_pressure_regional_service = (
+            HydricPressureRegionalService()
+        )
+        self.hydric_pressure_regional_synthesis_service = (
+            HydricPressureRegionalSynthesisService()
         )
 
         # Mantém os DTOs da atualização meteorológica corrente disponíveis
@@ -227,6 +242,13 @@ class DashboardService:
 
         map_points = self._attach_frost_intelligence(
             map_points
+        )
+
+        # MP-01.6 e MP-01.7 apenas compõem resultados já calculados.
+        self._attach_hydric_pressure_context(
+            context=context,
+            map_points=map_points,
+            primary_municipio_id=kpis.get("municipio_id"),
         )
 
         # ======================================================
@@ -704,7 +726,8 @@ class DashboardService:
             historical_indicators_by_municipality[
                 municipality
             ] = historical_indicator_service.calculate(
-                historical_data
+                historical_data,
+                municipality_key=municipio.pk,
             )
 
 
@@ -1112,9 +1135,16 @@ class DashboardService:
 
         for point in map_points:
             evaluated = dict(point)
+            historical_indicators = (
+                point.get("historical_indicators") or {}
+            )
 
             context = {
-                "municipio_id": point.get("municipio_id"),
+                # MapService publica o PK do município como ``id``. O alias
+                # ``municipio_id`` continua aceito para pontos já adaptados.
+                "municipio_id": (
+                    point.get("municipio_id") or point.get("id")
+                ),
                 "municipio_nome": (
                     point.get("municipio_nome")
                     or point.get("nome")
@@ -1143,7 +1173,67 @@ class DashboardService:
                 "historical_min_temperature": point.get(
                     "historical_min_temperature"
                 ),
-                "analysis_date": point.get("analysis_date"),
+                "analysis_date": (
+                    point.get("analysis_date")
+                    or historical_indicators.get("analysis_date")
+                ),
+
+                # ==================================================
+                # BALANÇO HÍDRICO CANÔNICO — MP-01.6
+                #
+                # Estes campos são somente transportados do resultado
+                # já calculado por HistoricalClimateIndicatorService.
+                # HydricPressureRule continua sendo a autoridade para
+                # produzir hydric_state.
+                # ==================================================
+                "hydric_balance_method": (
+                    historical_indicators.get(
+                        "hydric_balance_method"
+                    )
+                ),
+                "hydric_balance_scope": (
+                    historical_indicators.get(
+                        "hydric_balance_scope"
+                    )
+                ),
+                "hydric_balance_status": (
+                    historical_indicators.get(
+                        "hydric_balance_status"
+                    )
+                ),
+                "cad_mm": (
+                    historical_indicators.get("cad_mm")
+                ),
+                "arm_final_mm": (
+                    historical_indicators.get(
+                        "arm_final_mm"
+                    )
+                ),
+                "arm_final_percentual": (
+                    historical_indicators.get(
+                        "arm_final_percentual"
+                    )
+                ),
+                "deficit_hidrico_acumulado": (
+                    historical_indicators.get(
+                        "deficit_hidrico_acumulado"
+                    )
+                ),
+                "excedente_hidrico_acumulado": (
+                    historical_indicators.get(
+                        "excedente_hidrico_acumulado"
+                    )
+                ),
+                "deficit_hidrico_mm": (
+                    historical_indicators.get(
+                        "deficit_hidrico_mm"
+                    )
+                ),
+                "excedente_hidrico_mm": (
+                    historical_indicators.get(
+                        "excedente_hidrico_mm"
+                    )
+                ),
             }
 
             # --------------------------------------------------
@@ -1210,7 +1300,9 @@ class DashboardService:
             # são comparados ou fundidos.
             alerts = self._normalize_municipal_alerts(
                 alerts,
-                municipio_id=point.get("id"),
+                municipio_id=(
+                    point.get("municipio_id") or point.get("id")
+                ),
                 municipio_nome=(
                     point.get("municipio_nome")
                     or point.get("nome")
@@ -1266,6 +1358,92 @@ class DashboardService:
 
         # Não criar, concatenar ou deduplicar alertas globais aqui.
         return evaluated_points
+
+    def _compose_hydric_pressure_regional(self, map_points):
+        """
+        Reúne exclusivamente os resultados municipais já produzidos por
+        HYDRIC_PRESSURE_001 na mesma avaliação de Inteligência.
+
+        Não recalcula balanço, não executa HydricPressureRule novamente e
+        não cria um novo estado hídrico regional.
+        """
+        results = []
+
+        for point in map_points or []:
+            rule_results = point.get("rule_results", [])
+            if not isinstance(rule_results, list):
+                continue
+
+            for result in rule_results:
+                if not isinstance(result, dict):
+                    continue
+
+                if result.get("rule_id") != "HYDRIC_PRESSURE_001":
+                    continue
+
+                results.append(dict(result))
+
+        service = getattr(
+            self,
+            "hydric_pressure_regional_service",
+            None,
+        )
+        if service is None:
+            service = HydricPressureRegionalService()
+            self.hydric_pressure_regional_service = service
+
+        return service.compose(results)
+
+    def _attach_hydric_pressure_context(
+        self,
+        context,
+        map_points,
+        primary_municipio_id=None,
+    ):
+        """Transporta a coleção MP-01.6 e sua síntese MP-01.7."""
+        regional_context = self._compose_hydric_pressure_regional(
+            map_points
+        )
+
+        synthesis_service = getattr(
+            self,
+            "hydric_pressure_regional_synthesis_service",
+            None,
+        )
+        if synthesis_service is None:
+            synthesis_service = HydricPressureRegionalSynthesisService()
+            self.hydric_pressure_regional_synthesis_service = (
+                synthesis_service
+            )
+
+        synthesis = synthesis_service.synthesize(regional_context)
+
+        context["hydric_pressure_regional"] = regional_context
+        context["hydric_pressure_regional_synthesis"] = synthesis
+
+        # A explicabilidade recebe a síntese pronta pela API do mesmo
+        # IntelligenceEngine. Esta chamada não avalia regras nem altera FRI.
+        context["hydric_pressure_regional_explainability"] = (
+            self.frost_risk_service.intelligence.explain_regional_evidence(
+                context
+            )
+        )
+
+        primary_point = next(
+            (
+                point
+                for point in map_points or []
+                if point.get("id", point.get("municipio_id"))
+                == primary_municipio_id
+            ),
+            None,
+        )
+        if primary_point is not None:
+            primary_point["hydric_pressure_regional"] = regional_context
+            primary_point["hydric_pressure_regional_synthesis"] = synthesis
+
+        return context
+
 
     @staticmethod
     def _normalize_municipal_alerts(
@@ -1817,9 +1995,8 @@ class DashboardService:
 #
 # ============================================================================
 
-
 # ============================================================================
-# REGISTRO DE AUDITORIA — VERSÃO 3.11 — CORREÇÃO COORDENADA DO FRI
+# REGISTRO DE AUDITORIA — VERSÃO 3.12 — INTEGRAÇÃO MP-01.6 — PRESSÃO HÍDRICA REGIONAL
 # ============================================================================
 #
 # Base real:
@@ -1861,6 +2038,34 @@ class DashboardService:
 # ============================================================================
 
 
+# REGISTRO DE AUDITORIA — VERSÃO 3.12 — INTEGRAÇÃO MP-01.6
+#
+# Contrato:
+#     HistoricalClimateIndicatorService
+#         -> historical_indicators
+#         -> contexto municipal
+#         -> FrostRiskService.evaluate_frost()
+#         -> IntelligenceEngine (uma execução)
+#         -> rule_results
+#         -> HYDRIC_PRESSURE_001
+#         -> _compose_hydric_pressure_regional()
+#         -> hydric_pressure_regional
+#
+# Garantias:
+#     - HydricBalanceService continua sendo a origem do balanço.
+#     - HydricPressureRule continua sendo a única autoridade de hydric_state.
+#     - Nenhum estado hídrico é recalculado no DashboardService.
+#     - A síntese regional consome somente rule_results já produzidos.
+#     - Municípios permanecem isolados durante a avaliação.
+#     - FRI, FROST_001 e METEO_ALERT_001 não são alterados.
+#     - A coleção regional não substitui os resultados municipais.
+#
+# Critério de aceite externo:
+#     python manage.py check
+#     python manage.py test clima dashboard core
+# ============================================================================
+
+
 # ============================================================================
 # REGISTRO DE AUDITORIA — VERSÃO 3.12 — CONTRATO CANÔNICO ETo
 # ============================================================================
@@ -1868,14 +2073,13 @@ class DashboardService:
 # Base: dashboard_service.py corrente auditado em 24/09/2026.
 #
 # Correção aplicada:
-#     1. WeatherDTO.eto_mm_day passa a integrar o contexto meteorológico
-#        canônico regional.
+#     1. WeatherDTO.eto_mm_day integra o contexto meteorológico canônico.
 #     2. A ETo regional é agregada pela mesma regra estrutural dos demais
 #        indicadores regionais: média dos seis municípios quando todos
 #        possuem valor válido; ausência permanece None.
 #     3. eto_values preserva a evidência municipal utilizada na agregação.
-#     4. map_point passa a transportar eto_mm_day diretamente do WeatherDTO,
-#        sem cálculo, estimativa ou nova aquisição.
+#     4. map_point transporta eto_mm_day diretamente do WeatherDTO, sem
+#        cálculo, estimativa ou nova aquisição.
 #
 # Responsabilidades preservadas:
 #     - WeatherService continua responsável pela aquisição;
@@ -1888,9 +2092,4 @@ class DashboardService:
 # Regra de ausência:
 #     None permanece None quando qualquer município monitorado não possui
 #     ETo válida. Nenhum valor é inventado ou substituído por zero.
-#
-# Critério de regressão desta etapa:
-#     canonical_context["eto_mm_day"] deve refletir a média dos municípios
-#     com ETo válida somente quando todos os seis municípios estiverem
-#     disponíveis; map_points devem preservar eto_mm_day municipal.
 # ============================================================================

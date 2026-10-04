@@ -48,6 +48,7 @@ ThermalClassificationService, única origem das sete faixas operacionais.
 ==============================================================================
 """
 
+from datetime import date
 from math import isfinite
 
 from dashboard.services.thermal_classification_service import (
@@ -242,6 +243,15 @@ class HistoricalClimateIndicatorService:
             dates=days,
         )
 
+        analysis_date = data.get("data_referencia")
+        if analysis_date is None:
+            analysis_date = days[-1] if days else None
+        if isinstance(analysis_date, str):
+            try:
+                analysis_date = date.fromisoformat(analysis_date)
+            except ValueError:
+                analysis_date = None
+
         # A configuração é exposta somente como metadado estruturado.
         # Nenhuma decisão agronômica é criada neste serviço.
         if configuration is not None:
@@ -275,6 +285,11 @@ class HistoricalClimateIndicatorService:
 
         return {
             "indicator_version": self.INDICATOR_VERSION,
+
+            # Data final do período efetivamente recebido. A regra municipal
+            # usa esta referência para identificar a data do balanço, sem
+            # inferir uma data quando o histórico está vazio.
+            "analysis_date": analysis_date,
 
             "tendencia_termica": temperature_trend,
 

@@ -295,6 +295,13 @@ class IntelligenceEngine:
             {}
         )
 
+    def explain_regional_evidence(self, context):
+        """Explica evidência já sintetizada sem reexecutar nenhuma regra."""
+        return self.explainability_engine.process(
+            context,
+            [],
+        )
+
     # ==========================================================
     # COMPATIBILIDADE
     # ==========================================================

@@ -836,6 +836,12 @@ class HistoryService:
 
             "dias": dias,
 
+            # Data tipada do limite final da série. ``dias`` permanece no
+            # formato visual legado DD/MM; consumidores analíticos que
+            # precisam de rastreabilidade usam esta referência sem inferir
+            # ano ou converter rótulos de apresentação.
+            "data_referencia": data_fim,
+
             "temperatura": temperatura,
 
             "precipitacao": precipitacao,
