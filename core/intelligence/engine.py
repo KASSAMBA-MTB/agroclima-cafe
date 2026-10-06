@@ -9,7 +9,7 @@ Curso...........: Bacharelado em Ciência de Dados
 Instituição.....: UNIVESP
 Projeto.........: AgroClima Café
 
-Versão..........: 4.2
+Versão..........: 4.3
 """
 
 from core.intelligence.rules.frost_rule import FrostRule
@@ -20,6 +20,9 @@ from core.intelligence.recommendation_engine import RecommendationEngine
 from core.intelligence.alert_engine import AlertEngine
 from core.intelligence.explainability_engine import ExplainabilityEngine
 from core.intelligence.interpretation_coordinator import InterpretationCoordinator
+from core.intelligence.agroclimatic_interpretation_service import (
+    AgroclimaticInterpretationService,
+)
 
 
 class RuleEngine:
@@ -71,6 +74,7 @@ class IntelligenceEngine:
 
     - avaliação das regras;
     - coordenação das interpretações produzidas pelas regras;
+    - materialização do contrato AgroclimaticInterpretation;
     - geração de insights;
     - geração de recomendações;
     - geração de alertas;
@@ -83,6 +87,10 @@ class IntelligenceEngine:
         self.rule_engine = RuleEngine()
 
         self.interpretation_coordinator = InterpretationCoordinator()
+
+        self.agroclimatic_interpretation_service = (
+            AgroclimaticInterpretationService()
+        )
 
         self.insight_engine = InsightEngine()
 
@@ -131,14 +139,17 @@ class IntelligenceEngine:
                 ↓
             InterpretationCoordinator
                 ↓
+            AgroclimaticInterpretationService
+                ↓
             Insights
                 ↓
             Recomendações
                 ↓
             Alertas
 
-        A explicabilidade recebe os resultados coordenados
-        efetivamente produzidos pela camada de Inteligência.
+        A explicabilidade continua recebendo os resultados
+        coordenados efetivamente produzidos pela camada de
+        Inteligência.
         """
 
         # ------------------------------------------------------
@@ -161,7 +172,26 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 3. Geração de insights
+        # 3. Materialização das interpretações canônicas
+        # ------------------------------------------------------
+        #
+        # O serviço é passivo: recebe os resultados já produzidos
+        # pelo Coordinator e apenas materializa o contrato
+        # AgroclimaticInterpretation.
+        #
+        # Não executa regras, não recalcula indicadores e não
+        # modifica os resultados coordenados.
+        # ------------------------------------------------------
+
+        interpretations = (
+            self.agroclimatic_interpretation_service.build_many(
+                coordinated_results,
+                context,
+            )
+        )
+
+        # ------------------------------------------------------
+        # 4. Geração de insights
         # ------------------------------------------------------
 
         insight_rule_results = [
@@ -175,7 +205,7 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 4. Geração de recomendações
+        # 5. Geração de recomendações
         # ------------------------------------------------------
 
         recommendations = self.recommendation_engine.generate(
@@ -183,7 +213,7 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 5. Geração de alertas
+        # 6. Geração de alertas
         # ------------------------------------------------------
 
         alert_rule_results = [
@@ -200,7 +230,7 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 6. Explicabilidade
+        # 7. Explicabilidade
         # ------------------------------------------------------
 
         explainability = self.explainability_engine.process(
@@ -209,7 +239,7 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 7. Resultado específico de geada
+        # 8. Resultado específico de geada
         # ------------------------------------------------------
         #
         # A identificação da FrostRule é feita pelo seu ID.
@@ -228,13 +258,14 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 8. Resultado consolidado
+        # 9. Resultado consolidado
         # ------------------------------------------------------
 
         return {
             "frost": frost,
             "rule_results": rule_results,
             "coordinated_results": coordinated_results,
+            "interpretations": interpretations,
             "insights": insights,
             "recommendations": recommendations,
             "alerts": alerts,
@@ -318,4 +349,3 @@ class IntelligenceEngine:
             "rule_results",
             []
         )
-

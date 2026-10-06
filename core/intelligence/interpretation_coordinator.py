@@ -7,7 +7,7 @@ Camada de coordenação das interpretações produzidas pelas regras de
 Inteligência. Não calcula indicadores, FRI ou severidade e não substitui
 nenhuma regra especialista.
 
-Versão..........: 1.2
+Versão..........: 1.3
 """
 
 from copy import deepcopy
@@ -20,6 +20,7 @@ class InterpretationCoordinator:
     Responsabilidades:
         - preservar a interpretação original;
         - garantir identidade mínima da regra;
+        - preservar a versão da regra quando fornecida;
         - associar a interpretação ao município/contexto avaliado;
         - aplicar metadados de coordenação;
         - eliminar duplicação do mesmo rule_id dentro da execução;
@@ -33,7 +34,7 @@ class InterpretationCoordinator:
         - gerar insights, recomendações ou alertas.
     """
 
-    VERSION = "1.2"
+    VERSION = "1.3"
     POLICY_VERSION = "1.0"
 
     def coordinate(self, context, rule_results):
@@ -42,6 +43,9 @@ class InterpretationCoordinator:
 
         O método é determinístico: preserva a ordem de chegada e mantém
         somente a primeira ocorrência de cada identificação de regra.
+
+        A versão da regra é somente transportada do resultado original.
+        O Coordinator não inventa nem infere uma versão ausente.
         """
         if not isinstance(context, dict):
             context = {}
@@ -70,7 +74,11 @@ class InterpretationCoordinator:
             seen.add(rule_id)
 
             item.setdefault("rule_id", rule_id)
-            item.setdefault("rule_version", None)
+
+            # Preserva exclusivamente a versão já fornecida pela regra.
+            # None continua sendo None quando a regra não a fornece.
+            item["rule_version"] = item.get("rule_version")
+
             item.setdefault("provenance", "rule_engine")
             item.setdefault("municipio_id", context.get("municipio_id"))
             item.setdefault("municipio_nome", context.get("municipio_nome"))
