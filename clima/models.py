@@ -18,6 +18,9 @@ Walter Junio Pontes Teixeira
 ==========================================================
 """
 
+import math
+
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -481,3 +484,87 @@ class ClimateCache(models.Model):
             f"{self.municipio.nome} - "
             f"{self.provider}"
         )
+
+
+# ==========================================================
+# CANONICAL SINGLE RUNS PERSISTENCE (G4)
+# ==========================================================
+
+class ClimateModelRun(models.Model):
+    source = models.CharField(
+        max_length=40,
+        choices=[("open_meteo_single_runs", "Open-Meteo Single Runs")],
+    )
+    model = models.CharField(max_length=32)
+    run_datetime = models.DateTimeField()
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    timezone = models.CharField(max_length=64)
+    cell_selection = models.CharField(max_length=16)
+    requested_lat = models.DecimalField(max_digits=9, decimal_places=6)
+    requested_lon = models.DecimalField(max_digits=9, decimal_places=6)
+    elevation = models.DecimalField(max_digits=12, decimal_places=6)
+    raw_path = models.TextField()
+    raw_sha256 = models.CharField(max_length=64)
+    content_sha256 = models.CharField(max_length=64)
+    ingested_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "model", "run_datetime", "lat", "lon", "cell_selection"],
+                name="climate_model_run_identity_uniq",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["model", "run_datetime"]),
+            models.Index(fields=["run_datetime"]),
+        ]
+
+
+class ClimateForecastRecord(models.Model):
+    class ValueStatus(models.TextChoices):
+        NUMERIC = "NUMERIC", "Numeric"
+        MISSING = "MISSING", "Missing"
+
+    model_run = models.ForeignKey(
+        ClimateModelRun,
+        on_delete=models.PROTECT,
+        related_name="records",
+        db_index=False,
+    )
+    forecast_datetime = models.DateTimeField()
+    variable = models.CharField(max_length=64)
+    unit = models.CharField(max_length=16)
+    value = models.FloatField(null=True, blank=True)
+    value_status = models.CharField(max_length=8, choices=ValueStatus.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["model_run", "forecast_datetime", "variable"],
+                name="climate_forecast_record_identity_uniq",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(value_status="MISSING", value__isnull=True)
+                    | models.Q(value_status="NUMERIC", value__isnull=False)
+                ),
+                name="climate_forecast_record_value_status_check",
+            ),
+        ]
+        indexes = [models.Index(fields=["forecast_datetime", "variable"])]
+
+    def clean(self):
+        super().clean()
+        if self.value_status == self.ValueStatus.NUMERIC and self.value is not None:
+            try:
+                finite = math.isfinite(self.value)
+            except TypeError:
+                finite = False
+            if not finite:
+                raise ValidationError({"value": "Numeric values must be finite."})
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        return super().save(*args, **kwargs)

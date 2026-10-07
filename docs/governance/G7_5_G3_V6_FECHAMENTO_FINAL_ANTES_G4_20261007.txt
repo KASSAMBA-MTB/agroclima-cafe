@@ -1,0 +1,1042 @@
+G7.5 — G3 v6
+MAPEAMENTO CANÔNICO → PERSISTÊNCIA
+AGROCLIMA CAFÉ
+Data: 07/10/2026
+Status: G3 v6 — FECHAMENTO FINAL ANTES DO G4
+Tipo: DOCUMENTO DE ESPECIFICAÇÃO (.txt)
+Não é código executável. Não substituir nenhum arquivo .py nesta etapa.
+
+==============================================================================
+1. FINALIDADE
+==============================================================================
+
+Esta versão fecha os três pontos de validação identificados na revisão do G3
+v5 e incorpora os detalhes finais de implementação.
+
+O G3 v6 mantém todas as decisões anteriores e torna explícitos:
+
+1. perfil como grade completa;
+2. MISSING como registro presente;
+3. unidade esperada por variável;
+4. horizonte como intervalo temporal definido, não apenas contagem;
+5. primeiro timestamp e passo horário;
+6. tratamento correto de IntegrityError fora do atomic;
+7. formato único de datetime no hash;
+8. base do raw_path;
+9. vetor determinístico de teste do content_sha256.
+
+A especificação continua sem alterar o código ou o banco.
+
+==============================================================================
+2. PERFIL FIXO DO G4
+==============================================================================
+
+Source:
+
+    open_meteo_single_runs
+
+Model:
+
+    ecmwf_ifs025
+
+Horizonte:
+
+    48 timestamps
+
+Passo:
+
+    1 hora
+
+Grade:
+
+    14 variáveis × 48 timestamps
+
+Total esperado:
+
+    672 ForecastRecords
+
+Regra fundamental:
+
+    MISSING é registro presente.
+
+Portanto:
+
+    1 variável com 48 timestamps
+    continua sendo 48 registros mesmo quando um ou mais values forem MISSING.
+
+Não descartar linhas porque value é NULL/MISSING.
+
+==============================================================================
+3. GRADE COMPLETA
+==============================================================================
+
+A resposta válida do G4 deve representar uma grade completa:
+
+    14 variáveis
+    ×
+    48 timestamps
+    =
+    672 registros
+
+Não é permitido:
+
+    variável com 47 registros;
+    variável com 49 registros;
+    timestamp ausente;
+    variável ausente;
+    linha descartada por MISSING.
+
+Um registro MISSING possui:
+
+    value = NULL
+    value_status = MISSING
+
+A ausência de uma linha é diferente de MISSING.
+
+Ausência de linha:
+
+    falha de contrato.
+
+Linha MISSING:
+
+    dado canônico válido dentro do contrato.
+
+==============================================================================
+4. VARIÁVEIS DO PERFIL
+==============================================================================
+
+O conjunto fixo comprovado no G7.4/P5 é:
+
+1. temperature_2m
+2. relative_humidity_2m
+3. dew_point_2m
+4. precipitation
+5. wind_speed_10m
+6. wind_direction_10m
+7. pressure_msl
+8. surface_pressure
+9. cape
+10. temperature_850hPa
+11. relative_humidity_850hPa
+12. geopotential_height_850hPa
+13. temperature_500hPa
+14. geopotential_height_500hPa
+
+Não adicionar nem remover variável durante o G4.
+
+==============================================================================
+5. UNIDADES FIXAS DO PERFIL
+==============================================================================
+
+Cada variável possui unidade esperada e essa unidade faz parte da validação
+antes do content_sha256.
+
+Mapa:
+
+    temperature_2m
+        °C
+
+    relative_humidity_2m
+        %
+
+    dew_point_2m
+        °C
+
+    precipitation
+        mm
+
+    wind_speed_10m
+        km/h
+
+    wind_direction_10m
+        °
+
+    pressure_msl
+        hPa
+
+    surface_pressure
+        hPa
+
+    cape
+        J/kg
+
+    temperature_850hPa
+        °C
+
+    relative_humidity_850hPa
+        %
+
+    geopotential_height_850hPa
+        m
+
+    temperature_500hPa
+        °C
+
+    geopotential_height_500hPa
+        m
+
+==============================================================================
+6. UNIT_MISMATCH
+==============================================================================
+
+Se uma variável estiver presente com unidade diferente da unidade esperada:
+
+    UNIT_MISMATCH
+
+A resposta deve ser rejeitada antes do content_sha256.
+
+Exemplo:
+
+    wind_speed_10m
+    recebido: m/s
+    esperado: km/h
+
+Resultado:
+
+    CONTRACT_PROFILE_MISMATCH
+    + UNIT_MISMATCH
+
+Não tratar como:
+
+    SingleRunContentConflictError
+
+Mudança de unidade é mudança de contrato.
+
+==============================================================================
+7. PERFIL COMPLETO
+==============================================================================
+
+O contrato do G4 agora é composto por:
+
+    source
+    model
+    conjunto exato de 14 variáveis
+    unidade esperada de cada variável
+    primeiro timestamp
+    passo de 1 hora
+    48 timestamps
+
+Portanto, a validação ocorre em camadas:
+
+1. source/model;
+2. conjunto de variáveis;
+3. unidades;
+4. grade temporal;
+5. cardinalidade;
+6. valores/status;
+7. content_sha256;
+8. persistência.
+
+==============================================================================
+8. HORIZONTE TEMPORAL
+==============================================================================
+
+A evidência consolidada do G7.4/P4.2 mostrou:
+
+    primeiro timestamp = início do RUN
+    48 timestamps
+    passo horário
+    último timestamp = run_datetime + 47 horas
+
+Portanto:
+
+    forecast_datetime[0] = run_datetime
+
+e:
+
+    forecast_datetime[n] = run_datetime + n horas
+
+para:
+
+    n = 0 ... 47
+
+Não utilizar somente a contagem 48 para validar o horizonte.
+
+==============================================================================
+9. PRIMEIRO TIMESTAMP
+==============================================================================
+
+O primeiro forecast_datetime esperado é exatamente:
+
+    run_datetime
+
+Não é:
+
+    run_datetime + 1h
+
+A validação deve comparar o primeiro timestamp recebido com o run_datetime
+do ModelRun.
+
+Se diferente:
+
+    HORIZON_MISMATCH
+
+==============================================================================
+10. PASSO TEMPORAL
+==============================================================================
+
+O passo esperado é:
+
+    1 hora
+
+Para cada par consecutivo:
+
+    forecast_datetime[i+1] - forecast_datetime[i] = 1 hora
+
+Qualquer:
+
+    salto;
+    duplicação;
+    intervalo irregular;
+    timestamp deslocado;
+
+deve provocar:
+
+    HORIZON_MISMATCH
+
+antes do content_sha256.
+
+==============================================================================
+11. GRADE TEMPORAL ESPERADA
+==============================================================================
+
+A sequência esperada é:
+
+    run_datetime + 0h
+    run_datetime + 1h
+    run_datetime + 2h
+    ...
+    run_datetime + 47h
+
+Total:
+
+    48 timestamps distintos.
+
+Não deve haver:
+
+    timestamp duplicado.
+
+A validação deve verificar:
+
+    cardinalidade;
+    unicidade;
+    ordenação;
+    primeiro timestamp;
+    passo.
+
+==============================================================================
+12. HORIZON_MISMATCH
+==============================================================================
+
+Código:
+
+    HORIZON_MISMATCH
+
+Aplicável quando houver:
+
+- quantidade diferente;
+- primeiro timestamp diferente;
+- passo diferente;
+- timestamp ausente;
+- timestamp duplicado;
+- timestamp deslocado;
+- sequência temporal irregular.
+
+A rejeição ocorre antes do content_sha256.
+
+==============================================================================
+13. VARIABLE_SET_MISMATCH
+==============================================================================
+
+Código:
+
+    VARIABLE_SET_MISMATCH
+
+Aplicável quando:
+
+- variável ausente;
+- variável extra;
+- conjunto diferente.
+
+MISSING não causa VARIABLE_SET_MISMATCH.
+
+A variável continua presente no conjunto quando seu valor é MISSING.
+
+==============================================================================
+14. CONTRACT_PROFILE_MISMATCH
+==============================================================================
+
+Código geral:
+
+    CONTRACT_PROFILE_MISMATCH
+
+Subcódigos esperados:
+
+    VARIABLE_SET_MISMATCH
+    UNIT_MISMATCH
+    HORIZON_MISMATCH
+
+A validação de perfil deve terminar antes do cálculo do content_sha256.
+
+==============================================================================
+15. CONTENT SHA256 — FINALIDADE
+==============================================================================
+
+O content_sha256 decide:
+
+    idempotência;
+    conflito de conteúdo.
+
+Ele só é calculado depois que:
+
+    perfil;
+    unidades;
+    grade temporal;
+    cardinalidade;
+    status;
+
+foram validados.
+
+raw_sha256 não decide conflito.
+
+==============================================================================
+16. SERIALIZAÇÃO DO CONTENT SHA256
+==============================================================================
+
+Cada ForecastRecord será serializado como:
+
+    forecast_datetime|variable|unit|value|value_status
+
+Ordenação:
+
+    forecast_datetime ASC
+    variable ASC
+
+A ordenação de variable é por codepoint do Python, sem locale.
+
+Encoding:
+
+    UTF-8
+
+Separador de campos:
+
+    |
+
+Separador de registros:
+
+    LF (
+)
+
+O payload final termina com LF.
+
+==============================================================================
+17. DATETIME DO HASH
+==============================================================================
+
+O formato é estritamente:
+
+    %Y-%m-%dT%H:%M:%SZ
+
+Exemplo:
+
+    2026-10-03T00:00:00Z
+
+Não aceitar variações como:
+
+    2026-10-03T00:00Z
+    2026-10-03T00:00:00.000Z
+
+na serialização canônica.
+
+O datetime deve estar normalizado para UTC antes da formatação.
+
+==============================================================================
+18. FORMATO NUMÉRICO
+==============================================================================
+
+Para NUMERIC:
+
+    format(value, ".17g")
+
+Normalização obrigatória:
+
+    -0.0 -> 0.0
+
+Assim:
+
+    0.0
+    -0.0
+
+produzem a mesma representação canônica:
+
+    0
+
+Não usar:
+
+    str(value)
+
+Não usar locale.
+
+==============================================================================
+19. VETORES NUMÉRICOS CONGELADOS
+==============================================================================
+
+Os testes do G4 devem conter:
+
+    format(18.7, ".17g")
+        -> '18.699999999999999'
+
+    format(0.1, ".17g")
+        -> '0.10000000000000001'
+
+    format(0.0, ".17g")
+        -> '0'
+
+Esses valores são vetores de teste do serializador.
+
+==============================================================================
+20. VETOR COMPLETO DE HASH
+==============================================================================
+
+Payload UTF-8, com LF entre linhas e LF final:
+
+    2026-10-03T00:00:00Z|precipitation|mm|MISSING|MISSING
+    2026-10-03T00:00:00Z|temperature_2m|°C|18.699999999999999|NUMERIC
+    2026-10-03T01:00:00Z|temperature_2m|°C|0.10000000000000001|NUMERIC
+
+SHA-256 esperado:
+
+    b89601633a0e9eb5df5a66602b0d9511b5c868ac9762f2eb2d1424fd8e4b16f6
+
+Esse vetor deve ser congelado como teste de regressão do serializador.
+
+==============================================================================
+21. DELIMITADORES
+==============================================================================
+
+variable não pode conter:
+
+    |
+
+
+
+
+unit não pode conter:
+
+    |
+
+
+
+
+Se ocorrer:
+
+    CONTRACT_SERIALIZATION_ERROR
+
+antes do hash.
+
+==============================================================================
+22. CONVERSÃO DECIMAL
+==============================================================================
+
+Coordenadas devem ser obtidas do texto original do JSON.
+
+Não:
+
+    JSON -> float -> Decimal
+
+Preferencialmente:
+
+    json.loads(..., parse_float=Decimal)
+
+ou:
+
+    Decimal(str(valor_textual))
+
+A quantização ocorre depois dessa conversão.
+
+==============================================================================
+23. QUANTIZAÇÃO
+==============================================================================
+
+requested_lat
+requested_lon
+lat
+lon
+
+serão quantizados para seis casas.
+
+Modo:
+
+    ROUND_HALF_EVEN
+
+A quantização não altera o RAW.
+
+Não derivar coordenada resolvida por arredondamento local se a fonte fornecer
+latitude/longitude resolvidas.
+
+==============================================================================
+24. MODEL RUN — IDENTIDADE
+==============================================================================
+
+Identidade:
+
+    source
+    model
+    run_datetime
+    lat
+    lon
+    cell_selection
+
+Constraint:
+
+    climate_model_run_identity_uniq
+
+O conjunto de variáveis e horizonte não participam da chave porque são fixos
+no perfil do G4.
+
+Uma alteração de contrato exige novo gate.
+
+==============================================================================
+25. FORECAST RECORD
+==============================================================================
+
+Campos:
+
+    model_run
+    forecast_datetime
+    variable
+    unit
+    value
+    value_status
+
+Constraint:
+
+    climate_forecast_record_identity_uniq
+
+ForeignKey:
+
+    related_name="records"
+    on_delete=PROTECT
+    db_index=False
+
+==============================================================================
+26. VALUE STATUS
+==============================================================================
+
+NUMERIC:
+
+    value != NULL
+
+MISSING:
+
+    value = NULL
+
+MISSING é uma linha válida do contrato.
+
+Não converter MISSING em zero.
+
+Não remover a linha MISSING.
+
+==============================================================================
+27. NaN E INFINITOS
+==============================================================================
+
+Rejeitar:
+
+    NaN
+    +Infinity
+    -Infinity
+
+Validação:
+
+    math.isfinite(value)
+
+Antes da persistência.
+
+Testes obrigatórios para os três casos.
+
+==============================================================================
+28. RAW E CONTENT HASH
+==============================================================================
+
+raw_path:
+
+    referência ao RAW originador.
+
+Base:
+
+    settings.BASE_DIR
+
+O caminho persistido é relativo a:
+
+    BASE_DIR
+
+Portanto, o teste de existência deverá resolver:
+
+    settings.BASE_DIR / raw_path
+
+raw_sha256:
+
+    hash dos bytes exatos do arquivo RAW.
+
+content_sha256:
+
+    hash da serialização canônica dos ForecastRecords.
+
+==============================================================================
+29. POLÍTICA DE RAW ADICIONAL
+==============================================================================
+
+O banco guarda somente:
+
+    RAW originador do ModelRun.
+
+Se nova consulta produzir:
+
+    raw diferente
+    content igual
+
+resultado:
+
+    idempotente canônico.
+
+O RAW original continua vinculado.
+
+O RAW adicional, se preservado, fica na estrutura RAW sem vínculo adicional
+nesta etapa.
+
+Não criar entidade de aquisição no G4.
+
+==============================================================================
+30. REPROCESSAMENTO
+==============================================================================
+
+Mesma identidade + mesmo content_sha256:
+
+    IDEMPOTENTE
+
+Mesma identidade + content_sha256 diferente:
+
+    CONFLITO DE CONTEÚDO
+
+Mesmo raw_sha256 + content_sha256 diferente:
+
+    ERRO DE CANONICALIZAÇÃO
+
+raw_sha256 nunca substitui content_sha256 na decisão.
+
+==============================================================================
+31. ATOMICIDADE
+==============================================================================
+
+Usar:
+
+    transaction.atomic()
+
+Validar todo o payload antes da persistência.
+
+Falha:
+
+    ROLLBACK
+
+Não existirão ModelRuns parciais.
+
+==============================================================================
+32. CONCORRÊNCIA
+==============================================================================
+
+Duas ingestões simultâneas podem disputar a mesma UNIQUE.
+
+A estratégia correta é:
+
+1. tentativa de criação dentro de atomic;
+2. IntegrityError é capturado FORA do bloco atomic;
+3. iniciar nova transação para reler o ModelRun;
+4. comparar content_sha256;
+5. igual -> idempotente;
+6. diferente -> conflito;
+7. IntegrityError de causa diferente -> propagar.
+
+Não tentar consultar o ModelRun dentro de uma transação marcada como rollback.
+
+Alternativamente, poderá ser usado savepoint interno, desde que o resultado
+seja equivalente.
+
+==============================================================================
+33. CHECK CONSTRAINT
+==============================================================================
+
+Nome:
+
+    climate_forecast_record_value_status_check
+
+Django 6:
+
+    condition=
+
+Regra:
+
+    (MISSING AND value IS NULL)
+    OR
+    (NUMERIC AND value IS NOT NULL)
+
+==============================================================================
+34. CONSTRAINTS E ÍNDICES
+==============================================================================
+
+Constraints:
+
+    climate_model_run_identity_uniq
+    climate_forecast_record_identity_uniq
+    climate_forecast_record_value_status_check
+
+Índices:
+
+ClimateModelRun:
+
+    INDEX(model, run_datetime)
+    INDEX(run_datetime)
+
+ClimateForecastRecord:
+
+    INDEX(forecast_datetime, variable)
+
+ForeignKey:
+
+    db_index=False
+
+==============================================================================
+35. SOURCE
+==============================================================================
+
+Slug:
+
+    open_meteo_single_runs
+
+Não usar o nome longo da API como chave.
+
+==============================================================================
+36. TIMEZONE
+==============================================================================
+
+Pré-condição:
+
+    USE_TZ = True
+
+run_datetime:
+
+    timezone-aware
+
+forecast_datetime:
+
+    timezone-aware
+
+Persistência:
+
+    UTC
+
+Campo timezone:
+
+    preservado no ModelRun.
+
+==============================================================================
+37. CAMPOS NOT NULL
+==============================================================================
+
+ClimateModelRun:
+
+    source
+    model
+    run_datetime
+    lat
+    lon
+    timezone
+    cell_selection
+    requested_lat
+    requested_lon
+    raw_path
+    raw_sha256
+    content_sha256
+    ingested_at
+
+Elevation:
+
+    NOT NULL se a verificação pré-G4 confirmar que a fonte sempre fornece o
+    campo.
+
+Caso contrário, a possibilidade de NULL deverá ser formalmente mantida.
+
+ClimateForecastRecord:
+
+    model_run
+    forecast_datetime
+    variable
+    unit
+    value_status
+
+value:
+
+    NULL somente em MISSING.
+
+==============================================================================
+38. TESTES OBRIGATÓRIOS
+==============================================================================
+
+1. grade 14 × 48 = 672;
+2. MISSING preservado como linha;
+3. variável a menos;
+4. variável a mais;
+5. unidade errada;
+6. horizonte menor;
+7. horizonte maior;
+8. primeiro timestamp errado;
+9. passo temporal errado;
+10. timestamp duplicado;
+11. timestamp ausente;
+12. content_sha256;
+13. hash independente da ordem de entrada;
+14. vetores .17g;
+15. vetor SHA-256 completo;
+16. -0.0;
+17. NaN;
+18. +Infinity;
+19. -Infinity;
+20. delimitadores;
+21. datetime canônico;
+22. Decimal a partir do texto;
+23. ROUND_HALF_EVEN;
+24. RAW existente;
+25. raw_sha256 conferido;
+26. RAW ausente;
+27. RAW hash inconsistente;
+28. mesmo conteúdo idempotente;
+29. conteúdo diferente em conflito;
+30. mesmo RAW + conteúdo diferente como erro de canonicalização;
+31. concorrência;
+32. IntegrityError reavaliado em nova transação;
+33. rollback;
+34. ausência de ModelRun parcial;
+35. USE_TZ;
+36. constraints;
+37. migration.
+
+==============================================================================
+39. PRÉ-CONDIÇÕES EMPÍRICAS
+==============================================================================
+
+Antes do G4:
+
+    ls clima/migrations/
+
+    python manage.py makemigrations --check --dry-run
+
+    Select-String -Path raw\*\*.json -Pattern
+    "latitude|longitude|elevation|generationtime_ms" |
+    Select-Object -First 20
+
+Também verificar:
+
+    USE_TZ = True
+
+no settings.py.
+
+Quando houver mais de um RAW do mesmo RUN:
+
+    Get-FileHash <raw1>
+    Get-FileHash <raw2>
+
+A existência de generationtime_ms não prova sozinha alteração de bytes.
+
+==============================================================================
+40. ESTADO DAS EVIDÊNCIAS G7.4
+==============================================================================
+
+Este documento utiliza como base o estado consolidado anteriormente no
+G7.4/P4.2/P5:
+
+- 14 variáveis mapeadas;
+- 48 timestamps no teste de dois dias;
+- precipitação no primeiro timestamp preservada como MISSING;
+- primeiro timestamp coincide com o início do RUN;
+- sequência horária observada;
+- unidades mapeadas.
+
+Essas afirmações pertencem ao histórico consolidado do G7.4 e deverão ser
+reconfirmadas pelos artefatos RAW disponíveis no ambiente antes da execução
+do G4, conforme o checklist.
+
+Não inventar valores caso a evidência local contradiga o histórico.
+
+==============================================================================
+41. RESULTADO FORMAL
+==============================================================================
+
+G7.5 — G3 v6
+
+STATUS:
+
+    ESPECIFICAÇÃO FINAL FECHADA
+
+Correções finais:
+
+    [OK] grade completa 14 × 48
+    [OK] MISSING conta como registro
+    [OK] unidades fazem parte do perfil
+    [OK] UNIT_MISMATCH
+    [OK] primeiro timestamp = run_datetime
+    [OK] passo = 1 hora
+    [OK] 48 timestamps distintos
+    [OK] Decimal a partir do texto
+    [OK] ROUND_HALF_EVEN
+    [OK] IntegrityError fora do atomic
+    [OK] releitura em nova transação
+    [OK] datetime %Y-%m-%dT%H:%M:%SZ
+    [OK] raw_path relativo a BASE_DIR
+    [OK] vetor de hash congelado
+    [OK] testes de perfil
+    [OK] testes de rastreabilidade
+
+==============================================================================
+42. CONDIÇÃO DE ABERTURA DO G4
+==============================================================================
+
+O G3 está encerrado.
+
+O G4 somente será aberto após os resultados empíricos:
+
+1. migrations;
+2. makemigrations --check --dry-run;
+3. USE_TZ;
+4. RAW latitude/longitude/elevation;
+5. generationtime_ms;
+6. confirmação da grade temporal;
+7. confirmação das unidades.
+
+Não alterar o contrato durante o G4 por inferência.
+
+Se alguma evidência contradizer este documento:
+
+    parar;
+    registrar divergência;
+    abrir correção de gate.
+
+==============================================================================
+43. ENCERRAMENTO
+==============================================================================
+
+G7.5 — G3 v6
+MAPEAMENTO CANÔNICO → PERSISTÊNCIA
+
+    G3 FECHADO
+
+Próximo passo:
+
+    VERIFICAÇÃO EMPÍRICA PRÉ-G4
+
+Depois:
+
+    G4 — IMPLEMENTAÇÃO FÍSICA CONTROLADA
+
+Nenhuma alteração de código ou banco foi realizada por este documento.
+
+Fim.
