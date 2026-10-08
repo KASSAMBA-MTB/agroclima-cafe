@@ -109,6 +109,7 @@ class HydricPressureRuleTests(SimpleTestCase):
                 "FROST_001",
                 "METEO_ALERT_001",
                 "HYDRIC_PRESSURE_001",
+                "HAIL_POTENTIAL_001",
             ],
         )
 

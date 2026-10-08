@@ -15,6 +15,7 @@ Versão..........: 4.2
 from core.intelligence.rules.frost_rule import FrostRule
 from core.intelligence.rules.meteorological_alert_rule import MeteorologicalAlertRule
 from core.intelligence.rules.hydric_pressure_rule import HydricPressureRule
+from core.intelligence.rules.hail_potential_rule import HailPotentialRule
 from core.intelligence.insight_engine import InsightEngine
 from core.intelligence.recommendation_engine import RecommendationEngine
 from core.intelligence.alert_engine import AlertEngine
@@ -78,6 +79,7 @@ class IntelligenceEngine:
     """
 
     FROST_RULE_ID = "FROST_001"
+    HAIL_POTENTIAL_RULE_ID = "HAIL_POTENTIAL_001"
 
     def __init__(self):
         self.rule_engine = RuleEngine()
@@ -113,6 +115,10 @@ class IntelligenceEngine:
 
         self.rule_engine.register(
             HydricPressureRule()
+        )
+
+        self.rule_engine.register(
+            HailPotentialRule()
         )
 
     # ==========================================================
@@ -228,11 +234,30 @@ class IntelligenceEngine:
         )
 
         # ------------------------------------------------------
-        # 8. Resultado consolidado
+        # 8. Resultado espec?fico de potencial de granizo
+        # ------------------------------------------------------
+        #
+        # A identifica??o da HailPotentialRule ? feita pelo ID.
+        # Nenhuma classifica??o normativa ? calculada aqui.
+        # ------------------------------------------------------
+
+        hail = next(
+            (
+                result
+                for result in coordinated_results
+                if result.get("rule_id") == self.HAIL_POTENTIAL_RULE_ID
+                or result.get("id") == self.HAIL_POTENTIAL_RULE_ID
+            ),
+            {},
+        )
+
+        # ------------------------------------------------------
+        # 9. Resultado consolidado
         # ------------------------------------------------------
 
         return {
             "frost": frost,
+            "hail": hail,
             "rule_results": rule_results,
             "coordinated_results": coordinated_results,
             "insights": insights,
@@ -252,6 +277,19 @@ class IntelligenceEngine:
 
         return self.process(context).get(
             "frost",
+            {}
+        )
+
+    def evaluate_hail(self, context):
+        """
+        Avalia especificamente o potencial meteorol?gico de granizo.
+
+        A classifica??o normativa permanece ausente enquanto os
+        limiares da MP-01.11 n?o estiverem homologados.
+        """
+
+        return self.process(context).get(
+            "hail",
             {}
         )
 
