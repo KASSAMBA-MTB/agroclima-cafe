@@ -1,12 +1,10 @@
 """
-G7.5 / G6 — Adaptador controlado do contexto Single Run para indicadores.
-
-Destino:
-    dashboard/services/single_run_indicator_adapter.py
+G7.6 — Adaptador controlado do contexto Single Run para indicadores.
 
 Responsabilidade:
-    Receber o contexto produzido pelo SingleRunDomainService e expor somente
-    as séries canônicas necessárias para os serviços de indicadores existentes.
+    Expor integralmente as 14 séries horárias do contrato canônico Single Run
+    aos consumidores de indicadores, preservando valor, status, unidade e
+    timestamp.
 
 Limites:
     - não acessa ORM;
@@ -16,10 +14,9 @@ Limites:
     - não altera DashboardService;
     - não executa inteligência;
     - não converte MISSING em zero;
+    - não cria ETo;
     - preserva value_status e unidades.
 """
-
-from datetime import datetime
 
 
 class SingleRunIndicatorAdapter:
@@ -43,7 +40,7 @@ class SingleRunIndicatorAdapter:
     )
 
     def build_series(self, context):
-        """Extrai séries canônicas sem produzir valores derivados."""
+        """Extrai as 14 séries canônicas sem produzir valores derivados."""
         context = context or {}
         forecasts = context.get("forecasts") or []
 
@@ -82,16 +79,28 @@ class SingleRunIndicatorAdapter:
 
     def build_indicator_input(self, context):
         """
-        Produz somente o subconjunto de séries diretamente compatível com
-        indicadores climáticos, mantendo ausência como None.
+        Expõe integralmente as séries canônicas aos indicadores.
 
-        Nenhuma média, soma ou classificação é realizada aqui.
+        O campo ``series`` contém as 14 variáveis exatamente na forma
+        produzida por ``build_series``. Os aliases históricos em português
+        permanecem para compatibilidade dos consumidores já existentes.
+
+        Nenhuma média, soma, classificação ou interpretação é realizada aqui.
         """
         adapted = self.build_series(context)
         series = adapted["series"]
 
         return {
             "run": adapted["run"],
+            "series": {
+                variable: {
+                    "timestamps": list(series[variable]["timestamps"]),
+                    "values": list(series[variable]["values"]),
+                    "statuses": list(series[variable]["statuses"]),
+                    "units": list(series[variable]["units"]),
+                }
+                for variable in self.VARIABLES
+            },
             "dias": list(series["temperature_2m"]["timestamps"]),
             "temperatura": list(series["temperature_2m"]["values"]),
             "temperatura_status": list(
@@ -104,12 +113,8 @@ class SingleRunIndicatorAdapter:
             "eto_mm_day": [],
             "eto_status": [],
             "units": {
-                "temperature_2m": self._first_unit(
-                    series["temperature_2m"]
-                ),
-                "precipitation": self._first_unit(
-                    series["precipitation"]
-                ),
+                variable: self._first_unit(series[variable])
+                for variable in self.VARIABLES
             },
             "forecast_count": adapted["forecast_count"],
             "record_count": adapted["record_count"],
