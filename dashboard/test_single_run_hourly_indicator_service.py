@@ -66,6 +66,68 @@ class SingleRunHourlyIndicatorServiceTests(SimpleTestCase):
             },
         }
 
+    def test_exposes_all_14_canonical_variables(self):
+        result = SingleRunHourlyIndicatorService().calculate(self.context)
+        self.assertEqual(
+            result["variables"],
+            list(SingleRunHourlyIndicatorService.VARIABLES),
+        )
+        self.assertEqual(
+            set(result["series"]),
+            set(SingleRunHourlyIndicatorService.VARIABLES),
+        )
+
+    def test_preserves_canonical_value_status_unit_and_timestamp(self):
+        result = SingleRunHourlyIndicatorService().calculate(self.context)
+
+        temperature = result["series"]["temperature_2m"]
+        self.assertEqual(temperature["timestamps"][0], self.context["forecast"]["temperature_2m"][0]["forecast_datetime"])
+        self.assertEqual(temperature["values"], [18.7, None])
+        self.assertEqual(temperature["statuses"], ["NUMERIC", "MISSING"])
+        self.assertEqual(temperature["units"], ["°C", "°C"])
+
+        precipitation = result["series"]["precipitation"]
+        self.assertEqual(precipitation["values"], [None, 0.3])
+        self.assertEqual(precipitation["statuses"], ["MISSING", "NUMERIC"])
+
+    def test_accepts_g7_6_series_input_with_all_14_variables(self):
+        start = datetime(2026, 10, 3, tzinfo=timezone.utc)
+        series = {}
+        for variable in SingleRunHourlyIndicatorService.VARIABLES:
+            series[variable] = {
+                "timestamps": [start],
+                "values": [1.0],
+                "statuses": ["NUMERIC"],
+                "units": ["unit"],
+            }
+
+        result = SingleRunHourlyIndicatorService().calculate({
+            "run": {"model": "ecmwf_ifs025"},
+            "forecast_count": 1,
+            "record_count": 14,
+            "series": series,
+        })
+
+        self.assertEqual(result["series"]["cape"]["values"], [1.0])
+        self.assertEqual(
+            result["series"]["temperature_500hPa"]["values"],
+            [1.0],
+        )
+        self.assertEqual(
+            result["series"]["wind_direction_10m"]["statuses"],
+            ["NUMERIC"],
+        )
+
+    def test_non_aggregated_variables_are_not_given_arbitrary_aggregates(self):
+        result = SingleRunHourlyIndicatorService().calculate(self.context)
+
+        self.assertNotIn("dew_point_2m", result)
+        self.assertNotIn("wind_direction_10m", result)
+        self.assertNotIn("pressure_msl", result)
+        self.assertNotIn("cape", result)
+        self.assertNotIn("temperature_850hPa", result)
+        self.assertNotIn("temperature_500hPa", result)
+
     def test_calculates_hourly_temperature_without_fabricating_missing(self):
         result = SingleRunHourlyIndicatorService().calculate(self.context)
         self.assertEqual(result["frequency"], "HOURLY")
@@ -86,10 +148,7 @@ class SingleRunHourlyIndicatorServiceTests(SimpleTestCase):
         result = SingleRunHourlyIndicatorService().calculate(self.context)
         self.assertEqual(result["forecast_count"], 2)
         self.assertEqual(result["record_count"], 4)
-        self.assertEqual(
-            result["run"]["model"],
-            "ecmwf_ifs025",
-        )
+        self.assertEqual(result["run"]["model"], "ecmwf_ifs025")
 
     def test_no_valid_values_returns_null_aggregates(self):
         context = {
