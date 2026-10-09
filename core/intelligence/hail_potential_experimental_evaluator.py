@@ -2,14 +2,10 @@
 MP-01.12 — Avaliação diagnóstica experimental de potencial de granizo.
 
 Componente isolado, não operacional e sem classificação por limiares.
-
-Consome exclusivamente o resultado canônico produzido pelo
-HailPotentialService. Não recalcula CAPE, cisalhamento ou CAPE-SHEAR.
+Consome exclusivamente o resultado canônico produzido pelo HailPotentialService.
+Não recalcula CAPE, cisalhamento ou CAPE-SHEAR.
 
 Sem limiares regionais homologados, potential_level permanece None.
-O componente organiza os eixos disponíveis, explicita lacunas do contrato
-e identifica o resultado como experimental e não homologado.
-
 Não gera probabilidade, score, alerta, recomendação, ocorrência observada
 ou estimativa de dano. Não altera FRI, DashboardService ou IntelligenceEngine.
 """
@@ -23,20 +19,29 @@ CLASSIFICATION_STATUS = "NOT_CLASSIFIED_NO_HOMOLOGATED_THRESHOLDS"
 INSUFFICIENT_STATUS = "INSUFFICIENT_DATA"
 ASSESSED_STATUS = "ASSESSED"
 
+_REQUIRED_DRIVER_VARIABLES = {"cape", "shear_925_500", "cape_shear"}
+_REQUIRED_DERIVED_FIELDS = {"shear_925_500_ms", "cape_shear"}
+_REQUIRED_COMPLEMENTARY_FIELDS = {
+    "wet_bulb_temperature_2m",
+    "temperature_850hPa",
+    "relative_humidity_850hPa",
+}
+
 
 class HailPotentialExperimentalEvaluator:
     """Organiza os eixos meteorológicos sem atribuir nível normativo."""
 
-    METHOD_VERSION = "MP-01.12.2"
+    METHOD_VERSION = "MP-01.12.3"
     COMPONENT_ID = "HAIL_POTENTIAL_EXPERIMENTAL_EVALUATOR"
 
     def evaluate(self, canonical_result):
         """
         Recebe HailPotentialContract.as_dict() ou dicionário equivalente.
 
+        Contratos ASSESSED precisam ter a estrutura produzida pelo MP-01.11.
+        Valores numéricos inválidos permanecem evidências indisponíveis; campos
+        estruturais ausentes ou malformados tornam o contrato inconsistente.
         A entrada é copiada para evitar mutação do contrato canônico.
-        O componente valida a consistência mínima do contrato antes de
-        produzir o diagnóstico experimental.
         """
         if not isinstance(canonical_result, dict):
             return self._insufficient(
@@ -55,79 +60,83 @@ class HailPotentialExperimentalEvaluator:
 
         data_quality = source.get("data_quality")
         if not isinstance(data_quality, dict):
-            return self._insufficient(
-                reason="CANONICAL_CONTRACT_INCONSISTENT",
-                source_result=source,
-                missing_variables=self._missing_variables(source, {}),
-            )
+            return self._contract_inconsistent(source)
 
-        required_complete = data_quality.get("required_variables_complete")
         source_missing = source.get("missing_variables")
         quality_missing = data_quality.get("missing_variables")
-
-        missing_fields_are_lists = (
-            isinstance(source_missing, list)
-            and isinstance(quality_missing, list)
-        )
-        missing_values_are_valid = (
-            missing_fields_are_lists
-            and all(isinstance(item, str) and item for item in source_missing)
-            and all(isinstance(item, str) and item for item in quality_missing)
-        )
-        missing = (
-            list(source_missing)
-            if isinstance(source_missing, list)
-            and all(isinstance(item, str) and item for item in source_missing)
-            else self._missing_variables(source, data_quality)
-        )
+        required_complete = data_quality.get("required_variables_complete")
 
         if (
-            not isinstance(required_complete, bool)
-            or not missing_values_are_valid
+            not isinstance(source_missing, list)
+            or not self._is_string_list(source_missing)
+            or not isinstance(quality_missing, list)
+            or not self._is_string_list(quality_missing)
             or source_missing != quality_missing
-            or required_complete is not True
             or source_missing
+            or required_complete is not True
         ):
-            return self._insufficient(
-                reason="CANONICAL_CONTRACT_INCONSISTENT",
-                source_result=source,
-                missing_variables=missing,
+            return self._contract_inconsistent(
+                source,
+                missing_variables=self._safe_missing(source_missing, quality_missing),
             )
 
+        # Validar a estrutura completa esperada no contrato ASSESSED do MP-01.11.
         drivers = source.get("drivers")
         if not isinstance(drivers, (list, tuple)):
-            drivers = ()
+            return self._contract_inconsistent(source)
 
         driver_values = {}
         for driver in drivers:
             if not isinstance(driver, dict):
-                continue
+                return self._contract_inconsistent(source)
+
             variable = driver.get("variable")
-            if isinstance(variable, str) and variable:
-                driver_values[variable] = {
-                    "value": driver.get("observed_value"),
-                    "unit": driver.get("unit"),
-                    "role": driver.get("role"),
-                    "rule_id": driver.get("rule_id"),
-                    "rule_version": driver.get("rule_version"),
-                }
+            if not isinstance(variable, str) or not variable:
+                return self._contract_inconsistent(source)
+
+            # Os drivers canônicos têm estes campos, mesmo quando o valor
+            # observado é numericamente inválido e deve ficar UNAVAILABLE.
+            required_driver_fields = {
+                "observed_value", "unit", "rule_id", "rule_version", "role"
+            }
+            if not required_driver_fields.issubset(driver):
+                return self._contract_inconsistent(source)
+
+            if variable in driver_values:
+                return self._contract_inconsistent(source)
+
+            driver_values[variable] = {
+                "value": driver.get("observed_value"),
+                "unit": driver.get("unit"),
+                "role": driver.get("role"),
+                "rule_id": driver.get("rule_id"),
+                "rule_version": driver.get("rule_version"),
+            }
+
+        if not _REQUIRED_DRIVER_VARIABLES.issubset(driver_values):
+            return self._contract_inconsistent(source)
 
         derived = source.get("derived")
         if not isinstance(derived, dict):
-            derived = {}
+            return self._contract_inconsistent(source)
+        if not _REQUIRED_DERIVED_FIELDS.issubset(derived):
+            return self._contract_inconsistent(source)
 
         complementary = data_quality.get("complementary_variables")
         if not isinstance(complementary, dict):
-            complementary = {}
+            return self._contract_inconsistent(source)
+        if set(complementary) != _REQUIRED_COMPLEMENTARY_FIELDS:
+            return self._contract_inconsistent(source)
+        if not all(isinstance(value, bool) for value in complementary.values()):
+            return self._contract_inconsistent(source)
 
-        cape_evidence = driver_values.get("cape")
-        cape_available = (
-            isinstance(cape_evidence, dict)
-            and self._is_numeric(cape_evidence.get("value"))
-        )
-        shear_value = derived.get("shear_925_500_ms")
+        cape_evidence = driver_values["cape"]
+        cape_available = self._is_numeric(cape_evidence.get("value"))
+
+        shear_value = derived["shear_925_500_ms"]
         shear_available = self._is_numeric(shear_value)
-        cape_shear_value = derived.get("cape_shear")
+
+        cape_shear_value = derived["cape_shear"]
         cape_shear_available = self._is_numeric(cape_shear_value)
 
         axes = {
@@ -156,9 +165,7 @@ class HailPotentialExperimentalEvaluator:
                 ),
             },
             "combined_cape_shear": {
-                "status": (
-                    "AVAILABLE" if cape_shear_available else "UNAVAILABLE"
-                ),
+                "status": "AVAILABLE" if cape_shear_available else "UNAVAILABLE",
                 "evidence": {
                     "value": cape_shear_value,
                     "unit": "J/kg*m/s",
@@ -172,11 +179,7 @@ class HailPotentialExperimentalEvaluator:
                 ),
             },
             "thermodynamics": {
-                "status": (
-                    "AVAILABILITY_ONLY"
-                    if complementary
-                    else "NOT_EXPOSED_BY_CANONICAL_CONTRACT"
-                ),
+                "status": "AVAILABILITY_ONLY",
                 "availability": deepcopy(complementary),
                 "values": None,
                 "interpretation": (
@@ -184,18 +187,14 @@ class HailPotentialExperimentalEvaluator:
                     "das variáveis termodinâmicas complementares, não seus "
                     "valores. O componente não os reconstrói nem os busca "
                     "fora do contrato."
-                    if complementary
-                    else "O contrato recebido não expõe disponibilidade nem "
-                    "valores termodinâmicos complementares."
                 ),
             },
         }
 
         # Disponibilidade declarada não equivale a evidência termodinâmica
-        # numérica. Portanto, AVAILABILITY_ONLY não satisfaz completude.
+        # numérica. Portanto, AVAILABILITY_ONLY nunca satisfaz completude.
         diagnostics_complete = all(
-            axis["status"] == "AVAILABLE"
-            for axis in axes.values()
+            axis["status"] == "AVAILABLE" for axis in axes.values()
         )
 
         return {
@@ -209,7 +208,7 @@ class HailPotentialExperimentalEvaluator:
             "assessment_status": assessment_status,
             "axes": axes,
             "diagnostics_complete": diagnostics_complete,
-            "insufficient_variables": list(missing),
+            "insufficient_variables": [],
             "provenance": {
                 "source": source.get("source"),
                 "model": source.get("model"),
@@ -228,6 +227,27 @@ class HailPotentialExperimentalEvaluator:
         }
 
     @staticmethod
+    def _is_string_list(value):
+        return all(isinstance(item, str) and bool(item) for item in value)
+
+    @staticmethod
+    def _safe_missing(source_missing, quality_missing):
+        for candidate in (source_missing, quality_missing):
+            if isinstance(candidate, list):
+                return [
+                    item for item in candidate
+                    if isinstance(item, str) and item
+                ]
+        return []
+
+    def _contract_inconsistent(self, source, missing_variables=None):
+        return self._insufficient(
+            reason="CANONICAL_CONTRACT_INCONSISTENT",
+            source_result=source,
+            missing_variables=missing_variables,
+        )
+
+    @staticmethod
     def _is_numeric(value):
         """Aceita números finitos e strings numéricas; rejeita bool, NaN e infinito."""
         if value is None or isinstance(value, bool):
@@ -240,22 +260,12 @@ class HailPotentialExperimentalEvaluator:
 
     @staticmethod
     def _missing_variables(source, data_quality):
-        missing = source.get("missing_variables")
-        if not isinstance(missing, (list, tuple, set)):
-            missing = data_quality.get("missing_variables")
-        if not isinstance(missing, (list, tuple, set)):
-            return []
-        return [
-            item for item in missing
-            if isinstance(item, str) and item
-        ]
+        return HailPotentialExperimentalEvaluator._safe_missing(
+            source.get("missing_variables"),
+            data_quality.get("missing_variables"),
+        )
 
-    def _insufficient(
-        self,
-        reason,
-        source_result,
-        missing_variables=None,
-    ):
+    def _insufficient(self, reason, source_result, missing_variables=None):
         source = source_result if isinstance(source_result, dict) else {}
         data_quality = source.get("data_quality")
         if not isinstance(data_quality, dict):
