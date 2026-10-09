@@ -55,11 +55,39 @@ class HailPotentialExperimentalEvaluator:
 
         data_quality = source.get("data_quality")
         if not isinstance(data_quality, dict):
-            data_quality = {}
+            return self._insufficient(
+                reason="CANONICAL_CONTRACT_INCONSISTENT",
+                source_result=source,
+                missing_variables=self._missing_variables(source, {}),
+            )
 
-        missing = self._missing_variables(source, data_quality)
+        required_complete = data_quality.get("required_variables_complete")
+        source_missing = source.get("missing_variables")
+        quality_missing = data_quality.get("missing_variables")
 
-        if missing or data_quality.get("required_variables_complete") is False:
+        missing_fields_are_lists = (
+            isinstance(source_missing, list)
+            and isinstance(quality_missing, list)
+        )
+        missing_values_are_valid = (
+            missing_fields_are_lists
+            and all(isinstance(item, str) and item for item in source_missing)
+            and all(isinstance(item, str) and item for item in quality_missing)
+        )
+        missing = (
+            list(source_missing)
+            if isinstance(source_missing, list)
+            and all(isinstance(item, str) and item for item in source_missing)
+            else self._missing_variables(source, data_quality)
+        )
+
+        if (
+            not isinstance(required_complete, bool)
+            or not missing_values_are_valid
+            or source_missing != quality_missing
+            or required_complete is not True
+            or source_missing
+        ):
             return self._insufficient(
                 reason="CANONICAL_CONTRACT_INCONSISTENT",
                 source_result=source,

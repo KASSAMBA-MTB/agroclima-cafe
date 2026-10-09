@@ -136,6 +136,59 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["insufficient_variables"], ["cape"])
         self.assertIsNone(result["potential_level"])
 
+    def assert_assessed_contract_is_rejected(self, source):
+        result = self.evaluator.evaluate(source)
+        self.assertEqual(result["classification_status"], "INSUFFICIENT_DATA")
+        self.assertEqual(result["reason"], "CANONICAL_CONTRACT_INCONSISTENT")
+        self.assertEqual(result["axes"], {})
+        self.assertFalse(result["diagnostics_complete"])
+
+    def test_assessed_contract_without_data_quality_is_rejected(self):
+        source = deepcopy(self.canonical)
+        del source["data_quality"]
+        self.assert_assessed_contract_is_rejected(source)
+
+    def test_assessed_contract_with_invalid_data_quality_type_is_rejected(self):
+        source = deepcopy(self.canonical)
+        source["data_quality"] = []
+        self.assert_assessed_contract_is_rejected(source)
+
+    def test_assessed_contract_without_completeness_flag_is_rejected(self):
+        source = deepcopy(self.canonical)
+        del source["data_quality"]["required_variables_complete"]
+        self.assert_assessed_contract_is_rejected(source)
+
+    def test_assessed_contract_with_invalid_completeness_flag_is_rejected(self):
+        for invalid_value in (None, "true", 1):
+            with self.subTest(value=invalid_value):
+                source = deepcopy(self.canonical)
+                source["data_quality"]["required_variables_complete"] = invalid_value
+                self.assert_assessed_contract_is_rejected(source)
+
+    def test_assessed_contract_requires_both_missing_variable_lists(self):
+        for location in ("source", "data_quality"):
+            with self.subTest(location=location):
+                source = deepcopy(self.canonical)
+                if location == "source":
+                    del source["missing_variables"]
+                else:
+                    del source["data_quality"]["missing_variables"]
+                self.assert_assessed_contract_is_rejected(source)
+
+    def test_assessed_contract_rejects_inconsistent_completeness_and_missing_lists(self):
+        cases = (
+            {"source_missing": ["cape"], "quality_missing": ["cape"], "complete": True},
+            {"source_missing": [], "quality_missing": [], "complete": False},
+            {"source_missing": ["cape"], "quality_missing": [], "complete": False},
+        )
+        for case in cases:
+            with self.subTest(case=case):
+                source = deepcopy(self.canonical)
+                source["missing_variables"] = case["source_missing"]
+                source["data_quality"]["missing_variables"] = case["quality_missing"]
+                source["data_quality"]["required_variables_complete"] = case["complete"]
+                self.assert_assessed_contract_is_rejected(source)
+
     def test_string_missing_variables_are_not_split_into_characters(self):
         source = deepcopy(self.canonical)
         source["assessment_status"] = "INSUFFICIENT_DATA"
