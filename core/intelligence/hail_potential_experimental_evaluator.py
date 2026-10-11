@@ -102,6 +102,16 @@ class HailPotentialExperimentalEvaluator:
             if not required_driver_fields.issubset(driver):
                 return self._contract_inconsistent(source)
 
+            # Structural metadata must be non-empty strings.
+            # Valor observado inv?lido continua sendo evid?ncia indispon?vel.
+            for metadata_field in ("unit", "role", "rule_id", "rule_version"):
+                metadata_value = driver.get(metadata_field)
+                if (
+                    not isinstance(metadata_value, str)
+                    or not metadata_value.strip()
+                ):
+                    return self._contract_inconsistent(source)
+
             if variable in driver_values:
                 return self._contract_inconsistent(source)
 
@@ -113,13 +123,16 @@ class HailPotentialExperimentalEvaluator:
                 "rule_version": driver.get("rule_version"),
             }
 
-        if not _REQUIRED_DRIVER_VARIABLES.issubset(driver_values):
+        # The MP-01.11 contract defines exactly these three drivers.
+        if set(driver_values) != _REQUIRED_DRIVER_VARIABLES:
             return self._contract_inconsistent(source)
 
         derived = source.get("derived")
         if not isinstance(derived, dict):
             return self._contract_inconsistent(source)
-        if not _REQUIRED_DERIVED_FIELDS.issubset(derived):
+
+        # Reject additional derived fields unless the contract is revised.
+        if set(derived) != _REQUIRED_DERIVED_FIELDS:
             return self._contract_inconsistent(source)
 
         complementary = data_quality.get("complementary_variables")

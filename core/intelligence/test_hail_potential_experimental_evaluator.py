@@ -330,3 +330,29 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["provenance"]["source"], "test-source")
         self.assertTrue(result["diagnostics_complete"])
         self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+
+
+    def test_driver_metadata_must_be_nonempty_strings(self):
+        for field in ("unit", "role", "rule_id", "rule_version"):
+            for invalid in ("", "   ", None, 1, [], {}):
+                with self.subTest(field=field, invalid=invalid):
+                    source = deepcopy(self.canonical)
+                    source["drivers"][0][field] = invalid
+                    self.assert_contract_rejected(source)
+
+    def test_assessed_contract_rejects_unexpected_driver(self):
+        source = deepcopy(self.canonical)
+        source["drivers"].append({
+            "variable": "unexpected_driver",
+            "observed_value": 1.0,
+            "unit": "unit",
+            "role": "unexpected",
+            "rule_id": "TEST",
+            "rule_version": "1",
+        })
+        self.assert_contract_rejected(source)
+
+    def test_assessed_contract_rejects_unexpected_derived_field(self):
+        source = deepcopy(self.canonical)
+        source["derived"]["unexpected_value"] = 123.0
+        self.assert_contract_rejected(source)
