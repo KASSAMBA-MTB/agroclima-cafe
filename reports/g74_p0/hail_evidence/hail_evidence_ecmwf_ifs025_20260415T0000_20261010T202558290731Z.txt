@@ -1,0 +1,93 @@
+AGROCLIMA CAFE — INVENTARIO DE EVIDENCIA METEOROLOGICA
+Protocolo: G7.4/MP-01.12-EVIDENCE
+Modelo: ecmwf_ifs025
+RUN solicitado: 2026-04-15T00:00
+HTTP: 200
+RAW preservado: raw\g74_p0\hail_evidence\hail_evidence_ecmwf_ifs025_20260415T0000_20261010T202558289727Z.json
+Timestamps: 48
+Primeiro timestamp: 2026-04-15T00:00
+Ultimo timestamp: 2026-04-16T23:00
+Entradas obrigatorias MP-01.11 completas: True
+Variaveis complementares completas: True
+
+INVENTARIO POR VARIAVEL
+- cape
+  Unidade esperada: J/kg
+  Unidade retornada: J/kg
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [0.0, 0.0, 0.0, 0.0, 0.0]
+  Problemas: []
+- wind_speed_925hPa
+  Unidade esperada: m/s
+  Unidade retornada: m/s
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [1.12, 1.12, 1.19, 1.12, 1.0]
+  Problemas: []
+- wind_direction_925hPa
+  Unidade esperada: °
+  Unidade retornada: °
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [127, 127, 131, 127, 117]
+  Problemas: []
+- wind_speed_500hPa
+  Unidade esperada: m/s
+  Unidade retornada: m/s
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [5.5, 5.17, 4.77, 4.45, 3.8]
+  Problemas: []
+- wind_direction_500hPa
+  Unidade esperada: °
+  Unidade retornada: °
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [104, 105, 102, 103, 105]
+  Problemas: []
+- wet_bulb_temperature_2m
+  Unidade esperada: °C
+  Unidade retornada: °C
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [14.3, 13.9, 13.5, 13.1, 12.6]
+  Problemas: []
+- temperature_850hPa
+  Unidade esperada: °C
+  Unidade retornada: °C
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [17.0, 17.0, 17.0, 16.9, 16.4]
+  Problemas: []
+- relative_humidity_850hPa
+  Unidade esperada: %
+  Unidade retornada: %
+  Serie presente: True
+  Quantidade de valores: 48
+  Valores numericos finitos: 48
+  Ausencias/valores invalidos: 0
+  Amostras numericas: [68, 67, 65, 65, 67]
+  Problemas: []
+
+PROBLEMAS GERAIS
+- Nenhum problema estrutural detectado.
+
+INTERPRETACAO
+Este inventario descreve apenas os valores efetivamente retornados pela API.
+Serie ausente, valor nulo, nao numerico ou unidade divergente nao e corrigido automaticamente.
+A completude do inventario nao homologa MP-01.12 nem define classificacao de granizo.

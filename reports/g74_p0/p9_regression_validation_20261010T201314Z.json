@@ -1,0 +1,115 @@
+{
+  "protocol": "G7.4/P9",
+  "generated_at_utc": "20261010T201314Z",
+  "classification": "P9_REGRESSAO_CONTROLADA_REPROVADA",
+  "authority_model": "ecmwf_ifs025",
+  "comparison_model": "ecmwf_ifs",
+  "runs": [
+    "2026-04-02T00:00",
+    "2026-04-15T00:00",
+    "2026-10-03T00:00"
+  ],
+  "variables": [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "dew_point_2m",
+    "precipitation",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "pressure_msl",
+    "surface_pressure",
+    "cape",
+    "temperature_850hPa",
+    "relative_humidity_850hPa",
+    "geopotential_height_850hPa",
+    "temperature_500hPa",
+    "geopotential_height_500hPa"
+  ],
+  "expected_units": {
+    "temperature_2m": "°C",
+    "relative_humidity_2m": "%",
+    "dew_point_2m": "°C",
+    "precipitation": "mm",
+    "wind_speed_10m": "km/h",
+    "wind_direction_10m": "°",
+    "pressure_msl": "hPa",
+    "surface_pressure": "hPa",
+    "cape": "J/kg",
+    "temperature_850hPa": "°C",
+    "relative_humidity_850hPa": "%",
+    "geopotential_height_850hPa": "m",
+    "temperature_500hPa": "°C",
+    "geopotential_height_500hPa": "m"
+  },
+  "expected_timestamps": 48,
+  "expected_records_per_run": 672,
+  "previous_gate_artifacts": {
+    "p7_report_present": false,
+    "p8_report_present": false,
+    "latest_p7": null,
+    "latest_p8": null
+  },
+  "regression_decisions": [
+    {
+      "run": "2026-04-02T00:00",
+      "valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "expected_record_count": 672,
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs025_20260402T0000_20261010T201310Z.json",
+      "staging_file": "raw\\g74_p0\\canonical_staging\\regression_ecmwf_ifs025_20260402T0000_20261010T201310Z.json",
+      "errors": []
+    },
+    {
+      "run": "2026-04-15T00:00",
+      "valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "expected_record_count": 672,
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs025_20260415T0000_20261010T201311Z.json",
+      "staging_file": "raw\\g74_p0\\canonical_staging\\regression_ecmwf_ifs025_20260415T0000_20261010T201311Z.json",
+      "errors": []
+    },
+    {
+      "run": "2026-10-03T00:00",
+      "valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "expected_record_count": 672,
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs025_20261003T0000_20261010T201312Z.json",
+      "staging_file": "raw\\g74_p0\\canonical_staging\\regression_ecmwf_ifs025_20261003T0000_20261010T201312Z.json",
+      "errors": []
+    }
+  ],
+  "hres_comparison": [
+    {
+      "run": "2026-04-02T00:00",
+      "http_status": 200,
+      "status": "COBERTURA_COMPROVADA",
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs_20260402T0000_20261010T201312Z.json"
+    },
+    {
+      "run": "2026-04-15T00:00",
+      "http_status": 200,
+      "status": "COBERTURA_COMPROVADA",
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs_20260415T0000_20261010T201313Z.json"
+    },
+    {
+      "run": "2026-10-03T00:00",
+      "http_status": 200,
+      "status": "COBERTURA_COMPROVADA",
+      "raw_file": "raw\\g74_p0\\p9_ecmwf_ifs_20261003T0000_20261010T201314Z.json"
+    }
+  ],
+  "django_changed": false,
+  "contract_rules": [
+    "MISSING permanece MISSING.",
+    "NUMERIC preserva o valor observado.",
+    "precipitation[0] permanece MISSING.",
+    "run_datetime permanece separado de forecast_datetime.",
+    "IFS025 permanece autoridade.",
+    "HRES permanece comparação.",
+    "RAW permanece preservado.",
+    "Nenhum indicador é calculado."
+  ]
+}

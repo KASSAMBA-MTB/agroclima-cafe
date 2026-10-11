@@ -1,0 +1,177 @@
+{
+  "protocol": "G7.4/MP-01.12-EVIDENCE",
+  "model": "ecmwf_ifs025",
+  "run": "2026-04-15T00:00",
+  "http_status": 200,
+  "raw_file": "raw\\g74_p0\\hail_evidence\\hail_evidence_ecmwf_ifs025_20260415T0000_20261010T202558289727Z.json",
+  "inventory": {
+    "valid_structure": true,
+    "issues": [],
+    "timestamps": 48,
+    "first_timestamp": "2026-04-15T00:00",
+    "last_timestamp": "2026-04-16T23:00",
+    "variables": {
+      "cape": {
+        "expected_unit": "J/kg",
+        "actual_unit": "J/kg",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "wind_speed_925hPa": {
+        "expected_unit": "m/s",
+        "actual_unit": "m/s",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          1.12,
+          1.12,
+          1.19,
+          1.12,
+          1.0
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "wind_direction_925hPa": {
+        "expected_unit": "°",
+        "actual_unit": "°",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          127,
+          127,
+          131,
+          127,
+          117
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "wind_speed_500hPa": {
+        "expected_unit": "m/s",
+        "actual_unit": "m/s",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          5.5,
+          5.17,
+          4.77,
+          4.45,
+          3.8
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "wind_direction_500hPa": {
+        "expected_unit": "°",
+        "actual_unit": "°",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          104,
+          105,
+          102,
+          103,
+          105
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "wet_bulb_temperature_2m": {
+        "expected_unit": "°C",
+        "actual_unit": "°C",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          14.3,
+          13.9,
+          13.5,
+          13.1,
+          12.6
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "temperature_850hPa": {
+        "expected_unit": "°C",
+        "actual_unit": "°C",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          17.0,
+          17.0,
+          17.0,
+          16.9,
+          16.4
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      },
+      "relative_humidity_850hPa": {
+        "expected_unit": "%",
+        "actual_unit": "%",
+        "timestamps": 48,
+        "value_count": 48,
+        "numeric_count": 48,
+        "missing_count": 0,
+        "sample_numeric_values": [
+          68,
+          67,
+          65,
+          65,
+          67
+        ],
+        "series_present": true,
+        "unit_matches": true,
+        "issues": []
+      }
+    },
+    "required_variables_complete": true,
+    "complementary_variables_complete": true,
+    "required_variables": [
+      "cape",
+      "wind_speed_925hPa",
+      "wind_direction_925hPa",
+      "wind_speed_500hPa",
+      "wind_direction_500hPa"
+    ],
+    "complementary_variables": [
+      "wet_bulb_temperature_2m",
+      "temperature_850hPa",
+      "relative_humidity_850hPa"
+    ]
+  },
+  "operational": false,
+  "homologated": false,
+  "classification_created": false
+}

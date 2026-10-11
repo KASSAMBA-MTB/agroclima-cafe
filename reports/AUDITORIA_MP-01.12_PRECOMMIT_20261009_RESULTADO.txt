@@ -1,0 +1,67 @@
+AGROCLIMA CAFÉ — MP-01.12
+RELATÓRIO DE AUDITORIA TÉCNICA PRÉ-COMMIT
+Data: 09/10/2026
+Baseline: 9cfb49ca780306d3400a6ba78675ac9e79b286a3
+Branch local: mp-01-12-hail-potential-experimental
+
+1. ESCOPO E FONTES ANALISADAS
+
+Foram examinados:
+- a especificação MP-01.12 presente nos arquivos desta conversa;
+- o código proposto de HailPotentialExperimentalEvaluator;
+- os oito testes inicialmente existentes;
+- os contratos HailPotentialContract e HailPotentialService da branch main no GitHub.
+
+A análise do contrato de MP-01.11 confirmou:
+- assessment_status ASSESSED/INSUFFICIENT_DATA;
+- drivers com cape, shear e cape_shear;
+- derived com shear_925_500_ms e cape_shear;
+- data_quality.required_variables_complete;
+- data_quality.complementary_variables como mapa de disponibilidade booleana;
+- ausência de valores termodinâmicos complementares no contrato canônico atual.
+
+2. RESULTADO DA AUDITORIA DO CÓDIGO ORIGINAL
+
+2.1. PONTO CORRETO — ESCOPO EXPERIMENTAL
+O componente não cria limiares, não calcula potencial normativo, não cria probabilidade/score/alerta/dano e mantém potential_level=None. Isso está alinhado à especificação.
+
+2.2. DEFEITO 1 — diagnostics_complete SEM EVIDÊNCIA TERMODINÂMICA
+O código original aceitava AVAILABILITY_ONLY como estado suficiente para diagnostics_complete=True. Porém, o contrato MP-01.11 fornece apenas indicadores booleanos de disponibilidade para as variáveis termodinâmicas; os valores não são expostos. Disponibilidade não equivale a evidência numérica. A condição foi corrigida para exigir status AVAILABLE em todos os eixos. Com o contrato atual, diagnostics_complete fica False até haver valores termodinâmicos no contrato.
+
+2.3. DEFEITO 2 — PRESENÇA DA CHAVE CONFUNDIDA COM VALOR VÁLIDO
+O código original considerava CAPE/cisalhamento/CAPE-SHEAR disponíveis pela presença da chave ou do driver, mesmo que o valor fosse None, NaN, infinito ou não numérico. Foi adicionada validação numérica finita antes de marcar o eixo como AVAILABLE.
+
+2.4. DEFEITO 3 — CONTRATO INCONSISTENTE NÃO BLOQUEADO
+O código original podia aceitar assessment_status=ASSESSED mesmo com missing_variables não vazio ou required_variables_complete=False. A versão proposta retorna INSUFFICIENT_DATA para esse conflito e registra CANONICAL_CONTRACT_INCONSISTENT.
+
+2.5. DEFEITO 4 — NORMALIZAÇÃO DE MISSING VARIABLES
+O código original podia transformar uma string, como "cape", em lista de caracteres ao executar list(string). A versão proposta aceita apenas coleções de nomes e usa data_quality.missing_variables como fallback.
+
+3. COBERTURA DE TESTES
+
+A suíte original tinha 8 testes e não cobria os quatro pontos acima. A versão proposta amplia a cobertura para 13 testes, incluindo:
+- thermodynamics AVAILABILITY_ONLY não completa o diagnóstico;
+- disponibilidade termodinâmica totalmente falsa;
+- valores None/NaN não marcados como disponíveis;
+- inconsistência entre ASSESSED e qualidade dos dados;
+- normalização de missing_variables;
+- integração de teste com o HailPotentialService real de MP-01.11.
+
+4. LIMITES DA CONCLUSÃO
+
+Os testes originais foram executados pelo usuário e passaram (8/8), e a regressão do repositório passou (182/182) antes das correções propostas.
+
+A versão corrigida deste pacote ainda precisa ser copiada para o repositório local e executada no ambiente Django do usuário. Não declarar os novos testes aprovados até que haja saída real da execução.
+
+A auditoria do contrato foi feita contra os arquivos MP-01.11 disponíveis na branch main do GitHub. Não foi feita alteração remota.
+
+5. DECISÃO
+
+DECISÃO: NÃO APROVAR O COMMIT DO CÓDIGO ORIGINAL.
+
+A versão original tem lacunas semânticas e de validação de contrato. Foram preparados arquivos completos corrigidos e uma suíte ampliada para nova execução local.
+
+Não houve commit, push ou alteração da branch remota.
+A evidência G4 raw/g74_p0/p9_ecmwf_ifs025_20261003T0000_20261007T131010Z.json deve continuar fora do commit do MP-01.12.
+A stash WIP-G8-evidencias-e-probes-20261008 deve permanecer preservada.
+MP-01.11, IntelligenceEngine, DashboardService, FRI, mapa e frontend não devem ser alterados por esta correção.
