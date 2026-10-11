@@ -52,7 +52,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                     "unit": "m/s",
                     "role": "vertical_wind_shear",
                     "rule_id": "HAIL_POTENTIAL_001",
-                    "rule_version": "MP-01.11.1",
+                    "rule_version": "MP-01.11.2",
                 },
                 {
                     "variable": "cape_shear",
@@ -60,7 +60,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                     "unit": "J/kg*m/s",
                     "role": "combined_environment",
                     "rule_id": "HAIL_POTENTIAL_001",
-                    "rule_version": "MP-01.11.1",
+                    "rule_version": "MP-01.11.2",
                 },
             ],
             "data_quality": {
