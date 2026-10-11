@@ -44,6 +44,8 @@ class HailPotentialServiceTests(SimpleTestCase):
         self.assertEqual(result.assessment_status, ASSESSMENT_ASSESSED)
         self.assertIsNone(result.potential_level)
         self.assertEqual(result.missing_variables, ())
+        self.assertEqual(result.complementary_values["temperature_850hPa"], 14.7)
+        self.assertEqual(result.complementary_values["relative_humidity_850hPa"], 77.0)
 
     def test_calculates_925_500_shear(self):
         result = self.service.evaluate(self.context())
@@ -111,6 +113,17 @@ class HailPotentialServiceTests(SimpleTestCase):
         self.assertEqual(payload["assessment_status"], "ASSESSED")
         self.assertIn("data_quality", payload)
         self.assertIn("derived", payload)
+        self.assertEqual(payload["complementary_values"]["wet_bulb_temperature_2m"], 17.2)
+
+    def test_missing_complementary_value_stays_none_and_is_not_zero(self):
+        context = self.context()
+        context["series"]["temperature_850hPa"] = None
+
+        payload = self.service.evaluate(context).as_dict()
+
+        self.assertEqual(payload["assessment_status"], "ASSESSED")
+        self.assertIsNone(payload["complementary_values"]["temperature_850hPa"])
+        self.assertFalse(payload["data_quality"]["complementary_variables"]["temperature_850hPa"])
 
     def test_directional_wind_uses_meteorological_vector_conversion(self):
         context = self.context()
@@ -125,4 +138,32 @@ class HailPotentialServiceTests(SimpleTestCase):
             result.derived["shear_925_500_ms"],
             10.0,
             places=6,
+        )
+    def test_boolean_required_variable_returns_insufficient_data(self):
+        context = self.context()
+        context["series"]["cape"] = True
+
+        result = self.service.evaluate(context)
+
+        self.assertEqual(
+            result.assessment_status,
+            ASSESSMENT_INSUFFICIENT,
+        )
+        self.assertIn("cape", result.missing_variables)
+        self.assertEqual(result.derived, {})
+
+    def test_boolean_complementary_value_is_preserved_as_missing(self):
+        context = self.context()
+        context["series"]["temperature_850hPa"] = True
+
+        payload = self.service.evaluate(context).as_dict()
+
+        self.assertEqual(payload["assessment_status"], "ASSESSED")
+        self.assertIsNone(
+            payload["complementary_values"]["temperature_850hPa"]
+        )
+        self.assertFalse(
+            payload["data_quality"]["complementary_variables"][
+                "temperature_850hPa"
+            ]
         )
