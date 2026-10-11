@@ -48,6 +48,7 @@ class HailPotentialContract:
     drivers: tuple[dict, ...]
     data_quality: dict
     derived: dict
+    complementary_values: dict | None = None
 
     def as_dict(self) -> dict:
         return {
@@ -64,6 +65,7 @@ class HailPotentialContract:
             "drivers": list(self.drivers),
             "data_quality": dict(self.data_quality),
             "derived": dict(self.derived),
+            "complementary_values": dict(self.complementary_values or {}),
         }
 
 
