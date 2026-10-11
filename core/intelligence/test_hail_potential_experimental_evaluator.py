@@ -23,7 +23,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.canonical = {
             "assessment_status": "ASSESSED",
             "potential_level": None,
-            "method_version": "MP-01.11.1",
+            "method_version": "MP-01.11.2",
             "source": "Open-Meteo Historical Forecast API",
             "model": "ecmwf_ifs025",
             "source_run": "run-2025-07-25",
@@ -44,7 +44,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                     "unit": "J/kg",
                     "role": "instability",
                     "rule_id": "HAIL_POTENTIAL_001",
-                    "rule_version": "MP-01.11.1",
+                    "rule_version": "MP-01.11.2",
                 },
                 {
                     "variable": "shear_925_500",
