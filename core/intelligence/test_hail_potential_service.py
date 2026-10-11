@@ -115,6 +115,16 @@ class HailPotentialServiceTests(SimpleTestCase):
         self.assertIn("derived", payload)
         self.assertEqual(payload["complementary_values"]["wet_bulb_temperature_2m"], 17.2)
 
+    def test_missing_complementary_value_stays_none_and_is_not_zero(self):
+        context = self.context()
+        context["series"]["temperature_850hPa"] = None
+
+        payload = self.service.evaluate(context).as_dict()
+
+        self.assertEqual(payload["assessment_status"], "ASSESSED")
+        self.assertIsNone(payload["complementary_values"]["temperature_850hPa"])
+        self.assertFalse(payload["data_quality"]["complementary_variables"]["temperature_850hPa"])
+
     def test_directional_wind_uses_meteorological_vector_conversion(self):
         context = self.context()
         context["series"]["wind_speed_925hPa"] = 0.0
