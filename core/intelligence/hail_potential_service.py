@@ -74,6 +74,7 @@ class HailPotentialService:
                     ],
                 },
                 derived={},
+                complementary_values=self._complementary_values(series),
             )
 
         shear = self._calculate_shear(
@@ -130,18 +131,15 @@ class HailPotentialService:
                 "required_variables_complete": True,
                 "missing_variables": [],
                 "complementary_variables": {
-                    variable: self._has_usable_value(series.get(variable))
-                    for variable in (
-                        "wet_bulb_temperature_2m",
-                        "temperature_850hPa",
-                        "relative_humidity_850hPa",
-                    )
+                    variable: value is not None
+                    for variable, value in self._complementary_values(series).items()
                 },
             },
             derived={
                 "shear_925_500_ms": shear,
                 "cape_shear": cape_shear,
             },
+            complementary_values=self._complementary_values(series),
         )
 
     @staticmethod
@@ -179,6 +177,21 @@ class HailPotentialService:
     @staticmethod
     def _has_usable_value(value):
         return is_number(value)
+
+    @staticmethod
+    def _complementary_values(series):
+        """Preserva valores numéricos; dados ausentes não viram zero."""
+        variables = (
+            "wet_bulb_temperature_2m",
+            "temperature_850hPa",
+            "relative_humidity_850hPa",
+        )
+        return {
+            variable: float(series[variable])
+            if HailPotentialService._has_usable_value(series.get(variable))
+            else None
+            for variable in variables
+        }
 
     @staticmethod
     def _vector(speed, direction):
