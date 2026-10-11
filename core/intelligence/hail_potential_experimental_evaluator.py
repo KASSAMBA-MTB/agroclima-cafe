@@ -123,11 +123,20 @@ class HailPotentialExperimentalEvaluator:
             return self._contract_inconsistent(source)
 
         complementary = data_quality.get("complementary_variables")
+        complementary_values = source.get("complementary_values")
         if not isinstance(complementary, dict):
             return self._contract_inconsistent(source)
         if set(complementary) != _REQUIRED_COMPLEMENTARY_FIELDS:
             return self._contract_inconsistent(source)
         if not all(isinstance(value, bool) for value in complementary.values()):
+            return self._contract_inconsistent(source)
+        if not isinstance(complementary_values, dict):
+            return self._contract_inconsistent(source)
+        if set(complementary_values) != _REQUIRED_COMPLEMENTARY_FIELDS:
+            return self._contract_inconsistent(source)
+        if not all(value is None or self._is_numeric(value) for value in complementary_values.values()):
+            return self._contract_inconsistent(source)
+        if any(complementary[name] != (complementary_values[name] is not None) for name in _REQUIRED_COMPLEMENTARY_FIELDS):
             return self._contract_inconsistent(source)
 
         cape_evidence = driver_values["cape"]
@@ -179,14 +188,26 @@ class HailPotentialExperimentalEvaluator:
                 ),
             },
             "thermodynamics": {
-                "status": "AVAILABILITY_ONLY",
+                "status": (
+                    "AVAILABLE"
+                    if all(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    else "PARTIAL"
+                    if any(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    else "UNAVAILABLE"
+                ),
                 "availability": deepcopy(complementary),
-                "values": None,
+                "values": {
+                    name: {
+                        "value": complementary_values[name],
+                        "unit": "°C" if name in {"wet_bulb_temperature_2m", "temperature_850hPa"} else "%",
+                    }
+                    for name in sorted(_REQUIRED_COMPLEMENTARY_FIELDS)
+                    if self._is_numeric(complementary_values[name])
+                },
                 "interpretation": (
-                    "O contrato canônico expõe somente a disponibilidade "
-                    "das variáveis termodinâmicas complementares, não seus "
-                    "valores. O componente não os reconstrói nem os busca "
-                    "fora do contrato."
+                    "Valores termodinâmicos preservados pelo contrato canônico; nenhum limiar foi aplicado."
+                    if all(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    else "Dados termodinâmicos parciais ou ausentes; ausência não é substituída por zero."
                 ),
             },
         }
@@ -222,7 +243,6 @@ class HailPotentialExperimentalEvaluator:
                 "LIMIARES_REGIONAIS_NAO_HOMOLOGADOS",
                 "CLASSIFICACAO_NORMATIVA_NAO_EXECUTADA",
                 "SEM_PROBABILIDADE_SCORE_ALERTA_OU_DANO",
-                "THERMODYNAMIC_VALUES_NOT_EXPOSED_BY_CANONICAL_CONTRACT",
             ],
         }
 
