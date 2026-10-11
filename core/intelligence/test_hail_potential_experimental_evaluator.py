@@ -116,16 +116,22 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["axes"]["thermodynamics"]["values"]["temperature_850hPa"]["unit"], "°C")
         self.assertTrue(result["diagnostics_complete"])
 
-    def test_availability_only_never_means_diagnostics_complete(self):
+    def test_missing_thermodynamic_values_remain_unavailable(self):
         source = deepcopy(self.canonical)
         source["data_quality"]["complementary_variables"] = {
             "wet_bulb_temperature_2m": False,
             "temperature_850hPa": False,
             "relative_humidity_850hPa": False,
         }
+        source["complementary_values"] = {
+            "wet_bulb_temperature_2m": None,
+            "temperature_850hPa": None,
+            "relative_humidity_850hPa": None,
+        }
         result = self.evaluator.evaluate(source)
-        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
-        self.assertTrue(result["diagnostics_complete"])
+        self.assertEqual(result["axes"]["thermodynamics"]["status"], "UNAVAILABLE")
+        self.assertEqual(result["axes"]["thermodynamics"]["values"], {})
+        self.assertFalse(result["diagnostics_complete"])
 
     def test_invalid_numeric_values_are_unavailable_not_contract_errors(self):
         source = deepcopy(self.canonical)
