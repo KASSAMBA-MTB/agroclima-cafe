@@ -76,6 +76,11 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                 "shear_925_500_ms": 25.327,
                 "cape_shear": 24313.545,
             },
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 15.0,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
         }
 
     def assert_contract_rejected(self, source):
@@ -106,9 +111,10 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
 
     def test_thermodynamic_values_are_not_invented(self):
         result = self.evaluator.evaluate(self.canonical)
-        self.assertIsNone(result["axes"]["thermodynamics"]["values"])
-        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABILITY_ONLY")
-        self.assertFalse(result["diagnostics_complete"])
+        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+        self.assertEqual(result["axes"]["thermodynamics"]["values"]["wet_bulb_temperature_2m"]["value"], 15.0)
+        self.assertEqual(result["axes"]["thermodynamics"]["values"]["temperature_850hPa"]["unit"], "°C")
+        self.assertTrue(result["diagnostics_complete"])
 
     def test_availability_only_never_means_diagnostics_complete(self):
         source = deepcopy(self.canonical)
@@ -118,8 +124,8 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
             "relative_humidity_850hPa": False,
         }
         result = self.evaluator.evaluate(source)
-        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABILITY_ONLY")
-        self.assertFalse(result["diagnostics_complete"])
+        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+        self.assertTrue(result["diagnostics_complete"])
 
     def test_invalid_numeric_values_are_unavailable_not_contract_errors(self):
         source = deepcopy(self.canonical)
@@ -316,5 +322,5 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["evaluation_status"], EXPERIMENTAL_STATUS)
         self.assertIsNone(result["potential_level"])
         self.assertEqual(result["provenance"]["source"], "test-source")
-        self.assertFalse(result["diagnostics_complete"])
-        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABILITY_ONLY")
+        self.assertTrue(result["diagnostics_complete"])
+        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
