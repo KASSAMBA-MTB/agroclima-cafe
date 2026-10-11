@@ -176,7 +176,8 @@ class HailPotentialService:
 
     @staticmethod
     def _has_usable_value(value):
-        return is_number(value)
+        # Booleanos não são evidência meteorológica numérica.
+        return not isinstance(value, bool) and is_number(value)
 
     @staticmethod
     def _complementary_values(series):

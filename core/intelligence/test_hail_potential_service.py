@@ -139,3 +139,31 @@ class HailPotentialServiceTests(SimpleTestCase):
             10.0,
             places=6,
         )
+    def test_boolean_required_variable_returns_insufficient_data(self):
+        context = self.context()
+        context["series"]["cape"] = True
+
+        result = self.service.evaluate(context)
+
+        self.assertEqual(
+            result.assessment_status,
+            ASSESSMENT_INSUFFICIENT,
+        )
+        self.assertIn("cape", result.missing_variables)
+        self.assertEqual(result.derived, {})
+
+    def test_boolean_complementary_value_is_preserved_as_missing(self):
+        context = self.context()
+        context["series"]["temperature_850hPa"] = True
+
+        payload = self.service.evaluate(context).as_dict()
+
+        self.assertEqual(payload["assessment_status"], "ASSESSED")
+        self.assertIsNone(
+            payload["complementary_values"]["temperature_850hPa"]
+        )
+        self.assertFalse(
+            payload["data_quality"]["complementary_variables"][
+                "temperature_850hPa"
+            ]
+        )
