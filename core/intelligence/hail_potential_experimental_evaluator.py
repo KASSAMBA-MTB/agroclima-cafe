@@ -65,6 +65,22 @@ class HailPotentialExperimentalEvaluator:
         source_missing = source.get("missing_variables")
         quality_missing = data_quality.get("missing_variables")
         required_complete = data_quality.get("required_variables_complete")
+        required_variables = source.get("required_variables")
+        expected_required_variables = {
+            "cape",
+            "wind_speed_925hPa",
+            "wind_direction_925hPa",
+            "wind_speed_500hPa",
+            "wind_direction_500hPa",
+        }
+
+        if (
+            not isinstance(required_variables, (list, tuple))
+            or not self._is_string_list(required_variables)
+            or len(required_variables) != len(expected_required_variables)
+            or set(required_variables) != expected_required_variables
+        ):
+            return self._contract_inconsistent(source)
 
         if (
             not isinstance(source_missing, list)
