@@ -356,3 +356,21 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         source = deepcopy(self.canonical)
         source["derived"]["unexpected_value"] = 123.0
         self.assert_contract_rejected(source)
+
+    def test_assessed_contract_rejects_incorrect_required_variables(self):
+        source = deepcopy(self.canonical)
+        source["required_variables"] = ["cape"]
+        self.assert_contract_rejected(source)
+
+    def test_boolean_values_are_not_numeric_meteorological_evidence(self):
+        source = deepcopy(self.canonical)
+        source["drivers"][0]["observed_value"] = True
+        source["derived"]["shear_925_500_ms"] = True
+        source["derived"]["cape_shear"] = False
+
+        result = self.evaluator.evaluate(source)
+
+        self.assertEqual(result["axes"]["instability"]["status"], "UNAVAILABLE")
+        self.assertEqual(result["axes"]["organization_shear"]["status"], "UNAVAILABLE")
+        self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "UNAVAILABLE")
+        self.assertFalse(result["diagnostics_complete"])
