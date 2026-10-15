@@ -60,7 +60,10 @@ class HailMeteorologicalInputService:
             (float(point["latitude"]), float(point["longitude"]))
             for point in valid_points
         ]
-        cache_key = self._cache_key(coordinates)
+        cache_key = self._cache_key([
+            (point.get("id"), lat, lon)
+            for point, (lat, lon) in zip(valid_points, coordinates)
+        ])
         cached = cache.get(cache_key)
         if isinstance(cached, dict):
             return cached
