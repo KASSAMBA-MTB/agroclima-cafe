@@ -26,6 +26,39 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertTrue(result["missing_variables"])
         self.assertEqual(result["municipio_id"], 17)
 
+    def test_hail_rule_assesses_complete_municipal_meteorological_inputs(self):
+        result = HailPotentialRule().evaluate({
+            "municipio_id": 17,
+            "municipio_nome": "Município de teste",
+            "series": {
+                "cape": 1200,
+                "wind_speed_925hPa": 12,
+                "wind_direction_925hPa": 270,
+                "wind_speed_500hPa": 25,
+                "wind_direction_500hPa": 240,
+                "wet_bulb_temperature_2m": 17,
+                "temperature_850hPa": 8,
+                "relative_humidity_850hPa": 75,
+            },
+            "provenance": {
+                "source": "open-meteo-forecast-api",
+                "model": "ecmwf_ifs025",
+                "source_run": None,
+            },
+            "valid_from": "2026-10-15T12:00",
+            "valid_to": "2026-10-15T12:00",
+        })
+
+        self.assertEqual(result["assessment_status"], "ASSESSED")
+        self.assertEqual(result["missing_variables"], [])
+        self.assertIsNone(result["potential_level"])
+        self.assertTrue(result["data_quality"]["required_variables_complete"])
+        self.assertEqual(result["source"], "open-meteo-forecast-api")
+        self.assertEqual(result["model"], "ecmwf_ifs025")
+        self.assertEqual(result["valid_from"], "2026-10-15T12:00")
+        self.assertIn("shear_925_500_ms", result["derived"])
+        self.assertIn("cape_shear", result["derived"])
+
     def test_dashboard_exposes_hail_from_the_single_intelligence_result(self):
         hail = {
             "id": "HAIL_POTENTIAL_001",
