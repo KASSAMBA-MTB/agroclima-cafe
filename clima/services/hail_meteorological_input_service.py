@@ -5,6 +5,8 @@ Obtém uma única previsão ECMWF IFS025 para as coordenadas municipais, preserv
 a hora válida e deixa valores ausentes como None. Não classifica risco de granizo.
 """
 import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 from django.core.cache import cache
@@ -104,7 +106,7 @@ class HailMeteorologicalInputService:
         times = hourly.get("time")
         if not isinstance(times, list) or not times:
             times = []
-        valid_index = 0 if times else None
+        valid_index = cls._select_valid_index(times)
         valid_time = times[valid_index] if valid_index is not None else None
 
         series = {}
@@ -147,6 +149,30 @@ class HailMeteorologicalInputService:
                 ),
             },
         }
+
+    @classmethod
+    def _select_valid_index(cls, times):
+        """Escolhe o horário válido mais próximo, sem fixar a meia-noite."""
+        if not isinstance(times, list) or not times:
+            return None
+
+        now = datetime.now(ZoneInfo(cls.TIMEZONE)).replace(tzinfo=None)
+        parsed = []
+        for index, value in enumerate(times):
+            try:
+                parsed.append((index, datetime.fromisoformat(value)))
+            except (TypeError, ValueError):
+                continue
+        if not parsed:
+            return None
+
+        future_or_current = [(index, valid_time) for index, valid_time in parsed if valid_time >= now]
+        if future_or_current:
+            return min(future_or_current, key=lambda item: item[1])[0]
+
+        # Se a API só trouxer horas passadas, não apresentar um valor antigo
+        # como se fosse atual; ausência explícita é mais segura.
+        return None
 
     @staticmethod
     def _finite_number(value):
