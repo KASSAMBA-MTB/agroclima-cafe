@@ -1,0 +1,99 @@
+{# Atmosfera: apresentação do contexto meteorológico experimental de granizo. Sem classificação operacional. #}
+<section class="dashboard-panel atmosphere-panel" aria-labelledby="atmosphere-panel-title">
+    <div class="panel-header">
+        <div>
+            <h2 id="atmosphere-panel-title">
+                <i class="bi bi-cloud-lightning-rain-fill"></i>
+                Atmosfera
+            </h2>
+            <p>
+                Avaliação meteorológica experimental de condições atmosféricas associadas à formação de granizo.
+                Esta apresentação não representa previsão confirmada, ocorrência observada ou nível operacional de risco.
+            </p>
+        </div>
+        <div class="alert-summary">
+            <span class="alert-summary-count">{{ hail_assessments|length }}</span>
+            <span class="alert-summary-label">avaliações</span>
+        </div>
+    </div>
+
+    {% if hail_assessments %}
+        <div class="atmosphere-assessments">
+            {% for assessment in hail_assessments %}
+                <article class="alert-card info atmosphere-assessment">
+                    <div class="alert-icon">
+                        <i class="bi bi-cloud-lightning"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title-row">
+                            <strong>{{ assessment.municipio_nome|default:"Município não identificado" }}</strong>
+                            <span class="alert-severity-badge">
+                                {% if assessment.assessment_status == "ASSESSED" %}
+                                    Dados avaliados
+                                {% elif assessment.assessment_status == "INSUFFICIENT_DATA" %}
+                                    Dados insuficientes
+                                {% else %}
+                                    {{ assessment.assessment_status|default:"Estado não informado" }}
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <p class="alert-message">
+                            Classificação de potencial de granizo: não realizada.
+                        </p>
+
+                        <div class="alert-metadata">
+                            <span><i class="bi bi-diagram-3"></i> Contexto: {{ assessment.context_type|default:"meteorological_assessment" }}</span>
+                            {% if assessment.source %}<span><i class="bi bi-database"></i> Fonte: {{ assessment.source }}</span>{% endif %}
+                            {% if assessment.model %}<span><i class="bi bi-cpu"></i> Modelo: {{ assessment.model }}</span>{% endif %}
+                            {% if assessment.method_version %}<span><i class="bi bi-tag"></i> Método: {{ assessment.method_version }}</span>{% endif %}
+                            {% if assessment.valid_from %}<span><i class="bi bi-clock"></i> Início da validade: {{ assessment.valid_from }}</span>{% endif %}
+                            {% if assessment.valid_to %}<span><i class="bi bi-clock-history"></i> Fim da validade: {{ assessment.valid_to }}</span>{% endif %}
+                        </div>
+
+                        {% if assessment.missing_variables %}
+                            <p class="alert-message">
+                                <strong>Variáveis ausentes:</strong>
+                                {% for variable in assessment.missing_variables %}{{ variable }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </p>
+                        {% endif %}
+
+                        {% if assessment.data_quality %}
+                            <p class="alert-message">
+                                Completude das variáveis requeridas:
+                                {% if assessment.data_quality.required_variables_complete %}completa{% else %}incompleta{% endif %}
+                            </p>
+                        {% endif %}
+
+                        {% if assessment.derived %}
+                            <details class="atmosphere-derived">
+                                <summary>Indicadores derivados da avaliação</summary>
+                                <dl>
+                                    {% for key, value in assessment.derived.items %}
+                                        <dt>{{ key }}</dt>
+                                        <dd>{{ value|default_if_none:"Não disponível" }}</dd>
+                                    {% endfor %}
+                                </dl>
+                            </details>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="insight secondary">
+            <i class="bi bi-info-circle-fill"></i>
+            <div class="insight-content">
+                <strong>Avaliação atmosférica indisponível</strong>
+                <p>Não há avaliações de granizo publicadas no contexto atual. Nenhum nível de risco foi inferido.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="panel-footer">
+        <small>
+            <i class="bi bi-shield-check"></i>
+            Contexto versionado; evento factual: não; classificação: não realizada. Dados e proveniência são exibidos sem criar regras no frontend.
+        </small>
+    </div>
+</section>
