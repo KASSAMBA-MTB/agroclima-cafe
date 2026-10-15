@@ -1279,6 +1279,9 @@ class DashboardService:
                 frost = {}
 
             rule_results = intelligence.get("rule_results", [])
+            hail = intelligence.get("hail", {})
+            if not isinstance(hail, dict):
+                hail = {}
             insights = intelligence.get("insights", [])
             recommendations = intelligence.get("recommendations", [])
             alerts = intelligence.get("alerts", [])
@@ -1345,8 +1348,15 @@ class DashboardService:
 
             # Rastreabilidade da mesma avaliação.
             evaluated["frost_evaluation"] = frost
+
+            # MP-01.11 / MP-01.12 — transporte do resultado experimental
+            # produzido na mesma execução do IntelligenceEngine. A ausência
+            # de variáveis obrigatórias permanece explícita no resultado da
+            # HailPotentialRule; não é convertida em potencial baixo/zero.
+            evaluated["hail_potential_evaluation"] = hail
             evaluated["intelligence_evaluation"] = {
                 "frost": frost,
+                "hail": hail,
                 "rule_results": rule_results,
                 "insights": insights,
                 "recommendations": recommendations,
