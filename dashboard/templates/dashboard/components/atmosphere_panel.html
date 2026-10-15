@@ -58,7 +58,7 @@
                             </p>
                         {% endif %}
 
-                        {% if assessment.data_quality.required_variables_complete != None %}
+                        {% if assessment.data_quality %}
                             <p class="alert-message">
                                 Completude das variáveis requeridas:
                                 {% if assessment.data_quality.required_variables_complete %}completa{% else %}incompleta{% endif %}
