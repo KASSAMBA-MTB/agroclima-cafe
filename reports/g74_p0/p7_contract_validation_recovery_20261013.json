@@ -1,9 +1,9 @@
 {
   "protocol": "G7.4/P7",
-  "generated_at_utc": "20261013",
-  "artifact_type": "RECUPERACAO_DOCUMENTAL_E_REGISTRO_DE_EVIDENCIA",
-  "title": "P7 — REGISTRO DO RELATORIO RECUPERADO E LIMITES DE REVALIDACAO",
-  "classification": "P7_RELATORIO_RECUPERADO_REVALIDACAO_DOS_DADOS_PENDENTE",
+  "generated_at_utc": "20261015",
+  "artifact_type": "RECUPERACAO_DOCUMENTAL_SEM_REABERTURA_AUTOMATICA",
+  "title": "P7 — preservação da aprovação histórica e lacuna de versionamento",
+  "classification": "P7_APROVACAO_HISTORICA_PRESERVADA_LACUNA_DOCUMENTAL",
   "authority_model": "ecmwf_ifs025",
   "comparison_model": "ecmwf_ifs",
   "runs": [
@@ -41,14 +41,17 @@
   "decision": {
     "historical_report_recovered": true,
     "json_syntax_checked": true,
+    "historical_gate_approval_preserved": true,
     "full_contract_revalidation_performed_in_this_artifact": false,
-    "gate_pass_claimed": false,
-    "reason": "Os artefatos RAW e staging referenciados pelo P9 de 10/10/2026 não estão presentes nos caminhos consultados da branch main. O relatório recuperado localmente comprova a existência do relatório anterior, mas não substitui a reprodução do contrato de 14 variáveis."
+    "gate_reopened": false,
+    "gate_pass_claimed_for_a_new_execution": false,
+    "reason": "O relatório P7 histórico de 07/10 foi recuperado localmente e sua sintaxe JSON foi validada. O estado untracked explica a lacuna de versionamento na branch publicada; não demonstra falha funcional do P7 histórico. O encerramento de fase de 13/10 registra reexecution_required_for_this_transition=false. Portanto, não reexecutar P7 automaticamente."
   },
-  "next_required_action": "Na máquina local, preservar/restaurar os RAW e staging originais a partir de fonte verificável; então executar novamente P7 sobre as três RUNs e versionar o relatório e as evidências antes de P8.",
+  "next_required_action": "Recuperar e versionar o relatório P7 original e suas evidências existentes, se disponíveis na máquina de desenvolvimento. Não executar novamente P7 como condição para continuar MP-01.12. Somente considerar nova execução mediante solicitação de auditoria independente ou evidência concreta de regressão.",
   "non_goals": [
     "Não reconstruir valores meteorológicos ausentes.",
-    "Não tratar este registro de recuperação como aprovação do P7.",
+    "Não invalidar a aprovação histórica sem evidência contraditória.",
+    "Não reabrir P7 por mera ausência do artefato na main.",
     "Não alterar componentes operacionais do Django."
   ]
 }
