@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
+from django.template.loader import render_to_string
 
 from core.intelligence.hail_potential_contract import (
     ASSESSMENT_INSUFFICIENT,
@@ -234,6 +235,42 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIsNone(result["potential_level"])
         self.assertIsNone(result["municipal_result"]["potential_level"])
         self.assertFalse(result["is_factual_event"])
+
+
+    def test_atmosphere_card_renders_assessment_without_operational_classification(self):
+        html = render_to_string(
+            "dashboard/components/atmosphere_panel.html",
+            {
+                "hail_assessments": [{
+                    "municipio_id": 17,
+                    "municipio_nome": "Município de teste",
+                    "assessment_status": "INSUFFICIENT_DATA",
+                    "potential_level": None,
+                    "context_type": "meteorological_assessment",
+                    "source": "open-meteo-forecast-api",
+                    "model": "ecmwf_ifs025",
+                    "method_version": "MP-01.12",
+                    "valid_from": "2026-10-15T12:00",
+                    "valid_to": "2026-10-15T15:00",
+                    "missing_variables": ["cape", "wind_speed_925hPa"],
+                    "data_quality": {"required_variables_complete": False},
+                    "derived": {"shear_925_500_ms": 13.0},
+                    "is_factual_event": False,
+                    "classification_status": "NOT_CLASSIFIED",
+                }],
+            },
+        )
+
+        self.assertIn("Atmosfera", html)
+        self.assertIn("Município de teste", html)
+        self.assertIn("Dados insuficientes", html)
+        self.assertIn("open-meteo-forecast-api", html)
+        self.assertIn("ecmwf_ifs025", html)
+        self.assertIn("cape", html)
+        self.assertIn("shear_925_500_ms", html)
+        self.assertIn("Classificação de potencial de granizo: não realizada.", html)
+        self.assertNotIn("ALTO", html)
+        self.assertNotIn("CRÍTICO", html)
 
     def test_dashboard_facade_preserves_global_hail_context(self):
         from dashboard.services.dashboard_facade import DashboardFacade
