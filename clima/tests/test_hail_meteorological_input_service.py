@@ -47,6 +47,27 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
             1,
         )
 
+    def test_normalisation_does_not_relabel_past_values_as_current(self):
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+
+        now = datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+        past_time = (now - timedelta(hours=2)).isoformat(timespec="minutes")
+        payload = self._location()
+        payload["hourly"]["time"] = [past_time]
+        for variable in HailMeteorologicalInputService.HOURLY_VARIABLES:
+            payload["hourly"][variable] = [999]
+
+        result = HailMeteorologicalInputService._normalise_location(payload)
+
+        self.assertIsNone(result["valid_from"])
+        self.assertTrue(
+            all(value is None for value in result["series"].values())
+        )
+        self.assertFalse(
+            result["provenance"]["required_variables_complete"]
+        )
+
     def test_returns_no_index_when_no_valid_time_is_available(self):
         self.assertIsNone(
             HailMeteorologicalInputService._select_valid_index([])
