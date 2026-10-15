@@ -214,3 +214,47 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIsNone(result["potential_level"])
         self.assertEqual(result["missing_variables"], ["cape"])
         self.assertFalse(result["is_factual_event"])
+
+    def test_project_context_contract_never_exposes_a_hail_classification(self):
+        from core.intelligence.hail_project_context_contract import (
+            HailProjectContextContract,
+        )
+
+        result = HailProjectContextContract.from_municipal_result(
+            hail={
+                "assessment_status": "ASSESSED",
+                "potential_level": "HIGH",
+                "source": "open-meteo-forecast-api",
+            },
+            municipio_id=17,
+        ).as_dict()
+
+        self.assertEqual(result["context_inclusion_status"], "INCLUDED")
+        self.assertEqual(result["classification_status"], "NOT_CLASSIFIED")
+        self.assertIsNone(result["potential_level"])
+        self.assertFalse(result["is_factual_event"])
+
+    def test_dashboard_facade_preserves_global_hail_context(self):
+        from dashboard.services.dashboard_facade import DashboardFacade
+
+        hail_context = [{
+            "schema": "hail_project_context.v1",
+            "context_type": "meteorological_assessment",
+            "context_inclusion_status": "INCLUDED",
+            "classification_status": "NOT_CLASSIFIED",
+            "is_factual_event": False,
+            "municipio_id": 17,
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+        }]
+        facade = DashboardFacade.__new__(DashboardFacade)
+        facade.dashboard_service = Mock()
+        facade.dashboard_service.get_dashboard.return_value = {
+            "kpis": {},
+            "map_points": [],
+            "hail_assessments": hail_context,
+        }
+
+        result = facade.get_dashboard_data()
+
+        self.assertEqual(result["hail_assessments"], hail_context)
