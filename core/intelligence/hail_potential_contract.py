@@ -6,6 +6,7 @@ Não define thresholds de granizo.
 """
 
 from dataclasses import dataclass
+from math import isfinite
 from typing import Any
 
 
@@ -69,9 +70,17 @@ class HailPotentialContract:
         }
 
 
-def is_number(value) -> bool:
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return False
-    return number == number and number not in (float("inf"), float("-inf"))
+def is_number(value: Any) -> bool:
+    """
+    Retorna True apenas para números int/float finitos.
+
+    Booleanos não são aceitos, apesar de bool ser uma subclasse de int.
+    Strings numéricas também não são aceitas: a conversão de texto para
+    número deve ocorrer antes da entrada no contrato, e não durante sua
+    validação.
+    """
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and isfinite(value)
+    )
