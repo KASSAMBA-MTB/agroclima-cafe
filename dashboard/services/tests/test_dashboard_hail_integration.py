@@ -12,6 +12,42 @@ from dashboard.services.dashboard_service import DashboardService
 
 
 class DashboardHailIntegrationTests(SimpleTestCase):
+    def test_project_context_publishes_existing_assessment_as_non_factual(self):
+        hail = {
+            "id": "HAIL_POTENTIAL_001",
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+            "source": "open-meteo-forecast-api",
+            "model": "ecmwf_ifs025",
+        }
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": hail},
+            "hail_potential_evaluation": hail,
+        }]
+
+        result = DashboardService._compose_hail_assessments(points)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["municipio_id"], 17)
+        self.assertEqual(result[0]["municipio_nome"], "Município de teste")
+        self.assertEqual(result[0]["assessment_status"], "ASSESSED")
+        self.assertIsNone(result[0]["potential_level"])
+        self.assertEqual(result[0]["source"], "open-meteo-forecast-api")
+        self.assertEqual(result[0]["model"], "ecmwf_ifs025")
+        self.assertEqual(result[0]["context_type"], "meteorological_assessment")
+        self.assertFalse(result[0]["is_factual_event"])
+        self.assertNotIn("eventos", result[0])
+
+    def test_project_context_does_not_invent_missing_hail_assessments(self):
+        result = DashboardService._compose_hail_assessments([
+            {"id": 17, "nome": "Sem avaliação"},
+            {"id": 18, "nome": "Avaliação inválida", "intelligence_evaluation": {"hail": None}},
+        ])
+
+        self.assertEqual(result, [])
+
     def test_missing_required_inputs_remain_unclassified(self):
         result = HailPotentialRule().evaluate({
             "municipio_id": 17,
