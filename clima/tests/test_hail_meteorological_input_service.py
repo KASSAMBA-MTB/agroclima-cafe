@@ -22,6 +22,30 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
             "hourly": hourly,
         }
 
+    def test_selects_future_valid_time_instead_of_first_midnight_value(self):
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+
+        now = datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+        times = [
+            (now - timedelta(hours=12)).isoformat(timespec="minutes"),
+            (now + timedelta(hours=1)).isoformat(timespec="minutes"),
+            (now + timedelta(hours=2)).isoformat(timespec="minutes"),
+        ]
+
+        self.assertEqual(
+            HailMeteorologicalInputService._select_valid_index(times),
+            1,
+        )
+
+    def test_returns_no_index_when_no_valid_time_is_available(self):
+        self.assertIsNone(
+            HailMeteorologicalInputService._select_valid_index([])
+        )
+        self.assertIsNone(
+            HailMeteorologicalInputService._select_valid_index(["not-a-date"])
+        )
+
     @patch("clima.services.hail_meteorological_input_service.cache.set")
     @patch("clima.services.hail_meteorological_input_service.cache.get", return_value=None)
     def test_requests_all_municipalities_in_one_batch_and_normalises_required_values(
