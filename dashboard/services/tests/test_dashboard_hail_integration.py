@@ -232,6 +232,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertEqual(result["context_inclusion_status"], "INCLUDED")
         self.assertEqual(result["classification_status"], "NOT_CLASSIFIED")
         self.assertIsNone(result["potential_level"])
+        self.assertIsNone(result["municipal_result"]["potential_level"])
         self.assertFalse(result["is_factual_event"])
 
     def test_dashboard_facade_preserves_global_hail_context(self):
