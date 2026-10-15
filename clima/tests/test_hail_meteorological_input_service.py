@@ -10,8 +10,17 @@ from clima.services.hail_meteorological_input_service import (
 class HailMeteorologicalInputServiceTests(SimpleTestCase):
     @staticmethod
     def _location(offset=0, missing=None):
+        from datetime import datetime, timedelta
+        from zoneinfo import ZoneInfo
+
         variables = HailMeteorologicalInputService.HOURLY_VARIABLES
-        hourly = {"time": ["2026-10-15T12:00", "2026-10-15T13:00"]}
+        now = datetime.now(ZoneInfo("America/Sao_Paulo")).replace(tzinfo=None)
+        hourly = {
+            "time": [
+                (now + timedelta(hours=1)).isoformat(timespec="minutes"),
+                (now + timedelta(hours=2)).isoformat(timespec="minutes"),
+            ]
+        }
         for index, variable in enumerate(variables):
             hourly[variable] = [None if variable == missing else index + offset + 1,
                                 index + offset + 2]
@@ -77,7 +86,10 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
             result[18]["series"]["wind_speed_925hPa"],
             12.0,
         )
-        self.assertEqual(result[17]["valid_from"], "2026-10-15T12:00")
+        self.assertEqual(
+            result[17]["valid_from"],
+            response.json.return_value[0]["hourly"]["time"][0],
+        )
         self.assertTrue(
             result[17]["provenance"]["required_variables_complete"]
         )
