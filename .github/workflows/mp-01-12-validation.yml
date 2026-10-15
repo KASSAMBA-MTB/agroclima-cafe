@@ -1,0 +1,146 @@
+name: MP-01.12 operational validation
+
+on:
+  pull_request:
+    branches:
+      - integration/mp-01-12-dashboard-context
+
+permissions:
+  contents: read
+
+jobs:
+  django-regression:
+    name: Django checks and regression suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: agroclima_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d agroclima_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SETTINGS_MODULE: agroclima.settings
+      DJANGO_SECRET_KEY: ci-only-not-a-production-secret
+      DJANGO_DEBUG: "False"
+      DB_NAME: agroclima_ci
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+    steps:
+      - name: Checkout pull request merge ref
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Django system check
+        run: python manage.py check
+      - name: Apply migrations to clean PostgreSQL
+        run: python manage.py migrate --noinput
+      - name: Run full regression suite
+        run: python manage.py test --verbosity 2
+
+  live-open-meteo-smoke:
+    name: Live Open-Meteo acquisition for six municipalities
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DJANGO_SETTINGS_MODULE: agroclima.settings
+      DJANGO_SECRET_KEY: ci-only-not-a-production-secret
+      DJANGO_DEBUG: "False"
+      DB_NAME: agroclima_ci
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+    steps:
+      - name: Checkout pull request merge ref
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Call real Forecast API and validate all municipal inputs
+        run: |
+          python - <<'PY'
+          import json
+          import django
+
+          django.setup()
+
+          from clima.services.hail_meteorological_input_service import (
+              HailMeteorologicalInputService,
+          )
+
+          # Coordenadas provenientes de municipios/management/commands/carregar_municipios.py.
+          points = [
+              {"id": 3549102, "nome": "São João da Boa Vista", "latitude": -21.9699, "longitude": -46.7981},
+              {"id": 3515186, "nome": "Espírito Santo do Pinhal", "latitude": -22.1900, "longitude": -46.7478},
+              {"id": 3500402, "nome": "Águas da Prata", "latitude": -21.9319, "longitude": -46.7178},
+              {"id": 3556404, "nome": "Vargem Grande do Sul", "latitude": -21.8322, "longitude": -46.8925},
+              {"id": 3102605, "nome": "Andradas", "latitude": -22.0686, "longitude": -46.5724},
+              {"id": 3151800, "nome": "Poços de Caldas", "latitude": -21.7874, "longitude": -46.5614},
+          ]
+
+          service = HailMeteorologicalInputService()
+          result = service.fetch_for_points(points)
+          required = service.REQUIRED_VARIABLES
+          evidence = []
+
+          for point in points:
+              item = result.get(point["id"])
+              if not isinstance(item, dict):
+                  raise SystemExit(f"FAIL: sem resposta associada a {point['nome']} ({point['id']})")
+              series = item.get("series") or {}
+              missing = [name for name in required if series.get(name) is None]
+              provenance = item.get("provenance") or {}
+              if not item.get("valid_from"):
+                  raise SystemExit(f"FAIL: sem horário válido para {point['nome']}")
+              if missing:
+                  raise SystemExit(
+                      f"FAIL: variáveis obrigatórias ausentes para {point['nome']}: {missing}"
+                  )
+              if provenance.get("source") != service.SOURCE or provenance.get("model") != service.MODEL:
+                  raise SystemExit(f"FAIL: proveniência inesperada para {point['nome']}: {provenance}")
+              evidence.append({
+                  "municipio": point["nome"],
+                  "municipio_id": point["id"],
+                  "valid_time": item["valid_from"],
+                  "source": provenance.get("source"),
+                  "model": provenance.get("model"),
+                  "model_grid": {
+                      "latitude": provenance.get("model_grid_latitude"),
+                      "longitude": provenance.get("model_grid_longitude"),
+                  },
+                  "required_variables_complete": provenance.get("required_variables_complete"),
+                  "required_values": {name: series.get(name) for name in required},
+                  "complementary_values": {
+                      name: series.get(name)
+                      for name in service.HOURLY_VARIABLES
+                      if name not in required
+                  },
+              })
+
+          print("MP-01.12 LIVE API EVIDENCE")
+          print(json.dumps(evidence, ensure_ascii=False, indent=2))
+          print("PASS: seis municípios associados; horário válido e cinco variáveis obrigatórias presentes em cada resposta.")
+          PY
