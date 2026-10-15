@@ -1,0 +1,59 @@
+{
+  "protocol": "G7.4/P9",
+  "generated_at_utc": "20261015",
+  "artifact_type": "DECISAO_DE_GATE_APOS_RECUPERACAO_DOCUMENTAL",
+  "classification": "P9_FALHA_DE_RASTREABILIDADE_NO_CICLO_20261010",
+  "prior_report": "reports/g74_p0/p9_regression_validation_20261010T201314Z.json",
+  "p7_recovery_report": "reports/g74_p0/p7_contract_validation_recovery_20261013.json",
+  "p8_recovery_report": "reports/g74_p0/p8_controlled_integration_recovery_20261013.json",
+  "authority_model": "ecmwf_ifs025",
+  "comparison_model": "ecmwf_ifs",
+  "runs": [
+    "2026-04-02T00:00",
+    "2026-04-15T00:00",
+    "2026-10-03T00:00"
+  ],
+  "variables_count": 14,
+  "decisions": [
+    {
+      "run": "2026-04-02T00:00",
+      "historical_p9_reported_valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "errors": [],
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    },
+    {
+      "run": "2026-04-15T00:00",
+      "historical_p9_reported_valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "errors": [],
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    },
+    {
+      "run": "2026-10-03T00:00",
+      "historical_p9_reported_valid": true,
+      "http_status": 200,
+      "record_count": 672,
+      "errors": [],
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    }
+  ],
+  "gate_decision": {
+    "p7": "APROVACAO HISTORICA PRESERVADA; LACUNA DE VERSIONAMENTO",
+    "p8": "APROVACAO HISTORICA PRESERVADA; LACUNA DE VERSIONAMENTO",
+    "p9": "O CICLO DE 10/10 FOI REPROVADO POR AUSENCIA DE REFERENCIAS A P7/P8; NÃO REABRIR P7/P8 AUTOMATICAMENTE"
+  },
+  "reason": "O relatório P9 de 10/10 registra as três RUNs como válidas, com HTTP 200, 672 registros e sem erros, mas sua classificação global falha porque os relatórios P7/P8 não estavam presentes nos caminhos esperados. Os relatórios recuperados de 07/10 registram P7 validado e P8_INTEGRACAO_CONTROLADA_VALIDADA. O registro de encerramento de fase de 13/10 confirma que a recuperação documental está concluída e que P7/P8 não precisavam ser reexecutados para a transição. O defeito demonstrado é de rastreabilidade/versionamento do ciclo de 10/10; não é prova de falha meteorológica das três RUNs nem justifica reiniciar os Gates históricos.",
+  "required_to_close": [
+    "Preservar os relatórios originais recuperados e as evidências disponíveis em local versionado, sem fabricar RAW/staging ausentes.",
+    "Manter a reprovação do relatório global P9 de 10/10 como histórico do defeito de rastreabilidade, sem apagar seu registro.",
+    "Prosseguir para a fase G8/P9.6 e MP-01.12 conforme escopo, sem reexecutar P7/P8/P9 salvo requisito novo de auditoria reproduzível."
+  ],
+  "operational_components_changed": false,
+  "raw_payloads_reconstructed": false,
+  "historical_p7_p8_reopened": false,
+  "p9_20261010_historical_result_rewritten": false,
+  "production_homologation": false
+}

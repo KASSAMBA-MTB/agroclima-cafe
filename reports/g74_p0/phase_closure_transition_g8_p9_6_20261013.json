@@ -1,0 +1,53 @@
+{
+  "protocol": "G7.4/ENCERRAMENTO_DE_FASE",
+  "generated_at_utc": "2026-10-13",
+  "artifact_type": "CONSOLIDACAO_DE_ESTADO_E_TRANSICAO",
+  "title": "Encerramento documental da recuperação G7.4 e transição para G8/P9.6",
+  "scope": "Contrato canônico histórico de 14 variáveis; três RUNs de 2026-04-02, 2026-04-15 e 2026-10-03; rastreabilidade dos Gates P7/P8/P9.",
+  "prior_evidence": {
+    "p7": {
+      "recovered_report": "reports/g74_p0/p7_contract_validation_20261007T125629Z.json",
+      "historical_status": "relatório recuperado; JSON sintaticamente válido",
+      "reexecution_required_for_this_transition": false
+    },
+    "p8": {
+      "recovered_report": "reports/g74_p0/p8_controlled_integration_20261007T130339Z.json",
+      "historical_classification": "P8_INTEGRACAO_CONTROLADA_VALIDADA",
+      "historical_status": "relatório recuperado; JSON sintaticamente válido",
+      "reexecution_required_for_this_transition": false
+    },
+    "p9": {
+      "historical_report": "reports/g74_p0/p9_regression_validation_20261010T201314Z.json",
+      "classification": "P9_REGRESSAO_CONTROLADA_REPROVADA",
+      "details": "As três RUNs estão registradas como válidas com HTTP 200, 672 registros e sem erros; a classificação global reprovou por ausência dos relatórios P7/P8 nos caminhos esperados. Os RAW/staging referenciados não estão presentes na branch main nos caminhos registrados.",
+      "interpretation": "Falha de rastreabilidade/disponibilidade de artefatos no ciclo de 10/10; não deve ser convertida em aprovação de uma nova execução nem usada para invalidar silenciosamente os resultados históricos de P7/P8."
+    }
+  },
+  "phase_disposition": {
+    "documentary_recovery": "CONCLUIDA",
+    "p7_historical_execution": "PRESERVADA; NÃO REEXECUTADA",
+    "p8_historical_execution": "PRESERVADA; NÃO REEXECUTADA",
+    "p9_latest_cycle": "REPROVADO POR RASTREABILIDADE; NÃO HOMOLOGADO",
+    "operational_release": "NÃO AUTORIZADA NESTE REGISTRO"
+  },
+  "next_phase": {
+    "identifier": "G8/P9.6",
+    "objective": "Consolidar o caso histórico positivo de potencial de granizo em Andradas em 2025-07-25, com evidência de origem rastreável e limites explícitos do que pode ser provado.",
+    "baseline_commit": "9cfb49c (referência histórica informada; confirmar no checkout antes de qualquer comparação)",
+    "current_main_commit": "4d12e36c7fb2276046bbc28254103eafba0e2e89",
+    "constraint": "A evidência histórica disponível em relatório/probe não substitui o payload RAW original. Não fabricar nem reconstruir o RAW ausente.",
+    "acceptance_criteria": [
+      "Documentar a evidência histórica disponível e a lacuna de proveniência sem repetir buscas já realizadas.",
+      "Manter o contrato histórico de 14 variáveis separado da sonda experimental de granizo de 8 variáveis.",
+      "Não alterar componentes operacionais Django, DashboardService, mapa, FRI, frontend ou PostgreSQL.",
+      "Não declarar homologação de produção sem evidência primária reproduzível."
+    ]
+  },
+  "safety_and_scope": {
+    "django_operational_components_changed": false,
+    "postgresql_changed": false,
+    "raw_data_reconstructed": false,
+    "p7_p8_rerun": false,
+    "production_homologation": false
+  }
+}
