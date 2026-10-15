@@ -142,7 +142,7 @@ jobs:
               })
 
           evidence_json = json.dumps(evidence, ensure_ascii=False, indent=2)
-          Path("mp-01-12-live-evidence.json").write_text(evidence_json + "\\n", encoding="utf-8")
+          Path("mp-01-12-live-evidence.json").write_text(evidence_json + "\n", encoding="utf-8")
           print("MP-01.12 LIVE API EVIDENCE")
           print(evidence_json)
           print("PASS: seis municípios associados; horário válido e cinco variáveis obrigatórias presentes em cada resposta.")
