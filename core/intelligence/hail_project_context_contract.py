@@ -76,6 +76,10 @@ class HailProjectContextContract:
 
     def as_dict(self) -> dict:
         """Return the stable project-level context consumed downstream."""
+        municipal_result = dict(self.municipal_result)
+        # Never leak a potential classification through the nested source payload.
+        municipal_result["potential_level"] = None
+
         return {
             "schema": CONTEXT_SCHEMA,
             "context_type": CONTEXT_TYPE_ASSESSMENT,
@@ -96,5 +100,5 @@ class HailProjectContextContract:
             "missing_variables": list(self.missing_variables),
             "data_quality": dict(self.data_quality),
             "derived": dict(self.derived),
-            "municipal_result": dict(self.municipal_result),
+            "municipal_result": municipal_result,
         }
