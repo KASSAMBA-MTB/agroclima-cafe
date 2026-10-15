@@ -4,7 +4,6 @@ Este serviço é isolado do provider de clima corrente e do contrato histórico 
 Obtém uma única previsão ECMWF IFS025 para as coordenadas municipais, preserva
 a hora válida e deixa valores ausentes como None. Não classifica risco de granizo.
 """
-from datetime import datetime
 import math
 
 import requests
@@ -121,8 +120,8 @@ class HailMeteorologicalInputService:
                 "model": cls.MODEL,
                 "source_run": None,
                 "valid_time": valid_time,
-                "requested_latitude": payload.get("latitude"),
-                "requested_longitude": payload.get("longitude"),
+                "model_grid_latitude": payload.get("latitude"),
+                "model_grid_longitude": payload.get("longitude"),
                 "timezone": payload.get("timezone"),
                 "unit_contract": {
                     "cape": "J/kg",
