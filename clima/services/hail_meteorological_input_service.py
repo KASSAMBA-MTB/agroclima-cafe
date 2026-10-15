@@ -8,7 +8,6 @@ import math
 
 import requests
 from django.core.cache import cache
-from django.utils import timezone
 
 
 class HailMeteorologicalInputService:
@@ -105,13 +104,19 @@ class HailMeteorologicalInputService:
         times = hourly.get("time")
         if not isinstance(times, list) or not times:
             times = []
-        valid_index = 0
-        valid_time = times[valid_index] if times else None
+        valid_index = 0 if times else None
+        valid_time = times[valid_index] if valid_index is not None else None
 
         series = {}
         for variable in cls.HOURLY_VARIABLES:
             values = hourly.get(variable)
-            value = values[valid_index] if isinstance(values, list) and len(values) > valid_index else None
+            value = (
+                values[valid_index]
+                if valid_index is not None
+                and isinstance(values, list)
+                and len(values) > valid_index
+                else None
+            )
             series[variable] = cls._finite_number(value)
 
         return {
