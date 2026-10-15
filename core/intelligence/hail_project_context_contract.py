@@ -1,7 +1,7 @@
 """Contrato canônico do contexto global de avaliação meteorológica de granizo.
 
-O contrato transporta avaliações municipais já calculadas. Não define limiares,
-não classifica potencial e não representa ocorrência factual de granizo.
+Transporta avaliações municipais já calculadas. Não define limiares, não
+classifica potencial e não representa ocorrência factual de granizo.
 """
 from dataclasses import dataclass
 from typing import Any
@@ -9,6 +9,8 @@ from typing import Any
 
 CONTEXT_SCHEMA = "hail_project_context.v1"
 CONTEXT_TYPE_ASSESSMENT = "meteorological_assessment"
+CONTEXT_INCLUDED = "INCLUDED"
+CLASSIFICATION_NOT_PERFORMED = "NOT_CLASSIFIED"
 FACTUAL_EVENT = False
 
 
@@ -17,7 +19,6 @@ class HailProjectContextContract:
     municipio_id: Any
     municipio_nome: str | None
     assessment_status: str
-    potential_level: str | None
     method_version: str | None
     source: str | None
     model: str | None
@@ -37,18 +38,13 @@ class HailProjectContextContract:
         municipio_id: Any = None,
         municipio_nome: str | None = None,
     ) -> "HailProjectContextContract":
-        """Normalize a single existing municipal assessment without recalculation."""
+        """Normalize an existing municipal assessment without recalculation."""
         if not isinstance(hail, dict):
             raise TypeError("hail deve ser um dicionário de avaliação municipal")
 
         status = hail.get("assessment_status")
         if not isinstance(status, str) or not status.strip():
             status = "INSUFFICIENT_DATA"
-
-        level = hail.get("potential_level")
-        # The current experimental evaluator does not classify a potential level.
-        if status != "ASSESSED":
-            level = None
 
         missing = hail.get("missing_variables")
         if not isinstance(missing, (list, tuple)):
@@ -66,7 +62,6 @@ class HailProjectContextContract:
             municipio_id=hail.get("municipio_id", municipio_id),
             municipio_nome=hail.get("municipio_nome", municipio_nome),
             assessment_status=status,
-            potential_level=level,
             method_version=hail.get("method_version"),
             source=hail.get("source"),
             model=hail.get("model"),
@@ -80,15 +75,18 @@ class HailProjectContextContract:
         )
 
     def as_dict(self) -> dict:
-        """Return the versioned project-level transport contract."""
+        """Return the stable project-level context consumed downstream."""
         return {
             "schema": CONTEXT_SCHEMA,
             "context_type": CONTEXT_TYPE_ASSESSMENT,
+            "context_inclusion_status": CONTEXT_INCLUDED,
+            "classification_status": CLASSIFICATION_NOT_PERFORMED,
             "is_factual_event": FACTUAL_EVENT,
             "municipio_id": self.municipio_id,
             "municipio_nome": self.municipio_nome,
             "assessment_status": self.assessment_status,
-            "potential_level": self.potential_level,
+            # Deliberately no potential_level: this rule does not classify hail.
+            "potential_level": None,
             "method_version": self.method_version,
             "source": self.source,
             "model": self.model,
