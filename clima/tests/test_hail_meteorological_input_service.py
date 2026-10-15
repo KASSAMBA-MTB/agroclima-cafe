@@ -160,3 +160,19 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
 
         self.assertEqual(result, cached)
         http_get.assert_not_called()
+
+    @patch("clima.services.hail_meteorological_input_service.cache.set")
+    @patch("clima.services.hail_meteorological_input_service.cache.get", return_value=None)
+    def test_rejects_api_response_with_wrong_number_of_locations(
+        self, _cache_get, _cache_set
+    ):
+        response = Mock()
+        response.json.return_value = [self._location()]
+        response.raise_for_status.return_value = None
+        service = HailMeteorologicalInputService(http_get=Mock(return_value=response))
+
+        with self.assertRaisesRegex(ValueError, "quantidade de locais"):
+            service.fetch_for_points([
+                {"id": 17, "latitude": -21.9, "longitude": -46.9},
+                {"id": 18, "latitude": -22.0, "longitude": -47.0},
+            ])
