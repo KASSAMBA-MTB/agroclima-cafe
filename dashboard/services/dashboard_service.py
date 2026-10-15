@@ -248,6 +248,13 @@ class DashboardService:
             map_points
         )
 
+        # MP-01.12 — contexto global canônico da avaliação de granizo.
+        # Reutiliza o resultado municipal já calculado; não reavalia a regra
+        # e não mistura potencial meteorológico com evento factual observado.
+        context["hail_assessments"] = self._compose_hail_assessments(
+            map_points
+        )
+
         # MP-01.6 e MP-01.7 apenas compõem resultados já calculados.
         self._attach_hydric_pressure_context(
             context=context,
@@ -1399,6 +1406,48 @@ class DashboardService:
 
         # Não criar, concatenar ou deduplicar alertas globais aqui.
         return evaluated_points
+
+    @staticmethod
+    def _compose_hail_assessments(map_points):
+        """
+        Publica o contexto global de granizo a partir das avaliações municipais
+        já produzidas pela única execução de Inteligência.
+
+        Esta coleção representa avaliação meteorológica, não ocorrência
+        observada. Eventos factuais continuam sob responsabilidade de
+        EventsService e exigem dado factual persistido.
+        """
+        assessments = []
+
+        for point in map_points or []:
+            if not isinstance(point, dict):
+                continue
+
+            intelligence = point.get("intelligence_evaluation")
+            if not isinstance(intelligence, dict):
+                intelligence = {}
+
+            hail = intelligence.get("hail")
+            if not isinstance(hail, dict):
+                hail = point.get("hail_potential_evaluation")
+
+            if not isinstance(hail, dict):
+                continue
+
+            assessment = dict(hail)
+            assessment["municipio_id"] = assessment.get(
+                "municipio_id",
+                point.get("id", point.get("municipio_id")),
+            )
+            assessment["municipio_nome"] = assessment.get(
+                "municipio_nome",
+                point.get("nome", point.get("municipio_nome")),
+            )
+            assessment["context_type"] = "meteorological_assessment"
+            assessment["is_factual_event"] = False
+            assessments.append(assessment)
+
+        return assessments
 
     def _compose_hydric_pressure_regional(self, map_points):
         """
