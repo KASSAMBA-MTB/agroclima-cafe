@@ -29,6 +29,7 @@ VersÃ£o..........: 3.12
 """
 
 from datetime import timedelta
+import logging
 
 from clima.models import (
     HistoricalWeatherDaily,
@@ -36,6 +37,8 @@ from clima.models import (
     WeatherObservation,
 )
 from clima.services.weather_service import WeatherService
+from clima.services.hail_meteorological_input_service import HailMeteorologicalInputService
+from core.intelligence.hail_project_context_contract import HailProjectContextContract
 from clima.services.history_service import HistoryService
 from municipios.models import Municipio
 
@@ -60,6 +63,8 @@ from dashboard.services.hydric_pressure_regional_service import (
 from dashboard.services.hydric_pressure_regional_synthesis_service import (
     HydricPressureRegionalSynthesisService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DashboardService:
@@ -241,6 +246,13 @@ class DashboardService:
         # ======================================================
 
         map_points = self._attach_frost_intelligence(
+            map_points
+        )
+
+        # MP-01.12 — contexto global canônico da avaliação de granizo.
+        # Reutiliza o resultado municipal já calculado; não reavalia a regra
+        # e não mistura potencial meteorológico com evento factual observado.
+        context["hail_assessments"] = self._compose_hail_assessments(
             map_points
         )
 
@@ -1131,6 +1143,20 @@ class DashboardService:
         if not map_points:
             return []
 
+        # MP-01.12: uma aquisição em lote para todos os municípios, fora do
+        # loop de inteligência. A falha da fonte não interrompe o dashboard;
+        # o avaliador recebe dados ausentes e mantém INSUFFICIENT_DATA.
+        hail_inputs_by_id = {}
+        try:
+            hail_inputs_by_id = HailMeteorologicalInputService().fetch_for_points(
+                map_points
+            )
+        except Exception:
+            logger.exception(
+                "Falha ao adquirir variáveis meteorológicas MP-01.12 para granizo."
+            )
+            hail_inputs_by_id = {}
+
         evaluated_points = []
 
         for point in map_points:
@@ -1139,7 +1165,20 @@ class DashboardService:
                 point.get("historical_indicators") or {}
             )
 
+            hail_input = hail_inputs_by_id.get(
+                point.get("municipio_id") or point.get("id")
+            )
+            if not isinstance(hail_input, dict):
+                hail_input = {}
+
             context = {
+                # MP-01.12 — variáveis meteorológicas reais da coordenada municipal.
+                # A proveniência e o instante válido acompanham os valores.
+                "series": hail_input.get("series") or {},
+                "provenance": hail_input.get("provenance") or {},
+                "valid_from": hail_input.get("valid_from"),
+                "valid_to": hail_input.get("valid_to"),
+
                 # MapService publica o PK do município como ``id``. O alias
                 # ``municipio_id`` continua aceito para pontos já adaptados.
                 "municipio_id": (
@@ -1368,6 +1407,39 @@ class DashboardService:
 
         # Não criar, concatenar ou deduplicar alertas globais aqui.
         return evaluated_points
+
+    @staticmethod
+    def _compose_hail_assessments(map_points):
+        """
+        Publica o contrato global a partir das avaliações municipais já
+        produzidas pela execução única de Inteligência.
+        """
+        assessments = []
+
+        for point in map_points or []:
+            if not isinstance(point, dict):
+                continue
+
+            intelligence = point.get("intelligence_evaluation")
+            if not isinstance(intelligence, dict):
+                intelligence = {}
+
+            hail = intelligence.get("hail")
+            if not isinstance(hail, dict):
+                hail = point.get("hail_potential_evaluation")
+
+            if not isinstance(hail, dict):
+                continue
+
+            assessments.append(
+                HailProjectContextContract.from_municipal_result(
+                    hail=hail,
+                    municipio_id=point.get("id", point.get("municipio_id")),
+                    municipio_nome=point.get("nome", point.get("municipio_nome")),
+                ).as_dict()
+            )
+
+        return assessments
 
     def _compose_hydric_pressure_regional(self, map_points):
         """
