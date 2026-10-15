@@ -112,6 +112,10 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
     def test_thermodynamic_values_are_not_invented(self):
         result = self.evaluator.evaluate(self.canonical)
         self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+        thermo = result["axes"]["thermodynamics"]["values"]
+        self.assertEqual(thermo["wet_bulb_temperature_2m"], {"value": 15.0, "unit": "°C"})
+        self.assertEqual(thermo["temperature_850hPa"], {"value": 8.0, "unit": "°C"})
+        self.assertEqual(thermo["relative_humidity_850hPa"], {"value": 75.0, "unit": "%"})
         self.assertEqual(result["axes"]["thermodynamics"]["values"]["wet_bulb_temperature_2m"]["value"], 15.0)
         self.assertEqual(result["axes"]["thermodynamics"]["values"]["temperature_850hPa"]["unit"], "°C")
         self.assertTrue(result["diagnostics_complete"])
