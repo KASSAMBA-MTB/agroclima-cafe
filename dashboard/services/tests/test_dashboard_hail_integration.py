@@ -1,6 +1,6 @@
 """Regressão da exposição municipal do resultado experimental de granizo."""
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
 
@@ -57,10 +57,31 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         service = DashboardService.__new__(DashboardService)
         service.frost_risk_service = risk_service
 
-        result = service._attach_frost_intelligence([
-            {"id": 17, "nome": "Município de teste"},
-        ])
+        acquired = {
+            "series": {
+                "cape": 1200,
+                "wind_speed_925hPa": 12,
+                "wind_direction_925hPa": 270,
+                "wind_speed_500hPa": 25,
+                "wind_direction_500hPa": 240,
+            },
+            "provenance": {"source": "open-meteo-forecast-api", "model": "ecmwf_ifs025"},
+            "valid_from": "2026-10-15T12:00",
+            "valid_to": "2026-10-15T12:00",
+        }
+        with patch(
+            "dashboard.services.dashboard_service.HailMeteorologicalInputService"
+        ) as input_service:
+            input_service.return_value.fetch_for_points.return_value = {17: acquired}
+            result = service._attach_frost_intelligence([
+                {"id": 17, "nome": "Município de teste", "latitude": -21.9, "longitude": -46.9},
+            ])
 
+        input_service.return_value.fetch_for_points.assert_called_once()
+        evaluation_context = risk_service.evaluate_frost.call_args.args[0]
+        self.assertEqual(evaluation_context["series"], acquired["series"])
+        self.assertEqual(evaluation_context["provenance"], acquired["provenance"])
+        self.assertEqual(evaluation_context["valid_from"], acquired["valid_from"])
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0]["hail_potential_evaluation"], hail)
         self.assertEqual(
