@@ -29,6 +29,7 @@ VersÃ£o..........: 3.12
 """
 
 from datetime import timedelta
+import logging
 
 from clima.models import (
     HistoricalWeatherDaily,
@@ -36,6 +37,7 @@ from clima.models import (
     WeatherObservation,
 )
 from clima.services.weather_service import WeatherService
+from clima.services.hail_meteorological_input_service import HailMeteorologicalInputService
 from clima.services.history_service import HistoryService
 from municipios.models import Municipio
 
@@ -60,6 +62,8 @@ from dashboard.services.hydric_pressure_regional_service import (
 from dashboard.services.hydric_pressure_regional_synthesis_service import (
     HydricPressureRegionalSynthesisService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DashboardService:
@@ -1131,6 +1135,20 @@ class DashboardService:
         if not map_points:
             return []
 
+        # MP-01.12: uma aquisição em lote para todos os municípios, fora do
+        # loop de inteligência. A falha da fonte não interrompe o dashboard;
+        # o avaliador recebe dados ausentes e mantém INSUFFICIENT_DATA.
+        hail_inputs_by_id = {}
+        try:
+            hail_inputs_by_id = HailMeteorologicalInputService().fetch_for_points(
+                map_points
+            )
+        except Exception:
+            logger.exception(
+                "Falha ao adquirir variáveis meteorológicas MP-01.12 para granizo."
+            )
+            hail_inputs_by_id = {}
+
         evaluated_points = []
 
         for point in map_points:
@@ -1139,7 +1157,20 @@ class DashboardService:
                 point.get("historical_indicators") or {}
             )
 
+            hail_input = hail_inputs_by_id.get(
+                point.get("municipio_id") or point.get("id")
+            )
+            if not isinstance(hail_input, dict):
+                hail_input = {}
+
             context = {
+                # MP-01.12 — variáveis meteorológicas reais da coordenada municipal.
+                # A proveniência e o instante válido acompanham os valores.
+                "series": hail_input.get("series") or {},
+                "provenance": hail_input.get("provenance") or {},
+                "valid_from": hail_input.get("valid_from"),
+                "valid_to": hail_input.get("valid_to"),
+
                 # MapService publica o PK do município como ``id``. O alias
                 # ``municipio_id`` continua aceito para pontos já adaptados.
                 "municipio_id": (
