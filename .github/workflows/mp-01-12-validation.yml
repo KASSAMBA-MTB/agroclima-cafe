@@ -83,6 +83,7 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          from pathlib import Path
           import django
 
           django.setup()
@@ -140,7 +141,17 @@ jobs:
                   },
               })
 
+          evidence_json = json.dumps(evidence, ensure_ascii=False, indent=2)
+          Path("mp-01-12-live-evidence.json").write_text(evidence_json + "\n", encoding="utf-8")
           print("MP-01.12 LIVE API EVIDENCE")
-          print(json.dumps(evidence, ensure_ascii=False, indent=2))
+          print(evidence_json)
           print("PASS: seis municípios associados; horário válido e cinco variáveis obrigatórias presentes em cada resposta.")
           PY
+      - name: Archive verified live meteorological evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: mp-01-12-live-evidence
+          path: mp-01-12-live-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+
