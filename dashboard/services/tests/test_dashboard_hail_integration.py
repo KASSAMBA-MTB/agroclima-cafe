@@ -161,3 +161,56 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             result[0]["intelligence_evaluation"]["hail"]["potential_level"]
         )
         risk_service.evaluate_frost.assert_called_once()
+
+    def test_project_context_contract_is_versioned_and_preserves_provenance(self):
+        from core.intelligence.hail_project_context_contract import (
+            CONTEXT_SCHEMA,
+            HailProjectContextContract,
+        )
+
+        result = HailProjectContextContract.from_municipal_result(
+            hail={
+                "assessment_status": "ASSESSED",
+                "potential_level": None,
+                "method_version": "MP-01.11.2",
+                "source": "open-meteo-forecast-api",
+                "model": "ecmwf_ifs025",
+                "source_run": "run-123",
+                "valid_from": "2026-10-15T12:00",
+                "valid_to": "2026-10-15T12:00",
+                "missing_variables": [],
+                "data_quality": {"required_variables_complete": True},
+                "derived": {"shear_925_500_ms": 13.0},
+            },
+            municipio_id=17,
+            municipio_nome="Município de teste",
+        ).as_dict()
+
+        self.assertEqual(result["schema"], CONTEXT_SCHEMA)
+        self.assertEqual(result["context_type"], "meteorological_assessment")
+        self.assertFalse(result["is_factual_event"])
+        self.assertEqual(result["municipio_id"], 17)
+        self.assertEqual(result["source_run"], "run-123")
+        self.assertEqual(result["valid_from"], "2026-10-15T12:00")
+        self.assertTrue(result["data_quality"]["required_variables_complete"])
+        self.assertEqual(result["derived"]["shear_925_500_ms"], 13.0)
+        self.assertIsNone(result["potential_level"])
+
+    def test_project_context_contract_never_classifies_insufficient_data(self):
+        from core.intelligence.hail_project_context_contract import (
+            HailProjectContextContract,
+        )
+
+        result = HailProjectContextContract.from_municipal_result(
+            hail={
+                "assessment_status": "INSUFFICIENT_DATA",
+                "potential_level": "HIGH",
+                "missing_variables": ["cape"],
+            },
+            municipio_id=17,
+        ).as_dict()
+
+        self.assertEqual(result["assessment_status"], "INSUFFICIENT_DATA")
+        self.assertIsNone(result["potential_level"])
+        self.assertEqual(result["missing_variables"], ["cape"])
+        self.assertFalse(result["is_factual_event"])
