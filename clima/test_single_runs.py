@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 from threading import Barrier
 from concurrent.futures import ThreadPoolExecutor
+from unittest import skipUnless
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
@@ -37,6 +38,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
     def persist(self, path=RAW, **kwargs):
         return persist_single_run(path, **kwargs)
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_raw_profile_persists_complete_672_record_run(self):
         run, result = self.persist()
         self.assertEqual(result, "CREATED")
@@ -56,6 +58,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
             RUN + timedelta(hours=47),
         )
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_raw_traceability_and_exact_bytes_hash(self):
         run, _ = self.persist()
         raw_bytes = (Path(settings.BASE_DIR) / run.raw_path).read_bytes()
@@ -63,11 +66,15 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(run.raw_sha256, hashlib.sha256(raw_bytes).hexdigest())
 
     def test_expected_raw_hash_is_checked_and_missing_raw_fails(self):
-        with self.assertRaisesRegex(ValueError, "RAW hash"):
-            self.persist(expected_raw_sha256="0" * 64)
+        # The hash assertion requires the protected evidence fixture. The
+        # missing-path contract remains testable in CI without that fixture.
+        if RAW.is_file():
+            with self.assertRaisesRegex(ValueError, "RAW hash"):
+                self.persist(expected_raw_sha256="0" * 64)
         with self.assertRaises(FileNotFoundError):
             self.persist(Path("raw/g74_p0/no_such_raw.json"))
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_model_run_and_record_identities_are_unique(self):
         run, _ = self.persist()
         with self.assertRaises(IntegrityError), transaction.atomic():
@@ -87,6 +94,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
                 value_status=record.value_status,
             )
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_missing_remains_a_row_and_check_constraint_rejects_bad_pair(self):
         run, _ = self.persist()
         missing = run.records.get(variable="precipitation", forecast_datetime=RUN)
@@ -106,6 +114,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
             with self.assertRaises(IntegrityError), transaction.atomic():
                 bad.save()
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_nan_and_positive_negative_infinity_are_rejected_before_save(self):
         run, _ = self.persist()
         for value in (float("nan"), float("inf"), float("-inf")):
@@ -224,6 +233,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(quantize_coordinate("1.2345685"), Decimal("1.234568"))
         self.assertEqual(quantize_coordinate(Decimal("-21.787400")), Decimal("-21.787400"))
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_same_content_is_idempotent_and_original_raw_remains_linked(self):
         first, status1 = self.persist()
         second, status2 = self.persist()
@@ -231,6 +241,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(first.pk, second.pk)
         self.assertEqual(second.raw_path, RAW.as_posix())
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_different_content_conflicts_and_same_raw_content_drift_is_reported(self):
         self.persist()
         raw = (Path(settings.BASE_DIR) / RAW).read_bytes()
@@ -242,6 +253,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
             with self.assertRaises(CanonicalizationError):
                 self.persist()
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_raw_bytes_can_differ_when_canonical_content_matches(self):
         first, _ = self.persist()
         changed_raw = (Path(settings.BASE_DIR) / RAW).read_bytes() + b"\n"
@@ -251,6 +263,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(first.pk, second.pk)
         self.assertEqual(second.raw_path, RAW.as_posix())
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_identity_integrity_error_is_reloaded_after_atomic_rollback(self):
         existing, _ = self.persist()
         with patch.object(ClimateModelRun.objects, "create", side_effect=IntegrityError("raced identity")):
@@ -258,6 +271,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(result, "IDEMPOTENT")
         self.assertEqual(found.pk, existing.pk)
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_concurrent_same_identity_creates_one_run_and_is_idempotent(self):
         barrier = Barrier(2)
         original_create = ClimateModelRun.objects.create
@@ -281,6 +295,7 @@ class G4ClimateSingleRunTests(TransactionTestCase):
         self.assertEqual(ClimateModelRun.objects.count(), 1)
         self.assertEqual(ClimateForecastRecord.objects.count(), 672)
 
+    @skipUnless(RAW.is_file(), "requires protected RAW evidence fixture; raw/ is intentionally not versioned")
     def test_unrelated_integrity_error_propagates_and_atomicity_rolls_back(self):
         with patch.object(ClimateForecastRecord.objects, "bulk_create", side_effect=IntegrityError("other")):
             with self.assertRaises(IntegrityError):
