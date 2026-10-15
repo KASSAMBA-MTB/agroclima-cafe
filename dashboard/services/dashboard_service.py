@@ -38,6 +38,7 @@ from clima.models import (
 )
 from clima.services.weather_service import WeatherService
 from clima.services.hail_meteorological_input_service import HailMeteorologicalInputService
+from core.intelligence.hail_project_context_contract import HailProjectContextContract
 from clima.services.history_service import HistoryService
 from municipios.models import Municipio
 
@@ -1410,12 +1411,8 @@ class DashboardService:
     @staticmethod
     def _compose_hail_assessments(map_points):
         """
-        Publica o contexto global de granizo a partir das avaliações municipais
-        já produzidas pela única execução de Inteligência.
-
-        Esta coleção representa avaliação meteorológica, não ocorrência
-        observada. Eventos factuais continuam sob responsabilidade de
-        EventsService e exigem dado factual persistido.
+        Publica o contrato global a partir das avaliações municipais já
+        produzidas pela execução única de Inteligência.
         """
         assessments = []
 
@@ -1434,18 +1431,13 @@ class DashboardService:
             if not isinstance(hail, dict):
                 continue
 
-            assessment = dict(hail)
-            assessment["municipio_id"] = assessment.get(
-                "municipio_id",
-                point.get("id", point.get("municipio_id")),
+            assessments.append(
+                HailProjectContextContract.from_municipal_result(
+                    hail=hail,
+                    municipio_id=point.get("id", point.get("municipio_id")),
+                    municipio_nome=point.get("nome", point.get("municipio_nome")),
+                ).as_dict()
             )
-            assessment["municipio_nome"] = assessment.get(
-                "municipio_nome",
-                point.get("nome", point.get("municipio_nome")),
-            )
-            assessment["context_type"] = "meteorological_assessment"
-            assessment["is_factual_event"] = False
-            assessments.append(assessment)
 
         return assessments
 
