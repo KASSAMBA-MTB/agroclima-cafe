@@ -265,7 +265,19 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                     "valid_to": "2026-10-15T15:00",
                     "missing_variables": ["cape", "wind_speed_925hPa"],
                     "data_quality": {"required_variables_complete": False},
-                    "derived": {"shear_925_500_ms": 13.0},
+                    "derived": {"shear_925_500_ms": 13.0, "cape_shear": 26000.0},
+                    "municipal_result": {
+                        "drivers": [
+                            {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+                            {"variable": "shear_925_500", "observed_value": 13.0, "unit": "m/s"},
+                            {"variable": "cape_shear", "observed_value": 26000.0, "unit": "J/kg*m/s"},
+                        ],
+                        "complementary_values": {
+                            "wet_bulb_temperature_2m": 12.5,
+                            "temperature_850hPa": 8.0,
+                            "relative_humidity_850hPa": 75.0,
+                        },
+                    },
                     "is_factual_event": False,
                     "classification_status": "NOT_CLASSIFIED",
                 }],
