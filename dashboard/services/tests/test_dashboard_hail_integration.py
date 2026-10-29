@@ -167,6 +167,57 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIn("shear_925_500_ms", result["derived"])
         self.assertIn("cape_shear", result["derived"])
 
+    @patch("dashboard.services.dashboard_service.HailMeteorologicalInputService")
+    def test_batch_input_failure_retries_each_municipality_independently(self, service_class):
+        valid_input = {
+            "series": {
+                "cape": 1200.0,
+                "wind_speed_925hPa": 12.0,
+                "wind_direction_925hPa": 270.0,
+                "wind_speed_500hPa": 25.0,
+                "wind_direction_500hPa": 240.0,
+            },
+            "valid_from": "2026-10-29T12:00",
+            "valid_to": "2026-10-29T12:00",
+            "provenance": {"source": "open-meteo-forecast-api"},
+        }
+        service_class.return_value.fetch_for_points.side_effect = [
+            RuntimeError("falha simulada na aquisição em lote"),
+            {17: valid_input},
+        ]
+
+        risk_service = Mock()
+        risk_service.evaluate_frost.return_value = {}
+        risk_service.last_result = {
+            "frost": {},
+            "hail": {},
+            "rule_results": [],
+            "insights": [],
+            "recommendations": [],
+            "alerts": [],
+            "explainability": {},
+        }
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "latitude": -21.0,
+            "longitude": -46.0,
+        }]
+
+        result = service._attach_frost_intelligence(points)
+
+        self.assertEqual(
+            result[0]["hail_meteorological_input"]["series"]["cape"],
+            1200.0,
+        )
+        self.assertEqual(
+            service_class.return_value.fetch_for_points.call_count,
+            2,
+        )
+
     def test_dashboard_exposes_hail_from_the_single_intelligence_result(self):
         hail = {
             "id": "HAIL_POTENTIAL_001",
