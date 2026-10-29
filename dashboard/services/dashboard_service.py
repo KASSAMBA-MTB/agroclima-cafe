@@ -1327,47 +1327,55 @@ class DashboardService:
             if not isinstance(rule_results, list):
                 rule_results = []
 
-            # Contrato de granizo: preferir o resultado específico da mesma
-            # execução; se estiver ausente ou estruturalmente incompleto,
-            # recuperar a regra canônica pelo ID na coleção já produzida.
-            # Isso não reexecuta a regra nem calcula indicadores no dashboard.
+            # Contrato de granizo: comparar todos os resultados da mesma
+            # execução e escolher o payload com maior completude estrutural.
+            # derived + drivers não bastam se complementary_values se perdeu.
+            # Nenhuma regra é reexecutada e nenhum indicador é recalculado aqui.
             hail = intelligence.get("hail", {})
-            hail_is_complete = (
-                isinstance(hail, dict)
-                and isinstance(hail.get("derived"), dict)
-                and bool(hail.get("derived"))
-                and isinstance(hail.get("drivers"), (list, tuple))
-            )
-            if not hail_is_complete:
-                hail_candidates = [
-                    result for result in rule_results
-                    if isinstance(result, dict)
-                    and (
-                        result.get("rule_id") == "HAIL_POTENTIAL_001"
-                        or result.get("id") == "HAIL_POTENTIAL_001"
-                    )
-                ]
-                if hail_candidates:
-                    candidate = max(
-                        hail_candidates,
-                        key=lambda result: (
-                            bool(result.get("derived")),
-                            bool(result.get("drivers")),
-                            result.get("assessment_status") == "ASSESSED",
-                        ),
-                    )
-                    if (
-                        not isinstance(hail, dict)
-                        or (
-                            not hail.get("derived")
-                            and candidate.get("derived")
+            if not isinstance(hail, dict):
+                hail = {}
+
+            hail_candidates = [
+                result for result in rule_results
+                if isinstance(result, dict)
+                and (
+                    result.get("rule_id") == "HAIL_POTENTIAL_001"
+                    or result.get("id") == "HAIL_POTENTIAL_001"
+                )
+            ]
+
+            def _hail_completeness(result):
+                if not isinstance(result, dict):
+                    return (0, 0, 0, 0, 0, 0)
+                derived = result.get("derived")
+                drivers = result.get("drivers")
+                complementary = result.get("complementary_values")
+                if not isinstance(complementary, dict):
+                    complementary = (
+                        (result.get("municipal_result") or {}).get(
+                            "complementary_values"
                         )
-                        or (
-                            not hail.get("drivers")
-                            and candidate.get("drivers")
-                        )
-                    ):
-                        hail = candidate
+                        if isinstance(result.get("municipal_result"), dict)
+                        else {}
+                    )
+                provenance = result.get("provenance")
+                data_quality = result.get("data_quality")
+                return (
+                    int(isinstance(derived, dict) and bool(derived)),
+                    int(isinstance(drivers, (list, tuple)) and bool(drivers)),
+                    int(isinstance(complementary, dict) and bool(complementary)),
+                    int(result.get("assessment_status") == "ASSESSED"),
+                    int(isinstance(provenance, dict) and bool(provenance)),
+                    int(isinstance(data_quality, dict) and bool(data_quality)),
+                )
+
+            if hail_candidates:
+                best_candidate = max(
+                    [hail, *hail_candidates],
+                    key=_hail_completeness,
+                )
+                if _hail_completeness(best_candidate) > _hail_completeness(hail):
+                    hail = best_candidate
 
             if not isinstance(hail, dict):
                 hail = {}
@@ -1515,15 +1523,29 @@ class DashboardService:
             if not candidates:
                 continue
 
-            hail = max(
-                candidates,
-                key=lambda candidate: (
-                    bool(candidate.get("derived")),
-                    bool(candidate.get("drivers")),
-                    candidate.get("assessment_status") == "ASSESSED",
-                    bool(candidate.get("provenance")),
-                ),
-            )
+            def _project_hail_completeness(candidate):
+                derived = candidate.get("derived")
+                drivers = candidate.get("drivers")
+                complementary = candidate.get("complementary_values")
+                if not isinstance(complementary, dict):
+                    municipal_result = candidate.get("municipal_result")
+                    complementary = (
+                        municipal_result.get("complementary_values", {})
+                        if isinstance(municipal_result, dict)
+                        else {}
+                    )
+                provenance = candidate.get("provenance")
+                data_quality = candidate.get("data_quality")
+                return (
+                    int(isinstance(derived, dict) and bool(derived)),
+                    int(isinstance(drivers, (list, tuple)) and bool(drivers)),
+                    int(isinstance(complementary, dict) and bool(complementary)),
+                    int(candidate.get("assessment_status") == "ASSESSED"),
+                    int(isinstance(provenance, dict) and bool(provenance)),
+                    int(isinstance(data_quality, dict) and bool(data_quality)),
+                )
+
+            hail = max(candidates, key=_project_hail_completeness)
 
             assessments.append(
                 HailProjectContextContract.from_municipal_result(
