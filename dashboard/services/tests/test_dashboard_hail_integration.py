@@ -48,6 +48,42 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         ])
 
         self.assertEqual(result, [])
+ 
+    def test_project_context_recovers_complete_hail_result_when_primary_slot_is_empty(self):
+        complete_hail = {
+            "id": "HAIL_POTENTIAL_001",
+            "rule_id": "HAIL_POTENTIAL_001",
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+            "derived": {
+                "shear_925_500_ms": 13.25,
+                "cape_shear": 26500.0,
+            },
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+            ],
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        result = DashboardService._compose_hail_assessments([{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": {}},
+            "hail_potential_evaluation": complete_hail,
+            "rule_results": [complete_hail],
+        }])
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["assessment_status"], "ASSESSED")
+        self.assertEqual(result[0]["derived"]["shear_925_500_ms"], 13.25)
+        self.assertEqual(result[0]["derived"]["cape_shear"], 26500.0)
+        self.assertEqual(
+            result[0]["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
 
     def test_missing_required_inputs_remain_unclassified(self):
         result = HailPotentialRule().evaluate({
