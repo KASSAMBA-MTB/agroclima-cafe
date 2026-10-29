@@ -85,6 +85,41 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             75.0,
         )
 
+    def test_recovery_prefers_hail_result_with_complementary_values(self):
+        partial_hail = {
+            "id": "HAIL_POTENTIAL_001",
+            "rule_id": "HAIL_POTENTIAL_001",
+            "assessment_status": "ASSESSED",
+            "derived": {"shear_925_500_ms": 13.25, "cape_shear": 26500.0},
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+            ],
+            "complementary_values": {},
+        }
+        complete_hail = {
+            **partial_hail,
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": partial_hail},
+            "hail_potential_evaluation": complete_hail,
+            "rule_results": [complete_hail],
+        }]
+
+        result = DashboardService._compose_hail_assessments(points)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(
+            result[0]["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
+
     def test_missing_required_inputs_remain_unclassified(self):
         result = HailPotentialRule().evaluate({
             "municipio_id": 17,
