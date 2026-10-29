@@ -1165,9 +1165,15 @@ class DashboardService:
                 point.get("historical_indicators") or {}
             )
 
-            hail_input = hail_inputs_by_id.get(
-                point.get("municipio_id") or point.get("id")
-            )
+            # HailMeteorologicalInputService indexa a saída pelo id
+            # original de cada map_point. Esse é o identificador primário
+            # do contrato de MapService; municipio_id é apenas alias de
+            # compatibilidade e não deve sombrear a chave canônica.
+            point_id = point.get("id")
+            municipio_id = point.get("municipio_id")
+            hail_input = hail_inputs_by_id.get(point_id)
+            if hail_input is None and municipio_id != point_id:
+                hail_input = hail_inputs_by_id.get(municipio_id)
             if not isinstance(hail_input, dict):
                 hail_input = {}
 
