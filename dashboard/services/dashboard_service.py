@@ -1174,6 +1174,33 @@ class DashboardService:
             hail_input = hail_inputs_by_id.get(point_id)
             if hail_input is None and municipio_id != point_id:
                 hail_input = hail_inputs_by_id.get(municipio_id)
+
+            # Recuperação isolada: uma resposta em lote incompleta ou inválida
+            # não pode zerar as entradas de todos os municípios. Reconsulta
+            # somente o ponto sem série utilizável; a regra de granizo continua
+            # sendo executada uma única vez pelo IntelligenceEngine.
+            if (
+                not isinstance(hail_input, dict)
+                or not isinstance(hail_input.get("series"), dict)
+                or not hail_input.get("series")
+            ):
+                try:
+                    individual_inputs = HailMeteorologicalInputService().fetch_for_points(
+                        [point]
+                    )
+                    individual_input = individual_inputs.get(point_id)
+                    if individual_input is None and municipio_id != point_id:
+                        individual_input = individual_inputs.get(municipio_id)
+                    if isinstance(individual_input, dict) and individual_input.get("series"):
+                        hail_input = individual_input
+                except Exception:
+                    logger.exception(
+                        "Falha na recuperação meteorológica individual de granizo "
+                        "para município id=%s nome=%s.",
+                        point_id,
+                        point.get("nome") or point.get("municipio_nome"),
+                    )
+
             if not isinstance(hail_input, dict):
                 hail_input = {}
 
