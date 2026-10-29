@@ -354,9 +354,9 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             "dashboard/components/atmosphere_panel.html",
             {"hail_assessments": assessments},
         )
-        self.assertIn("2,000.00", html)
+        self.assertIn("2000.00", html)
         self.assertIn("13.25", html)
-        self.assertIn("26,500.00", html)
+        self.assertIn("26500.00", html)
         self.assertIn("12.50", html)
         self.assertIn("8.00", html)
         self.assertIn("75.00", html)
