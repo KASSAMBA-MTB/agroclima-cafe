@@ -354,12 +354,14 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             "dashboard/components/atmosphere_panel.html",
             {"hail_assessments": assessments},
         )
-        self.assertIn("2000.00", html)
-        self.assertIn("13.25", html)
-        self.assertIn("26500.00", html)
-        self.assertIn("12.50", html)
-        self.assertIn("8.00", html)
-        self.assertIn("75.00", html)
+        # O Django pode formatar decimais com vírgula ou ponto conforme a localização.
+        normalized_html = html.replace(",", ".")
+        self.assertIn("2000.00", normalized_html)
+        self.assertIn("13.25", normalized_html)
+        self.assertIn("26500.00", normalized_html)
+        self.assertIn("12.50", normalized_html)
+        self.assertIn("8.00", normalized_html)
+        self.assertIn("75.00", normalized_html)
         self.assertIn("Classificação de potencial: não homologada.", html)
         self.assertNotIn("<details", html)
 
