@@ -299,6 +299,70 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)
 
+    def test_real_project_contract_renders_derived_and_complementary_values(self):
+        """Protege o fluxo avaliação municipal -> contrato -> contexto -> template."""
+        hail = {
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+            "method_version": "MP-01.11.2",
+            "source": "open-meteo-forecast-api",
+            "model": "ecmwf_ifs025",
+            "source_run": "run-integration-test",
+            "valid_from": "2026-10-29T12:00",
+            "valid_to": "2026-10-29T15:00",
+            "missing_variables": [],
+            "data_quality": {"required_variables_complete": True},
+            "derived": {
+                "shear_925_500_ms": 13.25,
+                "cape_shear": 26500.0,
+            },
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+                {"variable": "shear_925_500", "observed_value": 13.25, "unit": "m/s"},
+                {"variable": "cape_shear", "observed_value": 26500.0, "unit": "J/kg*m/s"},
+            ],
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": hail},
+        }]
+
+        assessments = DashboardService._compose_hail_assessments(points)
+        self.assertEqual(len(assessments), 1)
+        assessment = assessments[0]
+
+        self.assertEqual(assessment["schema"], "hail_project_context.v1")
+        self.assertEqual(assessment["derived"]["shear_925_500_ms"], 13.25)
+        self.assertEqual(
+            assessment["municipal_result"]["drivers"][0]["observed_value"],
+            2000.0,
+        )
+        self.assertEqual(
+            assessment["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
+        self.assertFalse(assessment["is_factual_event"])
+        self.assertEqual(assessment["classification_status"], "NOT_CLASSIFIED")
+
+        html = render_to_string(
+            "dashboard/components/atmosphere_panel.html",
+            {"hail_assessments": assessments},
+        )
+        self.assertIn("2,000.00", html)
+        self.assertIn("13.25", html)
+        self.assertIn("26,500.00", html)
+        self.assertIn("12.50", html)
+        self.assertIn("8.00", html)
+        self.assertIn("75.00", html)
+        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertNotIn("<details", html)
+
     def test_dashboard_facade_preserves_global_hail_context(self):
         from dashboard.services.dashboard_facade import DashboardFacade
 
