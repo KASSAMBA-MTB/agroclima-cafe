@@ -1498,8 +1498,19 @@ class DashboardService:
             # Não aceitar um dicionário vazio/incompleto como autoridade
             # quando a mesma avaliação já contém o resultado canônico completo.
             candidates = [
-                candidate for candidate in [hail, *fallback_candidates]
+                candidate
+                for candidate in [hail, *fallback_candidates]
                 if isinstance(candidate, dict)
+                and any(
+                    key in candidate
+                    for key in (
+                        "assessment_status",
+                        "rule_id",
+                        "id",
+                        "derived",
+                        "drivers",
+                    )
+                )
             ]
             if not candidates:
                 continue
