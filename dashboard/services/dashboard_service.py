@@ -1481,11 +1481,38 @@ class DashboardService:
                 intelligence = {}
 
             hail = intelligence.get("hail")
-            if not isinstance(hail, dict):
-                hail = point.get("hail_potential_evaluation")
+            fallback_candidates = [
+                point.get("hail_potential_evaluation"),
+            ]
+            rule_results = point.get("rule_results", [])
+            if isinstance(rule_results, list):
+                fallback_candidates.extend(
+                    result for result in rule_results
+                    if isinstance(result, dict)
+                    and (
+                        result.get("rule_id") == "HAIL_POTENTIAL_001"
+                        or result.get("id") == "HAIL_POTENTIAL_001"
+                    )
+                )
 
-            if not isinstance(hail, dict):
+            # Não aceitar um dicionário vazio/incompleto como autoridade
+            # quando a mesma avaliação já contém o resultado canônico completo.
+            candidates = [
+                candidate for candidate in [hail, *fallback_candidates]
+                if isinstance(candidate, dict)
+            ]
+            if not candidates:
                 continue
+
+            hail = max(
+                candidates,
+                key=lambda candidate: (
+                    bool(candidate.get("derived")),
+                    bool(candidate.get("drivers")),
+                    candidate.get("assessment_status") == "ASSESSED",
+                    bool(candidate.get("provenance")),
+                ),
+            )
 
             assessments.append(
                 HailProjectContextContract.from_municipal_result(
