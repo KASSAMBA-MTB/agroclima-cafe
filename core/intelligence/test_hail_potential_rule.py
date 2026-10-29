@@ -66,6 +66,12 @@ class HailPotentialRuleTests(unittest.TestCase):
         result = self.rule.evaluate(self.context)
 
         self.assertIsNone(result["potential_level"])
+        self.assertEqual(
+            result["experimental_evaluation"]["evaluation_status"],
+            "EXPERIMENTAL_NOT_HOMOLOGATED",
+        )
+        self.assertIsNone(result["experimental_evaluation"]["potential_level"])
+        self.assertFalse(result["experimental_evaluation"]["operational"])
 
     def test_missing_required_data(self):
         context = dict(self.context)
@@ -79,6 +85,10 @@ class HailPotentialRuleTests(unittest.TestCase):
         )
         self.assertIsNone(result["potential_level"])
         self.assertIn("cape", result["missing_variables"])
+        self.assertEqual(
+            result["experimental_evaluation"]["classification_status"],
+            "INSUFFICIENT_DATA",
+        )
 
     def test_preserves_provenance(self):
         result = self.rule.evaluate(self.context)

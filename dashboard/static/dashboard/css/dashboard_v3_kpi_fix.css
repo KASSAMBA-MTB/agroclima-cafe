@@ -1,0 +1,227 @@
+/*
+ * AgroClima Café — correção visual isolada dos cinco KPIs.
+ * Carregado depois de dashboard_v3.css pelo bloco extra_css.
+ * Não altera cálculos, dados, serviços ou contratos do backend.
+ */
+
+.dashboard-v3,
+.dashboard-v3 * {
+    box-sizing: border-box;
+}
+
+.dashboard-v3 .dashboard-overview {
+    width: 100%;
+    min-width: 0;
+}
+
+.dashboard-v3 .dashboard-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 18px 0 0 !important;
+}
+
+.dashboard-v3 .dashboard-kpis > .kpi-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    float: none !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 176px !important;
+    margin: 0 !important;
+    padding: 15px 14px 13px !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    margin-bottom: 13px !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-icon {
+    flex: 0 0 34px !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    font-size: 17px !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-category {
+    min-width: 0 !important;
+    max-width: calc(100% - 40px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    font-weight: 700 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-body {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-title {
+    display: block !important;
+    min-height: 2.5em !important;
+    margin: 0 0 5px !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+    font-weight: 600 !important;
+    overflow-wrap: anywhere !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-value {
+    display: flex !important;
+    align-items: baseline !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    margin: 0 0 7px !important;
+    font-size: clamp(21px, 1.8vw, 29px) !important;
+    line-height: 1.12 !important;
+    font-weight: 700 !important;
+    letter-spacing: -.03em !important;
+    overflow-wrap: anywhere !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-unit {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-description {
+    margin: 0 !important;
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+    color: #65716a !important;
+    overflow-wrap: anywhere !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-footer {
+    margin-top: 12px !important;
+    padding-top: 9px !important;
+    border-top: 1px solid rgba(80, 95, 85, .12) !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-update {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-update i {
+    flex: 0 0 auto !important;
+    margin-top: 1px !important;
+    font-size: 11px !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-update small {
+    display: block !important;
+    min-width: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere !important;
+}
+
+.dashboard-v3 .kpi-card .kpi-icon.hail {
+    color: #7856a8 !important;
+    background: #f1ebfa !important;
+}
+
+.dashboard-v3 .hail-potential-card {
+    border-color: #e2d9f0 !important;
+}
+
+/* Keep KPI body text from shrinking into its description or footer. */
+.dashboard-v3 .kpi-card .kpi-body {
+    flex: 0 0 auto !important;
+}
+
+.dashboard-v3 .atmosphere-assessments {
+    display: grid;
+    gap: 12px;
+}
+
+.dashboard-v3 .atmosphere-assessments > .atmosphere-assessment {
+    margin: 0;
+}
+
+.dashboard-v3 .hail-potential-card .kpi-unavailable {
+    color: #7b8490 !important;
+    font-size: .9em !important;
+    letter-spacing: .02em !important;
+}
+
+/* Larguras intermediárias: grade adaptável, sem cartões estreitos demais. */
+@media (max-width: 1199px) {
+    .dashboard-v3 .dashboard-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 850px) {
+    .dashboard-v3 .dashboard-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    .dashboard-v3 .dashboard-kpis > .kpi-card {
+        min-height: 166px !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .dashboard-v3 .dashboard-kpis {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .dashboard-v3 .dashboard-kpis > .kpi-card {
+        min-height: 150px !important;
+        padding: 15px !important;
+    }
+
+    .dashboard-v3 .kpi-card .kpi-title {
+        min-height: 0 !important;
+    }
+}
+
+/* Fit every KPI body, footer and card padding inside the same row. */
+.dashboard-v3 .dashboard-kpis > .kpi-card {
+    min-height: 280px !important;
+}
+
+@media (max-width: 1199px) {
+    .dashboard-v3 .dashboard-kpis > .kpi-card {
+        min-height: 260px !important;
+    }
+}
+
+@media (max-width: 850px) {
+    .dashboard-v3 .dashboard-kpis > .kpi-card {
+        min-height: 250px !important;
+    }
+}

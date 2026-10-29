@@ -48,7 +48,22 @@ class HailPotentialService:
         missing = tuple(
             variable
             for variable in REQUIRED_VARIABLES
-            if not self._has_usable_value(series.get(variable))
+            if not self._has_usable_value(series.get(variable), variable)
+        )
+        invalid_variables = tuple(
+            variable for variable in REQUIRED_VARIABLES
+            if series.get(variable) is not None
+            and not self._has_usable_value(series.get(variable), variable)
+        )
+        complementary_variables = (
+            "wet_bulb_temperature_2m",
+            "temperature_850hPa",
+            "relative_humidity_850hPa",
+        )
+        invalid_complementary_variables = tuple(
+            variable for variable in complementary_variables
+            if series.get(variable) is not None
+            and not self._has_usable_value(series.get(variable), variable)
         )
 
         provenance = self._provenance(context)
@@ -69,6 +84,10 @@ class HailPotentialService:
                 data_quality={
                     "required_variables_complete": False,
                     "missing_variables": list(missing),
+                    "invalid_variables": list(invalid_variables),
+                    "invalid_complementary_variables": list(
+                        invalid_complementary_variables
+                    ),
                     "available_required_variables": [
                         v for v in REQUIRED_VARIABLES if v not in missing
                     ],
@@ -130,6 +149,10 @@ class HailPotentialService:
             data_quality={
                 "required_variables_complete": True,
                 "missing_variables": [],
+                "invalid_variables": [],
+                "invalid_complementary_variables": list(
+                    invalid_complementary_variables
+                ),
                 "complementary_variables": {
                     variable: value is not None
                     for variable, value in self._complementary_values(series).items()
@@ -175,9 +198,18 @@ class HailPotentialService:
         return value
 
     @staticmethod
-    def _has_usable_value(value):
+    def _has_usable_value(value, variable=None):
         # Booleanos não são evidência meteorológica numérica.
-        return not isinstance(value, bool) and is_number(value)
+        if isinstance(value, bool) or not is_number(value):
+            return False
+        number = float(value)
+        if variable == "cape" or variable in {"wind_speed_925hPa", "wind_speed_500hPa"}:
+            return number >= 0
+        if variable in {"wind_direction_925hPa", "wind_direction_500hPa"}:
+            return 0 <= number <= 360
+        if variable == "relative_humidity_850hPa":
+            return 0 <= number <= 100
+        return True
 
     @staticmethod
     def _complementary_values(series):
@@ -189,7 +221,9 @@ class HailPotentialService:
         )
         return {
             variable: float(series[variable])
-            if HailPotentialService._has_usable_value(series.get(variable))
+            if HailPotentialService._has_usable_value(
+                series.get(variable), variable
+            )
             else None
             for variable in variables
         }

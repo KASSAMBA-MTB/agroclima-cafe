@@ -531,24 +531,57 @@ def save_staging(
 
 
 def check_previous_reports() -> dict:
-    p7 = sorted(
+    """Reconhece somente relat?rios com aprova??o efetiva dos gates."""
+    import json
+
+    p7_candidates = sorted(
         REPORT_DIR.glob("p7_contract_validation_*.json")
     )
-    p8 = sorted(
+    p8_candidates = sorted(
         REPORT_DIR.glob("p8_controlled_integration_*.json")
     )
 
+    valid_p7 = []
+    for report_path in p7_candidates:
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            decision = report.get("decision") or {}
+            if (
+                report.get("protocol") == "G7.4/P7"
+                and decision.get("classification") == "P7_CONTRATO_VALIDADO"
+            ):
+                valid_p7.append(report_path)
+        except (OSError, json.JSONDecodeError, AttributeError):
+            continue
+
+    valid_p8 = []
+    for report_path in p8_candidates:
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            if (
+                report.get("protocol") == "G7.4/P8"
+                and report.get("classification")
+                == "P8_INTEGRACAO_CONTROLADA_VALIDADA"
+            ):
+                valid_p8.append(report_path)
+        except (OSError, json.JSONDecodeError, AttributeError):
+            continue
+
     return {
-        "p7_report_present": bool(p7),
-        "p8_report_present": bool(p8),
+        "p7_report_present": bool(valid_p7),
+        "p8_report_present": bool(valid_p8),
         "latest_p7": (
-            str(p7[-1].relative_to(BASE_DIR))
-            if p7 else None
+            str(valid_p7[-1].relative_to(BASE_DIR))
+            if valid_p7 else None
         ),
         "latest_p8": (
-            str(p8[-1].relative_to(BASE_DIR))
-            if p8 else None
+            str(valid_p8[-1].relative_to(BASE_DIR))
+            if valid_p8 else None
         ),
+        "p7_approved_reports_found": len(valid_p7),
+        "p8_approved_reports_found": len(valid_p8),
+        "p7_recovery_reports_excluded": len(p7_candidates) - len(valid_p7),
+        "p8_recovery_reports_excluded": len(p8_candidates) - len(valid_p8),
     }
 
 

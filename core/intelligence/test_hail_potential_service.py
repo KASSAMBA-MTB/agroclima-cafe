@@ -12,6 +12,9 @@ from core.intelligence.hail_potential_contract import (
     ASSESSMENT_INSUFFICIENT,
 )
 from core.intelligence.hail_potential_service import HailPotentialService
+from core.intelligence.hail_potential_experimental_evaluator import (
+    HailPotentialExperimentalEvaluator,
+)
 
 
 class HailPotentialServiceTests(SimpleTestCase):
@@ -47,13 +50,54 @@ class HailPotentialServiceTests(SimpleTestCase):
         self.assertEqual(result.complementary_values["temperature_850hPa"], 14.7)
         self.assertEqual(result.complementary_values["relative_humidity_850hPa"], 77.0)
 
+    def test_service_contract_flows_through_experimental_evaluator(self):
+        canonical = self.service.evaluate(self.context()).as_dict()
+
+        result = HailPotentialExperimentalEvaluator().evaluate(canonical)
+
+        self.assertEqual(canonical["assessment_status"], ASSESSMENT_ASSESSED)
+        cape_driver = next(
+            driver for driver in canonical["drivers"]
+            if driver["variable"] == "cape"
+        )
+        self.assertEqual(cape_driver["observed_value"], self.context()["series"]["cape"])
+        self.assertEqual(
+            result["classification_status"],
+            "NOT_CLASSIFIED_NO_HOMOLOGATED_THRESHOLDS",
+        )
+        self.assertTrue(result["diagnostics_complete"])
+        self.assertIsNone(result["potential_level"])
+
+    def test_incomplete_service_contract_flows_as_insufficient(self):
+        context = self.context()
+        del context["series"]["wind_speed_500hPa"]
+        canonical = self.service.evaluate(context).as_dict()
+
+        result = HailPotentialExperimentalEvaluator().evaluate(canonical)
+
+        self.assertEqual(canonical["assessment_status"], ASSESSMENT_INSUFFICIENT)
+        self.assertEqual(result["classification_status"], "INSUFFICIENT_DATA")
+        self.assertIn("wind_speed_500hPa", result["insufficient_variables"])
+        self.assertEqual(
+            set(result["axes"]),
+            {
+                "instability",
+                "organization_shear",
+                "combined_cape_shear",
+                "thermodynamics",
+            },
+        )
+        self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+        self.assertFalse(result["diagnostics_complete"])
+        self.assertIsNone(result["potential_level"])
+
     def test_calculates_925_500_shear(self):
         result = self.service.evaluate(self.context())
 
         shear = result.derived["shear_925_500_ms"]
 
         self.assertGreater(shear, 0)
-        self.assertAlmostEqual(shear, 25.327, places=2)
+        self.assertAlmostEqual(shear, 25.326609464494872, places=10)
 
     def test_calculates_cape_shear(self):
         result = self.service.evaluate(self.context())
@@ -166,4 +210,62 @@ class HailPotentialServiceTests(SimpleTestCase):
             payload["data_quality"]["complementary_variables"][
                 "temperature_850hPa"
             ]
+        )
+
+    def test_rejects_required_values_outside_established_domains(self):
+        invalid_cases = (
+            ("cape", -0.1),
+            ("wind_speed_925hPa", -0.1),
+            ("wind_speed_500hPa", -0.1),
+            ("wind_direction_925hPa", -0.1),
+            ("wind_direction_500hPa", 360.1),
+            ("cape", True),
+            ("cape", float("nan")),
+            ("cape", float("inf")),
+        )
+        for variable, value in invalid_cases:
+            with self.subTest(variable=variable, value=value):
+                context = self.context()
+                context["series"][variable] = value
+                result = self.service.evaluate(context).as_dict()
+                self.assertEqual(result["assessment_status"], ASSESSMENT_INSUFFICIENT)
+                self.assertIsNone(result["potential_level"])
+                self.assertIn(variable, result["missing_variables"])
+                self.assertIn(variable, result["data_quality"]["invalid_variables"])
+                self.assertEqual(result["derived"], {})
+
+    def test_direction_360_is_valid_and_equivalent_to_zero(self):
+        zero_context = self.context()
+        zero_context["series"].update({
+            "wind_speed_925hPa": 0,
+            "wind_direction_925hPa": 0,
+            "wind_speed_500hPa": 10,
+            "wind_direction_500hPa": 0,
+        })
+        wrap_context = self.context()
+        wrap_context["series"].update({
+            "wind_speed_925hPa": 0,
+            "wind_direction_925hPa": 360,
+            "wind_speed_500hPa": 10,
+            "wind_direction_500hPa": 360,
+        })
+        zero_result = self.service.evaluate(zero_context)
+        wrap_result = self.service.evaluate(wrap_context)
+        self.assertEqual(zero_result.assessment_status, ASSESSMENT_ASSESSED)
+        self.assertEqual(wrap_result.assessment_status, ASSESSMENT_ASSESSED)
+        self.assertAlmostEqual(
+            wrap_result.derived["shear_925_500_ms"],
+            zero_result.derived["shear_925_500_ms"],
+            places=12,
+        )
+
+    def test_invalid_relative_humidity_is_unavailable_not_zero(self):
+        context = self.context()
+        context["series"]["relative_humidity_850hPa"] = 100.1
+        result = self.service.evaluate(context).as_dict()
+        self.assertEqual(result["assessment_status"], ASSESSMENT_ASSESSED)
+        self.assertIsNone(result["complementary_values"]["relative_humidity_850hPa"])
+        self.assertIn(
+            "relative_humidity_850hPa",
+            result["data_quality"]["invalid_complementary_variables"],
         )

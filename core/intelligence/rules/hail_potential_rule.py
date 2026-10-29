@@ -30,6 +30,9 @@ Versão: 1.0
 
 from core.intelligence.base_rule import BaseRule
 from core.intelligence.hail_potential_service import HailPotentialService
+from core.intelligence.hail_potential_experimental_evaluator import (
+    HailPotentialExperimentalEvaluator,
+)
 
 
 class HailPotentialRule(BaseRule):
@@ -52,6 +55,7 @@ class HailPotentialRule(BaseRule):
 
     def __init__(self, service=None):
         self.service = service or HailPotentialService()
+        self.experimental_evaluator = HailPotentialExperimentalEvaluator()
 
     def evaluate(self, context):
         """
@@ -71,6 +75,12 @@ class HailPotentialRule(BaseRule):
 
         if not isinstance(result, dict):
             return None
+
+        # MP-01.12 adds diagnostics only; the canonical service remains the
+        # sole calculator and no operational classification is introduced.
+        result["experimental_evaluation"] = self.experimental_evaluator.evaluate(
+            result
+        )
 
         # ------------------------------------------------------
         # Identidade da regra

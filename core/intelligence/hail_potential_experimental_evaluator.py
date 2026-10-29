@@ -151,6 +151,74 @@ class HailPotentialExperimentalEvaluator:
         if set(derived) != _REQUIRED_DERIVED_FIELDS:
             return self._contract_inconsistent(source)
 
+        expected_metadata = {
+            "cape": {"unit": "J/kg", "role": "instability"},
+            "shear_925_500": {
+                "unit": "m/s",
+                "role": "vertical_wind_shear",
+            },
+            "cape_shear": {
+                "unit": "J/kg*m/s",
+                "role": "combined_environment",
+            },
+        }
+
+        for variable, expected in expected_metadata.items():
+            actual = driver_values[variable]
+            if (
+                actual["unit"] != expected["unit"]
+                or actual["role"] != expected["role"]
+            ):
+                return self._contract_inconsistent(source)
+
+        cape_driver = driver_values["cape"]["value"]
+        shear_driver = driver_values["shear_925_500"]["value"]
+        cape_shear_driver = driver_values["cape_shear"]["value"]
+        shear_derived = derived["shear_925_500_ms"]
+        cape_shear_derived = derived["cape_shear"]
+
+        cape_valid = self._is_numeric(cape_driver) and cape_driver >= 0
+        shear_valid = self._is_numeric(shear_driver) and shear_driver >= 0
+        shear_derived_valid = (
+            self._is_numeric(shear_derived) and shear_derived >= 0
+        )
+        cape_shear_valid = self._is_numeric(cape_shear_driver)
+        cape_shear_derived_valid = self._is_numeric(cape_shear_derived)
+
+        # The producer computes and stores each paired float without rounding.
+        # Thus delta_a = delta_b = 0 in the specified propagation bound
+        # (|a|*delta_b + |b|*delta_a + delta_a*delta_b), and no additional
+        # product rounding is applied: the justified tolerance is zero,
+        # including when the expected product is zero.
+        if (
+            shear_valid
+            and shear_derived_valid
+            and shear_driver != shear_derived
+        ) or (
+            cape_shear_valid
+            and cape_shear_derived_valid
+            and cape_shear_driver != cape_shear_derived
+        ):
+            return self._contract_inconsistent(
+                source,
+                reason="CANONICAL_DRIVER_DERIVED_MISMATCH",
+            )
+
+        # CAPE-SHEAR is compared independently in both representations. The
+        # derived shear value does not replace the canonical shear driver.
+        if cape_valid and shear_valid:
+            expected_product = cape_driver * shear_driver
+            if (
+                cape_shear_valid
+                and cape_shear_driver != expected_product
+            ) or (
+                cape_shear_derived_valid
+                and cape_shear_derived != expected_product
+            ):
+                return self._contract_inconsistent(
+                    source,
+                    reason="CANONICAL_CAPE_SHEAR_PRODUCT_MISMATCH",
+                )
         complementary = data_quality.get("complementary_variables")
         complementary_values = source.get("complementary_values")
         if not isinstance(complementary, dict):
@@ -163,19 +231,44 @@ class HailPotentialExperimentalEvaluator:
             return self._contract_inconsistent(source)
         if set(complementary_values) != _REQUIRED_COMPLEMENTARY_FIELDS:
             return self._contract_inconsistent(source)
-        if not all(value is None or self._is_numeric(value) for value in complementary_values.values()):
-            return self._contract_inconsistent(source)
-        if any(complementary[name] != (complementary_values[name] is not None) for name in _REQUIRED_COMPLEMENTARY_FIELDS):
+        complementary_valid = {
+            name: self._is_numeric(complementary_values[name])
+            and (
+                name != "relative_humidity_850hPa"
+                or 0 <= complementary_values[name] <= 100
+            )
+            for name in _REQUIRED_COMPLEMENTARY_FIELDS
+        }
+        if any(
+            complementary[name] is False and complementary_valid[name]
+            for name in _REQUIRED_COMPLEMENTARY_FIELDS
+        ):
             return self._contract_inconsistent(source)
 
         cape_evidence = driver_values["cape"]
-        cape_available = self._is_numeric(cape_evidence.get("value"))
-
-        shear_value = derived["shear_925_500_ms"]
-        shear_available = self._is_numeric(shear_value)
-
-        cape_shear_value = derived["cape_shear"]
-        cape_shear_available = self._is_numeric(cape_shear_value)
+        cape_available = cape_valid
+        shear_available = shear_valid
+        cape_shear_available = cape_shear_valid
+        shear_value = shear_driver
+        cape_shear_value = cape_shear_driver
+        effective_complementary = {
+            name: complementary[name] and complementary_valid[name]
+            for name in _REQUIRED_COMPLEMENTARY_FIELDS
+        }
+        insufficient_variables = [
+            name for name, valid in (
+                ("cape", cape_valid),
+                ("shear_925_500", shear_valid),
+                ("cape_shear", cape_shear_valid),
+            ) if not valid
+        ]
+        insufficient_variables.extend(
+            name for name in (
+                "wet_bulb_temperature_2m",
+                "temperature_850hPa",
+                "relative_humidity_850hPa",
+            ) if not effective_complementary[name]
+        )
 
         axes = {
             "instability": {
@@ -219,23 +312,23 @@ class HailPotentialExperimentalEvaluator:
             "thermodynamics": {
                 "status": (
                     "AVAILABLE"
-                    if all(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    if all(effective_complementary.values())
                     else "PARTIAL"
-                    if any(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    if any(effective_complementary.values())
                     else "UNAVAILABLE"
                 ),
-                "availability": deepcopy(complementary),
+                "availability": effective_complementary,
                 "values": {
                     name: {
                         "value": complementary_values[name],
                         "unit": "°C" if name in {"wet_bulb_temperature_2m", "temperature_850hPa"} else "%",
                     }
                     for name in sorted(_REQUIRED_COMPLEMENTARY_FIELDS)
-                    if self._is_numeric(complementary_values[name])
+                    if effective_complementary[name]
                 },
                 "interpretation": (
                     "Valores termodinâmicos preservados pelo contrato canônico; nenhum limiar foi aplicado."
-                    if all(self._is_numeric(complementary_values[name]) for name in _REQUIRED_COMPLEMENTARY_FIELDS)
+                    if all(effective_complementary.values())
                     else "Dados termodinâmicos parciais ou ausentes; ausência não é substituída por zero."
                 ),
             },
@@ -258,7 +351,7 @@ class HailPotentialExperimentalEvaluator:
             "assessment_status": assessment_status,
             "axes": axes,
             "diagnostics_complete": diagnostics_complete,
-            "insufficient_variables": [],
+            "insufficient_variables": insufficient_variables,
             "provenance": {
                 "source": source.get("source"),
                 "model": source.get("model"),
@@ -289,23 +382,27 @@ class HailPotentialExperimentalEvaluator:
                 ]
         return []
 
-    def _contract_inconsistent(self, source, missing_variables=None):
+    def _contract_inconsistent(
+        self,
+        source,
+        missing_variables=None,
+        reason="CANONICAL_CONTRACT_INCONSISTENT",
+    ):
         return self._insufficient(
-            reason="CANONICAL_CONTRACT_INCONSISTENT",
+            reason=reason,
             source_result=source,
             missing_variables=missing_variables,
         )
 
     @staticmethod
     def _is_numeric(value):
-        """Aceita números finitos e strings numéricas; rejeita bool, NaN e infinito."""
-        if value is None or isinstance(value, bool):
+        """Aceita números finitos sem coerção; bool e strings não são evidência."""
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
             return False
         try:
-            number = float(value)
-        except (TypeError, ValueError, OverflowError):
+            return isfinite(value)
+        except OverflowError:
             return False
-        return isfinite(number)
 
     @staticmethod
     def _missing_variables(source, data_quality):
@@ -332,6 +429,7 @@ class HailPotentialExperimentalEvaluator:
             if raw_status in {ASSESSED_STATUS, INSUFFICIENT_STATUS}
             else INSUFFICIENT_STATUS
         )
+        axes = self._insufficient_axes(source, reason)
 
         return {
             "component_id": self.COMPONENT_ID,
@@ -342,7 +440,7 @@ class HailPotentialExperimentalEvaluator:
             "operational": False,
             "homologated": False,
             "assessment_status": assessment_status,
-            "axes": {},
+            "axes": axes,
             "diagnostics_complete": False,
             "insufficient_variables": missing,
             "provenance": {
@@ -360,4 +458,99 @@ class HailPotentialExperimentalEvaluator:
                 "ENTRADA_CANONICA_INSUFICIENTE_OU_INVALIDA",
             ],
             "reason": reason,
+        }
+
+    def _insufficient_axes(self, source, reason):
+        """Expose only canonical thermodynamic values on valid incomplete input."""
+        if (
+            reason != "CANONICAL_ASSESSMENT_NOT_ASSESSED"
+            or source.get("assessment_status") != INSUFFICIENT_STATUS
+        ):
+            return {}
+
+        required = source.get("required_variables")
+        missing = source.get("missing_variables")
+        quality = source.get("data_quality")
+        if (
+            not isinstance(required, (list, tuple))
+            or not self._is_string_list(required)
+            or len(required) != 5
+            or set(required) != {
+                "cape",
+                "wind_speed_925hPa",
+                "wind_direction_925hPa",
+                "wind_speed_500hPa",
+                "wind_direction_500hPa",
+            }
+            or not isinstance(missing, list)
+            or not missing
+            or not all(isinstance(item, str) and item for item in missing)
+            or not set(missing).issubset(set(required))
+            or not isinstance(quality, dict)
+            or quality.get("required_variables_complete") is not False
+            or quality.get("missing_variables") != missing
+        ):
+            return {}
+
+        values = source.get("complementary_values")
+        if (
+            not isinstance(values, dict)
+            or set(values) != _REQUIRED_COMPLEMENTARY_FIELDS
+            or not all(value is None or self._is_numeric(value) for value in values.values())
+        ):
+            return {}
+
+        availability = {
+            name: self._is_numeric(value)
+            for name, value in values.items()
+        }
+        available_values = {
+            name: {
+                "value": values[name],
+                "unit": "°C"
+                if name in {"wet_bulb_temperature_2m", "temperature_850hPa"}
+                else "%",
+            }
+            for name in _REQUIRED_COMPLEMENTARY_FIELDS
+            if availability[name]
+        }
+        available_count = sum(availability.values())
+        thermodynamics_status = (
+            "AVAILABLE"
+            if available_count == len(_REQUIRED_COMPLEMENTARY_FIELDS)
+            else "PARTIAL"
+            if available_count
+            else "UNAVAILABLE"
+        )
+
+        return {
+            "instability": {
+                "status": "UNAVAILABLE",
+                "evidence": None,
+                "interpretation": (
+                    "CAPE is unavailable because required canonical inputs are incomplete."
+                ),
+            },
+            "organization_shear": {
+                "status": "UNAVAILABLE",
+                "evidence": None,
+                "interpretation": (
+                    "Canonical 925-500 hPa shear was not calculated for incomplete required inputs."
+                ),
+            },
+            "combined_cape_shear": {
+                "status": "UNAVAILABLE",
+                "evidence": None,
+                "interpretation": (
+                    "CAPE-SHEAR was not calculated for incomplete required inputs."
+                ),
+            },
+            "thermodynamics": {
+                "status": thermodynamics_status,
+                "availability": availability,
+                "values": available_values,
+                "interpretation": (
+                    "Canonical complementary values are shown individually; missing values remain unavailable."
+                ),
+            },
         }

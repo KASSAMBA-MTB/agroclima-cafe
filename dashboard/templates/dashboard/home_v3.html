@@ -7,6 +7,7 @@ Dashboard Inteligente | AgroClima Café
 
 
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'dashboard/css/dashboard_v3_kpi_fix.css' %}">
 {% endblock %}
 
 
@@ -274,6 +275,30 @@ Dashboard Inteligente | AgroClima Café
 
             </article>
 
+            <!-- HAIL POTENTIAL KPI -->
+            <article class="kpi-card hail-potential-card">
+                <div class="kpi-header">
+                    <div class="kpi-icon hail"><i class="bi bi-cloud-hail"></i></div>
+                    <span class="kpi-category">Atmosfera</span>
+                </div>
+                <div class="kpi-body">
+                    <span class="kpi-title">Avalia&#231;&#245;es atmosf&#233;ricas</span>
+                    <h2 class="kpi-value">
+                        {% if hail_assessments %}
+                            {{ hail_assessments|length }}
+                        {% else %}
+                            <span class="kpi-unavailable">--</span>
+                        {% endif %}
+                    </h2>
+                    <p class="kpi-description">Avalia&#231;&#245;es meteorol&#243;gicas experimentais</p>
+                </div>
+                <div class="kpi-footer">
+                    <div class="kpi-update">
+                        <i class="bi bi-info-circle"></i>
+                        <small>Potencial de granizo n&#227;o classificado</small>
+                    </div>
+                </div>
+            </article>
         </div>
 
     </section>
@@ -283,9 +308,7 @@ Dashboard Inteligente | AgroClima Café
          ATMOSFERA — CONTEXTO EXPERIMENTAL DE GRANIZO
     =========================================================== -->
 
-    <section class="dashboard-atmosphere">
-        {% include "dashboard/components/atmosphere_panel.html" %}
-    </section>
+
 
 
     <!-- ==========================================================
@@ -293,7 +316,8 @@ Dashboard Inteligente | AgroClima Café
          FRI + INSIGHTS
     =========================================================== -->
 
-    <section class="dashboard-decision-grid">
+
+<section class="dashboard-decision-grid">
 
 
         <!-- FROST RISK INDEX -->
@@ -377,6 +401,14 @@ Dashboard Inteligente | AgroClima Café
         {% include "dashboard/components/alerts_panel.html" %}
 
     </section>
+
+
+    <!-- ATMOSFERA ? CONTEXTO EXPERIMENTAL DE GRANIZO -->
+    <!-- ATMOSFERA — CONTEXTO EXPERIMENTAL DE GRANIZO -->
+    <section class="dashboard-atmosphere">
+        {% include "dashboard/components/atmosphere_panel.html" %}
+    </section>
+
 
 
 </div>

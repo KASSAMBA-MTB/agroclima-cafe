@@ -48,7 +48,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                 },
                 {
                     "variable": "shear_925_500",
-                    "observed_value": 25.327,
+                    "observed_value": 25.326609464494872,
                     "unit": "m/s",
                     "role": "vertical_wind_shear",
                     "rule_id": "HAIL_POTENTIAL_001",
@@ -56,7 +56,7 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                 },
                 {
                     "variable": "cape_shear",
-                    "observed_value": 24313.545,
+                    "observed_value": 24313.545085915077,
                     "unit": "J/kg*m/s",
                     "role": "combined_environment",
                     "rule_id": "HAIL_POTENTIAL_001",
@@ -73,8 +73,8 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
                 },
             },
             "derived": {
-                "shear_925_500_ms": 25.327,
-                "cape_shear": 24313.545,
+                "shear_925_500_ms": 25.326609464494872,
+                "cape_shear": 24313.545085915077,
             },
             "complementary_values": {
                 "wet_bulb_temperature_2m": 15.0,
@@ -83,10 +83,10 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
             },
         }
 
-    def assert_contract_rejected(self, source):
+    def assert_contract_rejected(self, source, expected_reason="CANONICAL_CONTRACT_INCONSISTENT"):
         result = self.evaluator.evaluate(source)
         self.assertEqual(result["classification_status"], "INSUFFICIENT_DATA")
-        self.assertEqual(result["reason"], "CANONICAL_CONTRACT_INCONSISTENT")
+        self.assertEqual(result["reason"], expected_reason)
         self.assertEqual(result["axes"], {})
         self.assertFalse(result["diagnostics_complete"])
         self.assertIsNone(result["potential_level"])
@@ -106,8 +106,14 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
             {"instability", "organization_shear", "combined_cape_shear", "thermodynamics"},
         )
         self.assertEqual(result["axes"]["instability"]["evidence"]["value"], 960.0)
-        self.assertEqual(result["axes"]["organization_shear"]["evidence"]["value"], 25.327)
-        self.assertEqual(result["axes"]["combined_cape_shear"]["evidence"]["value"], 24313.545)
+        self.assertEqual(
+            result["axes"]["organization_shear"]["evidence"]["value"],
+            25.326609464494872,
+        )
+        self.assertEqual(
+            result["axes"]["combined_cape_shear"]["evidence"]["value"],
+            24313.545085915077,
+        )
 
     def test_thermodynamic_values_are_not_invented(self):
         result = self.evaluator.evaluate(self.canonical)
@@ -140,13 +146,58 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
     def test_invalid_numeric_values_are_unavailable_not_contract_errors(self):
         source = deepcopy(self.canonical)
         source["drivers"][0]["observed_value"] = None
+        source["drivers"][1]["observed_value"] = None
+        source["drivers"][2]["observed_value"] = None
         source["derived"]["shear_925_500_ms"] = None
         source["derived"]["cape_shear"] = float("nan")
         result = self.evaluator.evaluate(source)
         self.assertEqual(result["axes"]["instability"]["status"], "UNAVAILABLE")
         self.assertEqual(result["axes"]["organization_shear"]["status"], "UNAVAILABLE")
         self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "UNAVAILABLE")
+        self.assertEqual(
+            result["insufficient_variables"],
+            ["cape", "shear_925_500", "cape_shear"],
+        )
         self.assertFalse(result["diagnostics_complete"])
+
+    def test_driver_derived_mismatch_is_rejected_without_axes(self):
+        for driver_name, derived_name in (
+            ("shear_925_500", "shear_925_500_ms"),
+            ("cape_shear", "cape_shear"),
+        ):
+            with self.subTest(driver=driver_name):
+                source = deepcopy(self.canonical)
+                driver = next(
+                    item for item in source["drivers"]
+                    if item["variable"] == driver_name
+                )
+                driver["observed_value"] += 10
+                result = self.evaluator.evaluate(source)
+                self.assertEqual(result["reason"], "CANONICAL_DRIVER_DERIVED_MISMATCH")
+                self.assertEqual(result["axes"], {})
+                self.assertIsNone(result["potential_level"])
+
+    def test_cape_shear_product_mismatch_is_rejected(self):
+        source = deepcopy(self.canonical)
+        source["derived"]["cape_shear"] += 10
+        source["drivers"][2]["observed_value"] += 10
+        result = self.evaluator.evaluate(source)
+        self.assertEqual(
+            result["reason"], "CANONICAL_CAPE_SHEAR_PRODUCT_MISMATCH"
+        )
+        self.assertEqual(result["axes"], {})
+        self.assertIsNone(result["potential_level"])
+
+    def test_missing_numeric_evidence_remains_unavailable_and_is_not_mutated(self):
+        source = deepcopy(self.canonical)
+        source["drivers"][0]["observed_value"] = None
+        source["drivers"][2]["observed_value"] = None
+        source["derived"]["cape_shear"] = None
+        before = deepcopy(source)
+        result = self.evaluator.evaluate(source)
+        self.assertEqual(result["axes"]["instability"]["status"], "UNAVAILABLE")
+        self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "UNAVAILABLE")
+        self.assertEqual(source, before)
 
     def test_inconsistent_assessed_contract_is_insufficient(self):
         source = deepcopy(self.canonical)
@@ -334,6 +385,20 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["provenance"]["source"], "test-source")
         self.assertTrue(result["diagnostics_complete"])
         self.assertEqual(result["axes"]["thermodynamics"]["status"], "AVAILABLE")
+        drivers = {item["variable"]: item for item in canonical["drivers"]}
+        self.assertEqual(
+            drivers["shear_925_500"]["observed_value"],
+            canonical["derived"]["shear_925_500_ms"],
+        )
+        self.assertEqual(
+            drivers["cape_shear"]["observed_value"],
+            canonical["derived"]["cape_shear"],
+        )
+        self.assertEqual(
+            canonical["derived"]["cape_shear"],
+            drivers["cape"]["observed_value"]
+            * drivers["shear_925_500"]["observed_value"],
+        )
 
 
     def test_driver_metadata_must_be_nonempty_strings(self):
@@ -369,8 +434,8 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
     def test_boolean_values_are_not_numeric_meteorological_evidence(self):
         source = deepcopy(self.canonical)
         source["drivers"][0]["observed_value"] = True
-        source["derived"]["shear_925_500_ms"] = True
-        source["derived"]["cape_shear"] = False
+        source["drivers"][1]["observed_value"] = True
+        source["drivers"][2]["observed_value"] = False
 
         result = self.evaluator.evaluate(source)
 
@@ -378,3 +443,183 @@ class HailPotentialExperimentalEvaluatorTests(SimpleTestCase):
         self.assertEqual(result["axes"]["organization_shear"]["status"], "UNAVAILABLE")
         self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "UNAVAILABLE")
         self.assertFalse(result["diagnostics_complete"])
+
+    def test_mp012_rejects_noncanonical_units_and_roles(self):
+        expected = {
+            "cape": ("J/kg", "instability"),
+            "shear_925_500": ("m/s", "vertical_wind_shear"),
+            "cape_shear": ("J/kg*m/s", "combined_environment"),
+        }
+
+        for variable, (unit, role) in expected.items():
+            for field, invalid in (
+                ("unit", "UNIDADE_INCORRETA"),
+                ("role", "PAPEL_INCORRETO"),
+            ):
+                with self.subTest(variable=variable, field=field):
+                    source = deepcopy(self.canonical)
+                    driver = next(
+                        item for item in source["drivers"]
+                        if item["variable"] == variable
+                    )
+                    driver[field] = invalid
+                    self.assert_contract_rejected(source)
+
+    def test_mp012_rejects_shear_driver_derived_divergence(self):
+        source = deepcopy(self.canonical)
+        source["drivers"][1]["observed_value"] = 24.0
+        self.assert_contract_rejected(
+            source,
+            expected_reason="CANONICAL_DRIVER_DERIVED_MISMATCH",
+        )
+
+    def test_mp012_rejects_cape_shear_driver_derived_divergence(self):
+        source = deepcopy(self.canonical)
+        source["derived"]["cape_shear"] = 25000.0
+        self.assert_contract_rejected(
+            source,
+            expected_reason="CANONICAL_DRIVER_DERIVED_MISMATCH",
+        )
+
+    def test_mp012_rejects_inconsistent_cape_shear_product(self):
+        source = deepcopy(self.canonical)
+
+        # Driver e campo derivado concordam entre si, mas divergem
+        # do produto CAPE x cisalhamento além da tolerância.
+        for driver in source["drivers"]:
+            if driver["variable"] == "cape_shear":
+                driver["observed_value"] = 25000.0
+
+        source["derived"]["cape_shear"] = 25000.0
+        self.assert_contract_rejected(
+            source,
+            expected_reason="CANONICAL_CAPE_SHEAR_PRODUCT_MISMATCH",
+        )
+
+    def test_mp012_accepts_full_precision_fixture(self):
+        # O fixture espelha os floats completos produzidos pelo serviço.
+        result = self.evaluator.evaluate(deepcopy(self.canonical))
+        self.assertEqual(result["evaluation_status"], EXPERIMENTAL_STATUS)
+        self.assertEqual(result["classification_status"], CLASSIFICATION_STATUS)
+        self.assertIsNone(result["potential_level"])
+        self.assertFalse(result["operational"])
+        self.assertFalse(result["homologated"])
+
+    def test_mp012_invalid_numeric_evidence_remains_unavailable(self):
+        source = deepcopy(self.canonical)
+        source["drivers"][0]["observed_value"] = float("nan")
+
+        result = self.evaluator.evaluate(source)
+
+        self.assertEqual(result["evaluation_status"], EXPERIMENTAL_STATUS)
+        self.assertEqual(
+            result["axes"]["instability"]["status"],
+            "UNAVAILABLE",
+        )
+        self.assertIsNone(result["potential_level"])
+        self.assertFalse(result["operational"])
+        self.assertFalse(result["homologated"])
+
+    def test_r1_rejects_boolean_numeric_strings_and_invalid_domains(self):
+        cases = (
+            ("cape", True),
+            ("cape", "960.0"),
+            ("cape", -1.0),
+            ("shear_925_500", -0.1),
+            ("cape_shear", True),
+            ("cape_shear", "24313.5"),
+            ("cape_shear", float("inf")),
+        )
+        for variable, value in cases:
+            with self.subTest(variable=variable, value=value):
+                source = deepcopy(self.canonical)
+                driver = next(d for d in source["drivers"] if d["variable"] == variable)
+                driver["observed_value"] = value
+                result = self.evaluator.evaluate(source)
+                self.assertNotIn("reason", result)
+                axis = {
+                    "cape": "instability",
+                    "shear_925_500": "organization_shear",
+                    "cape_shear": "combined_cape_shear",
+                }[variable]
+                self.assertEqual(result["axes"][axis]["status"], "UNAVAILABLE")
+                self.assertIn(variable, result["insufficient_variables"])
+
+    def test_axis_uses_canonical_driver_when_derived_value_is_invalid(self):
+        source = deepcopy(self.canonical)
+        source["derived"]["shear_925_500_ms"] = -1.0
+        source["derived"]["cape_shear"] = "not-a-number"
+        result = self.evaluator.evaluate(source)
+        self.assertEqual(result["axes"]["organization_shear"]["status"], "AVAILABLE")
+        self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "AVAILABLE")
+        self.assertNotIn("shear_925_500", result["insufficient_variables"])
+        self.assertNotIn("cape_shear", result["insufficient_variables"])
+
+    def test_product_check_uses_driver_shear_and_each_valid_product_representation(self):
+        source = deepcopy(self.canonical)
+        source["drivers"][1]["observed_value"] = -1.0
+        result = self.evaluator.evaluate(source)
+        self.assertEqual(result["axes"]["organization_shear"]["status"], "UNAVAILABLE")
+        self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "AVAILABLE")
+
+        for location in ("driver", "derived"):
+            with self.subTest(location=location):
+                source = deepcopy(self.canonical)
+                if location == "driver":
+                    next(d for d in source["drivers"] if d["variable"] == "cape_shear")["observed_value"] = -1.0
+                    source["derived"]["cape_shear"] = -1.0
+                else:
+                    source["derived"]["cape_shear"] = -1.0
+                    next(d for d in source["drivers"] if d["variable"] == "cape_shear")["observed_value"] = -1.0
+                result = self.evaluator.evaluate(source)
+                self.assertEqual(result["reason"], "CANONICAL_CAPE_SHEAR_PRODUCT_MISMATCH")
+                self.assertEqual(result["axes"], {})
+
+    def test_zero_product_is_valid_and_not_reported_missing(self):
+        for variable in ("cape", "shear_925_500"):
+            with self.subTest(variable=variable):
+                source = deepcopy(self.canonical)
+                next(d for d in source["drivers"] if d["variable"] == variable)["observed_value"] = 0.0
+                next(d for d in source["drivers"] if d["variable"] == "cape_shear")["observed_value"] = 0.0
+                source["derived"]["cape_shear"] = 0.0
+                if variable == "shear_925_500":
+                    source["derived"]["shear_925_500_ms"] = 0.0
+                result = self.evaluator.evaluate(source)
+                self.assertNotIn(variable, result["insufficient_variables"])
+                self.assertEqual(result["axes"]["combined_cape_shear"]["status"], "AVAILABLE")
+
+    def test_declared_complementary_value_must_be_effectively_valid(self):
+        for invalid in (None, True, "8.0", float("nan"), float("inf")):
+            with self.subTest(invalid=invalid):
+                source = deepcopy(self.canonical)
+                source["complementary_values"]["temperature_850hPa"] = invalid
+                result = self.evaluator.evaluate(source)
+                self.assertEqual(result["axes"]["thermodynamics"]["status"], "PARTIAL")
+                self.assertIn("temperature_850hPa", result["insufficient_variables"])
+                self.assertFalse(result["diagnostics_complete"])
+
+    def test_thermodynamics_is_partial_for_one_or_two_valid_complementaries(self):
+        for valid_count in (1, 2):
+            with self.subTest(valid_count=valid_count):
+                source = deepcopy(self.canonical)
+                names = (
+                    "wet_bulb_temperature_2m",
+                    "temperature_850hPa",
+                    "relative_humidity_850hPa",
+                )
+                for name in names[valid_count:]:
+                    source["complementary_values"][name] = None
+                    source["data_quality"]["complementary_variables"][name] = False
+                result = self.evaluator.evaluate(source)
+                self.assertEqual(result["axes"]["thermodynamics"]["status"], "PARTIAL")
+                self.assertEqual(result["insufficient_variables"], list(names[valid_count:]))
+                self.assertFalse(result["diagnostics_complete"])
+
+    def test_relative_humidity_domain_is_inclusive_and_enforced(self):
+        for value, expected in ((0.0, "AVAILABLE"), (100.0, "AVAILABLE"), (-0.1, "PARTIAL"), (100.1, "PARTIAL")):
+            with self.subTest(value=value):
+                source = deepcopy(self.canonical)
+                source["complementary_values"]["relative_humidity_850hPa"] = value
+                result = self.evaluator.evaluate(source)
+                self.assertEqual(result["axes"]["thermodynamics"]["status"], expected)
+                self.assertEqual("relative_humidity_850hPa" in result["insufficient_variables"], expected == "PARTIAL")

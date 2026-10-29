@@ -1393,6 +1393,12 @@ class DashboardService:
             # de variáveis obrigatórias permanece explícita no resultado da
             # HailPotentialRule; não é convertida em potencial baixo/zero.
             evaluated["hail_potential_evaluation"] = hail
+            evaluated["hail_meteorological_input"] = {
+                "series": dict(hail_input.get("series") or {}),
+                "valid_from": hail_input.get("valid_from"),
+                "valid_to": hail_input.get("valid_to"),
+                "provenance": dict(hail_input.get("provenance") or {}),
+            }
             evaluated["intelligence_evaluation"] = {
                 "frost": frost,
                 "hail": hail,
