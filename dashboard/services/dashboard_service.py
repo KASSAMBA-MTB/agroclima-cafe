@@ -1324,7 +1324,51 @@ class DashboardService:
                 frost = {}
 
             rule_results = intelligence.get("rule_results", [])
+            if not isinstance(rule_results, list):
+                rule_results = []
+
+            # Contrato de granizo: preferir o resultado específico da mesma
+            # execução; se estiver ausente ou estruturalmente incompleto,
+            # recuperar a regra canônica pelo ID na coleção já produzida.
+            # Isso não reexecuta a regra nem calcula indicadores no dashboard.
             hail = intelligence.get("hail", {})
+            hail_is_complete = (
+                isinstance(hail, dict)
+                and isinstance(hail.get("derived"), dict)
+                and bool(hail.get("derived"))
+                and isinstance(hail.get("drivers"), (list, tuple))
+            )
+            if not hail_is_complete:
+                hail_candidates = [
+                    result for result in rule_results
+                    if isinstance(result, dict)
+                    and (
+                        result.get("rule_id") == "HAIL_POTENTIAL_001"
+                        or result.get("id") == "HAIL_POTENTIAL_001"
+                    )
+                ]
+                if hail_candidates:
+                    candidate = max(
+                        hail_candidates,
+                        key=lambda result: (
+                            bool(result.get("derived")),
+                            bool(result.get("drivers")),
+                            result.get("assessment_status") == "ASSESSED",
+                        ),
+                    )
+                    if (
+                        not isinstance(hail, dict)
+                        or (
+                            not hail.get("derived")
+                            and candidate.get("derived")
+                        )
+                        or (
+                            not hail.get("drivers")
+                            and candidate.get("drivers")
+                        )
+                    ):
+                        hail = candidate
+
             if not isinstance(hail, dict):
                 hail = {}
             insights = intelligence.get("insights", [])
