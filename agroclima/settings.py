@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -160,10 +161,6 @@ USE_TZ = True
 # =============================================================================
 
 STATIC_URL = "static/"
-
-STATICFILES_DIRS = [
-    BASE_DIR / "static"
-]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
