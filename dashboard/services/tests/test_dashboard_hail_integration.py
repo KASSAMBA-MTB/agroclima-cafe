@@ -181,7 +181,18 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                 "valid_to": "2026-10-15T12:00",
                 "missing_variables": [],
                 "data_quality": {"required_variables_complete": True},
-                "derived": {"shear_925_500_ms": 13.0},
+                "derived": {"shear_925_500_ms": 13.0, "cape_shear": 26000.0},
+                    "municipal_result": {
+                        "drivers": [
+                            {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+                            {"variable": "shear_925_500", "observed_value": 13.0, "unit": "m/s"},
+                        ],
+                        "complementary_values": {
+                            "wet_bulb_temperature_2m": 12.5,
+                            "temperature_850hPa": 8.0,
+                            "relative_humidity_850hPa": 75.0,
+                        },
+                    },
             },
             municipio_id=17,
             municipio_nome="Município de teste",
@@ -244,7 +255,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                 "hail_assessments": [{
                     "municipio_id": 17,
                     "municipio_nome": "Município de teste",
-                    "assessment_status": "INSUFFICIENT_DATA",
+                    "assessment_status": "ASSESSED",
                     "potential_level": None,
                     "context_type": "meteorological_assessment",
                     "source": "open-meteo-forecast-api",
@@ -254,7 +265,19 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                     "valid_to": "2026-10-15T15:00",
                     "missing_variables": ["cape", "wind_speed_925hPa"],
                     "data_quality": {"required_variables_complete": False},
-                    "derived": {"shear_925_500_ms": 13.0},
+                    "derived": {"shear_925_500_ms": 13.0, "cape_shear": 26000.0},
+                    "municipal_result": {
+                        "drivers": [
+                            {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+                            {"variable": "shear_925_500", "observed_value": 13.0, "unit": "m/s"},
+                            {"variable": "cape_shear", "observed_value": 26000.0, "unit": "J/kg*m/s"},
+                        ],
+                        "complementary_values": {
+                            "wet_bulb_temperature_2m": 12.5,
+                            "temperature_850hPa": 8.0,
+                            "relative_humidity_850hPa": 75.0,
+                        },
+                    },
                     "is_factual_event": False,
                     "classification_status": "NOT_CLASSIFIED",
                 }],
@@ -263,12 +286,16 @@ class DashboardHailIntegrationTests(SimpleTestCase):
 
         self.assertIn("Atmosfera", html)
         self.assertIn("Município de teste", html)
-        self.assertIn("Dados insuficientes", html)
+        self.assertIn("Dados avaliados", html)
         self.assertIn("open-meteo-forecast-api", html)
         self.assertIn("ecmwf_ifs025", html)
         self.assertIn("cape", html)
-        self.assertIn("shear_925_500_ms", html)
-        self.assertIn("Classificação de potencial de granizo: não realizada.", html)
+        self.assertIn("Cisalhamento vertical do vento (925–500 hPa)", html)
+        self.assertIn("CAPE (energia potencial convectiva disponível)", html)
+        self.assertIn("Temperatura de bulbo úmido (2 m)", html)
+        self.assertIn("Avaliação meteorológica experimental.", html)
+        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertNotIn("<details", html)
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)
 
