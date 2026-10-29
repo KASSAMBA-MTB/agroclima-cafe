@@ -255,7 +255,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                 "hail_assessments": [{
                     "municipio_id": 17,
                     "municipio_nome": "Município de teste",
-                    "assessment_status": "INSUFFICIENT_DATA",
+                    "assessment_status": "ASSESSED",
                     "potential_level": None,
                     "context_type": "meteorological_assessment",
                     "source": "open-meteo-forecast-api",
@@ -286,7 +286,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
 
         self.assertIn("Atmosfera", html)
         self.assertIn("Município de teste", html)
-        self.assertIn("Dados insuficientes", html)
+        self.assertIn("Dados avaliados", html)
         self.assertIn("open-meteo-forecast-api", html)
         self.assertIn("ecmwf_ifs025", html)
         self.assertIn("cape", html)
