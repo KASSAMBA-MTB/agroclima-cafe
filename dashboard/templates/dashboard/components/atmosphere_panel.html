@@ -39,7 +39,8 @@
                         </div>
 
                         <p class="alert-message">
-                            Classificação de potencial de granizo: não realizada.
+                            Avaliação meteorológica experimental.
+                            Classificação de potencial: não homologada.
                         </p>
 
                         <div class="alert-metadata">
@@ -65,16 +66,58 @@
                             </p>
                         {% endif %}
 
-                        {% if assessment.derived %}
-                            <details class="atmosphere-derived">
-                                <summary>Indicadores derivados da avaliação</summary>
-                                <dl>
-                                    {% for key, value in assessment.derived.items %}
-                                        <dt>{{ key }}</dt>
-                                        <dd>{{ value|default_if_none:"Não disponível" }}</dd>
-                                    {% endfor %}
-                                </dl>
-                            </details>
+                        {% if assessment.derived or assessment.municipal_result.drivers or assessment.municipal_result.complementary_values %}
+                            <section class="atmosphere-derived" aria-label="Indicadores meteorológicos calculados">
+                                <h3>Indicadores meteorológicos calculados</h3>
+                                {% if assessment.municipal_result.drivers %}
+                                    <dl>
+                                        {% for driver in assessment.municipal_result.drivers %}
+                                            <dt>
+                                                {% if driver.variable == "cape" %}CAPE (energia potencial convectiva disponível)
+                                                {% elif driver.variable == "shear_925_500" %}Cisalhamento vertical do vento (925–500 hPa)
+                                                {% elif driver.variable == "cape_shear" %}Índice combinado CAPE × cisalhamento
+                                                {% else %}{{ driver.variable }}{% endif %}
+                                            </dt>
+                                            <dd>
+                                                {% if driver.observed_value != None %}{{ driver.observed_value|floatformat:2 }}{% else %}Não disponível{% endif %}
+                                                {% if driver.unit %} {{ driver.unit }}{% endif %}
+                                            </dd>
+                                        {% endfor %}
+                                    </dl>
+                                {% endif %}
+                                {% if assessment.derived %}
+                                    <h4>Indicadores derivados</h4>
+                                    <dl>
+                                        {% for key, value in assessment.derived.items %}
+                                            <dt>
+                                                {% if key == "shear_925_500_ms" %}Cisalhamento vertical do vento (925–500 hPa)
+                                                {% elif key == "cape_shear" %}CAPE × cisalhamento
+                                                {% else %}{{ key }}{% endif %}
+                                            </dt>
+                                            <dd>{% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}{% if key == "shear_925_500_ms" %} m/s{% elif key == "cape_shear" %} J/kg·m/s{% endif %}</dd>
+                                        {% endfor %}
+                                    </dl>
+                                {% endif %}
+                                {% if assessment.municipal_result.complementary_values %}
+                                    <h4>Variáveis complementares</h4>
+                                    <dl>
+                                        {% for key, value in assessment.municipal_result.complementary_values.items %}
+                                            <dt>
+                                                {% if key == "wet_bulb_temperature_2m" %}Temperatura de bulbo úmido (2 m)
+                                                {% elif key == "temperature_850hPa" %}Temperatura em 850 hPa
+                                                {% elif key == "relative_humidity_850hPa" %}Umidade relativa em 850 hPa
+                                                {% else %}{{ key }}{% endif %}
+                                            </dt>
+                                            <dd>
+                                                {% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}
+                                                {% if key == "wet_bulb_temperature_2m" or key == "temperature_850hPa" %} °C{% elif key == "relative_humidity_850hPa" %} %{% endif %}
+                                            </dd>
+                                        {% endfor %}
+                                    </dl>
+                                {% endif %}
+                            </section>
+                        {% else %}
+                            <p class="alert-message">Não há indicadores derivados disponíveis para esta avaliação.</p>
                         {% endif %}
                     </div>
                 </article>
