@@ -127,7 +127,7 @@ Open-Meteo API
 ## Backend
 
 * Python
-* Django 6
+* Django >=5.2,<6.0
 * PostgreSQL
 
 ## Front-end
