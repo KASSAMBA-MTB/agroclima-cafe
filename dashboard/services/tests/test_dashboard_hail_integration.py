@@ -512,6 +512,50 @@ class DashboardHailIntegrationTests(SimpleTestCase):
 
         self.assertEqual(result["hail_assessments"], hail_context)
 
+
+    def test_failed_evaluation_invalidates_previous_last_result(self):
+        stale_intelligence = {
+            "frost": {"fri": 11},
+            "hail": {"assessment_status": "ASSESSED", "case": "MUNICIPIO_ANTERIOR"},
+            "rule_results": [{"municipio": "ANTERIOR"}],
+            "insights": [],
+            "recommendations": [],
+            "alerts": [],
+            "explainability": {},
+        }
+
+        risk_service = Mock()
+        risk_service.last_result = stale_intelligence
+        risk_service.evaluate_frost.side_effect = RuntimeError(
+            "Falha simulada na avaliação municipal"
+        )
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+
+        point = {
+            "id": 18,
+            "nome": "Município com falha",
+            "latitude": -21.8,
+            "longitude": -46.6,
+        }
+
+        with patch(
+            "dashboard.services.dashboard_service.HailMeteorologicalInputService"
+        ) as input_service:
+            input_service.return_value.fetch_for_points.return_value = {
+                18: {
+                    "series": {"cape": None},
+                    "provenance": {"source": "test"},
+                }
+            }
+            result = service._attach_frost_intelligence([point])
+
+        self.assertEqual(risk_service.last_result, {})
+        self.assertEqual(result[0]["intelligence_evaluation"]["hail"], {})
+        self.assertEqual(result[0]["rule_results"], [])
+        self.assertIsNone(result[0]["fri"])
+
     def test_failed_municipal_evaluation_does_not_reuse_previous_last_result(self):
         frost_a = {"fri": 11, "score": 11}
         hail_a = {"assessment_status": "ASSESSED", "case": "A"}
