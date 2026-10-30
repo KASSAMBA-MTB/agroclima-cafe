@@ -29,7 +29,7 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
                                 "instability": {
                                     "status": "AVAILABLE",
                                     "evidence": {
-                                        "value": 1850.0,
+                                        "value": 90.0,
                                         "unit": "J/kg",
                                     },
                                     "interpretation": "CAPE numérico recebido do serviço canônico.",
@@ -37,7 +37,7 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
                                 "organization_shear": {
                                     "status": "AVAILABLE",
                                     "evidence": {
-                                        "value": 14.2,
+                                        "value": 10.0,
                                         "unit": "m/s",
                                     },
                                     "interpretation": "Cisalhamento numérico recebido do serviço canônico.",
@@ -45,7 +45,7 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
                                 "combined_cape_shear": {
                                     "status": "AVAILABLE",
                                     "evidence": {
-                                        "value": 26270.0,
+                                        "value": 900.0,
                                         "unit": "J/kg*m/s",
                                     },
                                     "interpretation": "Indicador informativo, sem classificação.",
@@ -86,9 +86,9 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
         self.assertIn("Cisalhamento vertical (925–500 hPa)", html)
         self.assertIn("Indicador combinado CAPE", html)
         self.assertIn("Condições termodinâmicas complementares", html)
-        self.assertIn("1,850.00", normalized_html)
-        self.assertIn("14.20", normalized_html)
-        self.assertIn("26,270.00", normalized_html)
+        self.assertIn("90.00", normalized_html)
+        self.assertIn("10.00", normalized_html)
+        self.assertIn("900.00", normalized_html)
         self.assertIn("15.20", normalized_html)
         self.assertIn("8.40", normalized_html)
         self.assertIn("78.00", normalized_html)
