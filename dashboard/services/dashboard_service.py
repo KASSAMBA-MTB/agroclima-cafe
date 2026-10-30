@@ -1339,8 +1339,8 @@ class DashboardService:
             if not isinstance(frost, dict):
                 frost = {}
 
-            # last_result belongs to this municipality only when evaluation succeeds.
-            # After an exception, it may still contain the previous municipality result.
+            # last_result is consumed only after a successful evaluation.
+            # The exception path above clears it to prevent cross-municipality reuse.
             if evaluation_succeeded:
                 intelligence = getattr(
                     self.frost_risk_service,
