@@ -1330,6 +1330,12 @@ class DashboardService:
             except Exception:
                 frost = {}
 
+                # Invalida explicitamente o resultado anterior. Mesmo que
+                # a próxima camada consulte last_result, ela não poderá
+                # reutilizar a avaliação de outro município.
+                if hasattr(self.frost_risk_service, "last_result"):
+                    self.frost_risk_service.last_result = {}
+
             if not isinstance(frost, dict):
                 frost = {}
 
