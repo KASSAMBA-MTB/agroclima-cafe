@@ -1320,21 +1320,29 @@ class DashboardService:
             #   - divergência entre FRI e demais resultados;
             #   - dependência direta do DashboardService sobre a
             #     estrutura interna do motor.
+            evaluation_succeeded = False
+
             try:
                 frost = self.frost_risk_service.evaluate_frost(
                     context
                 )
+                evaluation_succeeded = True
             except Exception:
                 frost = {}
 
             if not isinstance(frost, dict):
                 frost = {}
 
-            intelligence = getattr(
-                self.frost_risk_service,
-                "last_result",
-                {},
-            )
+            # last_result belongs to this municipality only when evaluation succeeds.
+            # After an exception, it may still contain the previous municipality result.
+            if evaluation_succeeded:
+                intelligence = getattr(
+                    self.frost_risk_service,
+                    "last_result",
+                    {},
+                )
+            else:
+                intelligence = {}
 
             if not isinstance(intelligence, dict):
                 intelligence = {}
