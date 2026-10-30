@@ -48,6 +48,77 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         ])
 
         self.assertEqual(result, [])
+ 
+    def test_project_context_recovers_complete_hail_result_when_primary_slot_is_empty(self):
+        complete_hail = {
+            "id": "HAIL_POTENTIAL_001",
+            "rule_id": "HAIL_POTENTIAL_001",
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+            "derived": {
+                "shear_925_500_ms": 13.25,
+                "cape_shear": 26500.0,
+            },
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+            ],
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        result = DashboardService._compose_hail_assessments([{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": {}},
+            "hail_potential_evaluation": complete_hail,
+            "rule_results": [complete_hail],
+        }])
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["assessment_status"], "ASSESSED")
+        self.assertEqual(result[0]["derived"]["shear_925_500_ms"], 13.25)
+        self.assertEqual(result[0]["derived"]["cape_shear"], 26500.0)
+        self.assertEqual(
+            result[0]["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
+
+    def test_recovery_prefers_hail_result_with_complementary_values(self):
+        partial_hail = {
+            "id": "HAIL_POTENTIAL_001",
+            "rule_id": "HAIL_POTENTIAL_001",
+            "assessment_status": "ASSESSED",
+            "derived": {"shear_925_500_ms": 13.25, "cape_shear": 26500.0},
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+            ],
+            "complementary_values": {},
+        }
+        complete_hail = {
+            **partial_hail,
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": partial_hail},
+            "hail_potential_evaluation": complete_hail,
+            "rule_results": [complete_hail],
+        }]
+
+        result = DashboardService._compose_hail_assessments(points)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(
+            result[0]["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
 
     def test_missing_required_inputs_remain_unclassified(self):
         result = HailPotentialRule().evaluate({
@@ -95,6 +166,57 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertEqual(result["valid_from"], "2026-10-15T12:00")
         self.assertIn("shear_925_500_ms", result["derived"])
         self.assertIn("cape_shear", result["derived"])
+
+    @patch("dashboard.services.dashboard_service.HailMeteorologicalInputService")
+    def test_batch_input_failure_retries_each_municipality_independently(self, service_class):
+        valid_input = {
+            "series": {
+                "cape": 1200.0,
+                "wind_speed_925hPa": 12.0,
+                "wind_direction_925hPa": 270.0,
+                "wind_speed_500hPa": 25.0,
+                "wind_direction_500hPa": 240.0,
+            },
+            "valid_from": "2026-10-29T12:00",
+            "valid_to": "2026-10-29T12:00",
+            "provenance": {"source": "open-meteo-forecast-api"},
+        }
+        service_class.return_value.fetch_for_points.side_effect = [
+            RuntimeError("falha simulada na aquisição em lote"),
+            {17: valid_input},
+        ]
+
+        risk_service = Mock()
+        risk_service.evaluate_frost.return_value = {}
+        risk_service.last_result = {
+            "frost": {},
+            "hail": {},
+            "rule_results": [],
+            "insights": [],
+            "recommendations": [],
+            "alerts": [],
+            "explainability": {},
+        }
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "latitude": -21.0,
+            "longitude": -46.0,
+        }]
+
+        result = service._attach_frost_intelligence(points)
+
+        self.assertEqual(
+            result[0]["hail_meteorological_input"]["series"]["cape"],
+            1200.0,
+        )
+        self.assertEqual(
+            service_class.return_value.fetch_for_points.call_count,
+            2,
+        )
 
     def test_dashboard_exposes_hail_from_the_single_intelligence_result(self):
         hail = {
@@ -299,6 +421,72 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)
 
+    def test_real_project_contract_renders_derived_and_complementary_values(self):
+        """Protege o fluxo avaliação municipal -> contrato -> contexto -> template."""
+        hail = {
+            "assessment_status": "ASSESSED",
+            "potential_level": None,
+            "method_version": "MP-01.11.2",
+            "source": "open-meteo-forecast-api",
+            "model": "ecmwf_ifs025",
+            "source_run": "run-integration-test",
+            "valid_from": "2026-10-29T12:00",
+            "valid_to": "2026-10-29T15:00",
+            "missing_variables": [],
+            "data_quality": {"required_variables_complete": True},
+            "derived": {
+                "shear_925_500_ms": 13.25,
+                "cape_shear": 26500.0,
+            },
+            "drivers": [
+                {"variable": "cape", "observed_value": 2000.0, "unit": "J/kg"},
+                {"variable": "shear_925_500", "observed_value": 13.25, "unit": "m/s"},
+                {"variable": "cape_shear", "observed_value": 26500.0, "unit": "J/kg*m/s"},
+            ],
+            "complementary_values": {
+                "wet_bulb_temperature_2m": 12.5,
+                "temperature_850hPa": 8.0,
+                "relative_humidity_850hPa": 75.0,
+            },
+        }
+        points = [{
+            "id": 17,
+            "nome": "Município de teste",
+            "intelligence_evaluation": {"hail": hail},
+        }]
+
+        assessments = DashboardService._compose_hail_assessments(points)
+        self.assertEqual(len(assessments), 1)
+        assessment = assessments[0]
+
+        self.assertEqual(assessment["schema"], "hail_project_context.v1")
+        self.assertEqual(assessment["derived"]["shear_925_500_ms"], 13.25)
+        self.assertEqual(
+            assessment["municipal_result"]["drivers"][0]["observed_value"],
+            2000.0,
+        )
+        self.assertEqual(
+            assessment["municipal_result"]["complementary_values"]["relative_humidity_850hPa"],
+            75.0,
+        )
+        self.assertFalse(assessment["is_factual_event"])
+        self.assertEqual(assessment["classification_status"], "NOT_CLASSIFIED")
+
+        html = render_to_string(
+            "dashboard/components/atmosphere_panel.html",
+            {"hail_assessments": assessments},
+        )
+        # O Django pode formatar decimais com vírgula ou ponto conforme a localização.
+        normalized_html = html.replace(",", ".")
+        self.assertIn("2000.00", normalized_html)
+        self.assertIn("13.25", normalized_html)
+        self.assertIn("26500.00", normalized_html)
+        self.assertIn("12.50", normalized_html)
+        self.assertIn("8.00", normalized_html)
+        self.assertIn("75.00", normalized_html)
+        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertNotIn("<details", html)
+
     def test_dashboard_facade_preserves_global_hail_context(self):
         from dashboard.services.dashboard_facade import DashboardFacade
 
@@ -323,3 +511,136 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         result = facade.get_dashboard_data()
 
         self.assertEqual(result["hail_assessments"], hail_context)
+
+    def test_failed_municipal_evaluation_does_not_reuse_previous_last_result(self):
+        frost_a = {"fri": 11, "score": 11}
+        hail_a = {"assessment_status": "ASSESSED", "case": "A"}
+
+        intelligence_a = {
+            "frost": frost_a,
+            "hail": hail_a,
+            "rule_results": [{"municipio": "A"}],
+            "insights": [{"municipio": "A"}],
+            "recommendations": [{"municipio": "A"}],
+            "alerts": [{"municipio": "A"}],
+            "explainability": {"municipio": "A"},
+        }
+
+        frost_c = {"fri": 33, "score": 33}
+        hail_c = {"assessment_status": "ASSESSED", "case": "C"}
+
+        intelligence_c = {
+            "frost": frost_c,
+            "hail": hail_c,
+            "rule_results": [{"municipio": "C"}],
+            "insights": [{"municipio": "C"}],
+            "recommendations": [{"municipio": "C"}],
+            "alerts": [{"municipio": "C"}],
+            "explainability": {"municipio": "C"},
+        }
+
+        outcomes = {
+            17: (frost_a, intelligence_a),
+            19: (frost_c, intelligence_c),
+        }
+
+        risk_service = Mock()
+        risk_service.last_result = {}
+
+        def evaluate_frost(context):
+            municipio_id = context["municipio_id"]
+
+            # Município B falha depois da avaliação bem-sucedida de A.
+            # last_result permanece deliberadamente com o resultado de A.
+            if municipio_id == 18:
+                raise RuntimeError("Falha simulada no município B")
+
+            frost, intelligence = outcomes[municipio_id]
+
+            # Simula o comportamento real do FrostRiskService:
+            # cada avaliação bem-sucedida substitui last_result.
+            risk_service.last_result = intelligence
+
+            return frost
+
+        risk_service.evaluate_frost.side_effect = evaluate_frost
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+
+        points = [
+            {
+                "id": 17,
+                "nome": "Município A",
+                "latitude": -21.70,
+                "longitude": -46.50,
+            },
+            {
+                "id": 18,
+                "nome": "Município B",
+                "latitude": -21.80,
+                "longitude": -46.60,
+            },
+            {
+                "id": 19,
+                "nome": "Município C",
+                "latitude": -21.90,
+                "longitude": -46.70,
+            },
+        ]
+
+        with patch(
+            "dashboard.services.dashboard_service.HailMeteorologicalInputService"
+        ) as input_service:
+            input_service.return_value.fetch_for_points.return_value = {
+                17: {},
+                18: {},
+                19: {},
+            }
+
+            result = service._attach_frost_intelligence(points)
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(risk_service.evaluate_frost.call_count, 3)
+
+        # A: resultado próprio preservado.
+        self.assertEqual(
+            result[0]["intelligence_evaluation"]["hail"],
+            hail_a,
+        )
+        self.assertEqual(result[0]["fri"], 11)
+        self.assertEqual(
+            result[0]["alerts"],
+            [{
+                "municipio": "A",
+                "municipio_id": 17,
+                "municipio_nome": "Município A",
+            }],
+        )
+
+        # B: falha não pode reutilizar last_result de A.
+        self.assertEqual(result[1]["frost_evaluation"], {})
+        self.assertEqual(result[1]["hail_potential_evaluation"], {})
+        self.assertEqual(result[1]["intelligence_evaluation"]["frost"], {})
+        self.assertEqual(result[1]["intelligence_evaluation"]["hail"], {})
+        self.assertEqual(result[1]["rule_results"], [])
+        self.assertEqual(result[1]["insights"], [])
+        self.assertEqual(result[1]["recommendations"], [])
+        self.assertEqual(result[1]["alerts"], [])
+        self.assertEqual(result[1]["explainability"], {})
+        self.assertIsNone(result[1]["fri"])
+
+        # C: nova avaliação bem-sucedida não pode herdar A nem B.
+        self.assertEqual(
+            result[2]["intelligence_evaluation"]["hail"],
+            hail_c,
+        )
+        self.assertEqual(result[2]["fri"], 33)
+        self.assertEqual(
+            result[2]["alerts"],
+            [{
+                "municipio": "C",
+                "municipio_id": 19,
+                "municipio_nome": "Município C",
+            }],
+        )

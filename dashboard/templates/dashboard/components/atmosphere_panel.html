@@ -66,9 +66,67 @@
                             </p>
                         {% endif %}
 
-                        {% if assessment.derived or assessment.municipal_result.drivers or assessment.municipal_result.complementary_values %}
+                        {% if assessment.derived or assessment.municipal_result.drivers or assessment.municipal_result.complementary_values or assessment.municipal_result.experimental_evaluation.axes %}
                             <section class="atmosphere-derived" aria-label="Indicadores meteorológicos calculados">
                                 <h3>Indicadores meteorológicos calculados</h3>
+                                {% with experimental=assessment.municipal_result.experimental_evaluation %}
+                                    {% if experimental.axes %}
+                                        {% with axes=experimental.axes %}
+                                            <div class="atmosphere-experimental-diagnostics">
+                                                <h4>Diagnóstico experimental — {{ experimental.method_version|default:"MP-01.12" }}</h4>
+                                                <p>
+                                                    {% if experimental.diagnostics_complete %}
+                                                        Diagnóstico meteorológico completo; classificação normativa não realizada.
+                                                    {% else %}
+                                                        Diagnóstico meteorológico parcial ou indisponível; classificação normativa não realizada.
+                                                    {% endif %}
+                                                </p>
+                                                <dl>
+                                                    <dt>Instabilidade (CAPE)</dt>
+                                                    <dd>
+                                                        {% if axes.instability.status == "AVAILABLE" %}Disponível{% elif axes.instability.status == "PARTIAL" %}Parcial{% else %}Indisponível{% endif %}
+                                                        {% if axes.instability.evidence.value != None %} — {{ axes.instability.evidence.value|floatformat:2 }} {{ axes.instability.evidence.unit }}{% endif %}
+                                                        {% if axes.instability.interpretation %}<small>{{ axes.instability.interpretation }}</small>{% endif %}
+                                                    </dd>
+
+                                                    <dt>Cisalhamento vertical (925–500 hPa)</dt>
+                                                    <dd>
+                                                        {% if axes.organization_shear.status == "AVAILABLE" %}Disponível{% elif axes.organization_shear.status == "PARTIAL" %}Parcial{% else %}Indisponível{% endif %}
+                                                        {% if axes.organization_shear.evidence.value != None %} — {{ axes.organization_shear.evidence.value|floatformat:2 }} {{ axes.organization_shear.evidence.unit }}{% endif %}
+                                                        {% if axes.organization_shear.interpretation %}<small>{{ axes.organization_shear.interpretation }}</small>{% endif %}
+                                                    </dd>
+
+                                                    <dt>Indicador combinado CAPE × cisalhamento</dt>
+                                                    <dd>
+                                                        {% if axes.combined_cape_shear.status == "AVAILABLE" %}Disponível{% elif axes.combined_cape_shear.status == "PARTIAL" %}Parcial{% else %}Indisponível{% endif %}
+                                                        {% if axes.combined_cape_shear.evidence.value != None %} — {{ axes.combined_cape_shear.evidence.value|floatformat:2 }} {{ axes.combined_cape_shear.evidence.unit }}{% endif %}
+                                                        {% if axes.combined_cape_shear.interpretation %}<small>{{ axes.combined_cape_shear.interpretation }}</small>{% endif %}
+                                                    </dd>
+
+                                                    <dt>Condições termodinâmicas complementares</dt>
+                                                    <dd>
+                                                        {% if axes.thermodynamics.status == "AVAILABLE" %}Disponíveis{% elif axes.thermodynamics.status == "PARTIAL" %}Parciais{% else %}Indisponíveis{% endif %}
+                                                        {% if axes.thermodynamics.interpretation %}<small>{{ axes.thermodynamics.interpretation }}</small>{% endif %}
+                                                    </dd>
+                                                </dl>
+                                                {% if axes.thermodynamics.values %}
+                                                    <h4>Valores termodinâmicos disponíveis</h4>
+                                                    <dl>
+                                                        {% for key, item in axes.thermodynamics.values.items %}
+                                                            <dt>
+                                                                {% if key == "wet_bulb_temperature_2m" %}Temperatura de bulbo úmido (2 m)
+                                                                {% elif key == "temperature_850hPa" %}Temperatura em 850 hPa
+                                                                {% elif key == "relative_humidity_850hPa" %}Umidade relativa em 850 hPa
+                                                                {% else %}{{ key }}{% endif %}
+                                                            </dt>
+                                                            <dd>{% if item.value != None %}{{ item.value|floatformat:2 }} {{ item.unit }}{% else %}Não disponível{% endif %}</dd>
+                                                        {% endfor %}
+                                                    </dl>
+                                                {% endif %}
+                                            </div>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
                                 {% if assessment.municipal_result.drivers %}
                                     <dl>
                                         {% for driver in assessment.municipal_result.drivers %}
