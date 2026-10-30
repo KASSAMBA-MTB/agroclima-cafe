@@ -1179,11 +1179,28 @@ class DashboardService:
             # não pode zerar as entradas de todos os municípios. Reconsulta
             # somente o ponto sem série utilizável; a regra de granizo continua
             # sendo executada uma única vez pelo IntelligenceEngine.
-            if (
-                not isinstance(hail_input, dict)
-                or not isinstance(hail_input.get("series"), dict)
-                or not hail_input.get("series")
-            ):
+            required_hail_variables = (
+                "cape",
+                "wind_speed_925hPa",
+                "wind_direction_925hPa",
+                "wind_speed_500hPa",
+                "wind_direction_500hPa",
+            )
+            hail_series = (
+                hail_input.get("series")
+                if isinstance(hail_input, dict)
+                else None
+            )
+            hail_input_incomplete = (
+                not isinstance(hail_series, dict)
+                or not hail_series
+                or any(
+                    hail_series.get(variable) is None
+                    for variable in required_hail_variables
+                )
+            )
+
+            if hail_input_incomplete:
                 try:
                     individual_inputs = HailMeteorologicalInputService().fetch_for_points(
                         [point]
