@@ -511,3 +511,136 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         result = facade.get_dashboard_data()
 
         self.assertEqual(result["hail_assessments"], hail_context)
+
+    def test_failed_municipal_evaluation_does_not_reuse_previous_last_result(self):
+        frost_a = {"fri": 11, "score": 11}
+        hail_a = {"assessment_status": "ASSESSED", "case": "A"}
+
+        intelligence_a = {
+            "frost": frost_a,
+            "hail": hail_a,
+            "rule_results": [{"municipio": "A"}],
+            "insights": [{"municipio": "A"}],
+            "recommendations": [{"municipio": "A"}],
+            "alerts": [{"municipio": "A"}],
+            "explainability": {"municipio": "A"},
+        }
+
+        frost_c = {"fri": 33, "score": 33}
+        hail_c = {"assessment_status": "ASSESSED", "case": "C"}
+
+        intelligence_c = {
+            "frost": frost_c,
+            "hail": hail_c,
+            "rule_results": [{"municipio": "C"}],
+            "insights": [{"municipio": "C"}],
+            "recommendations": [{"municipio": "C"}],
+            "alerts": [{"municipio": "C"}],
+            "explainability": {"municipio": "C"},
+        }
+
+        outcomes = {
+            17: (frost_a, intelligence_a),
+            19: (frost_c, intelligence_c),
+        }
+
+        risk_service = Mock()
+        risk_service.last_result = {}
+
+        def evaluate_frost(context):
+            municipio_id = context["municipio_id"]
+
+            # Município B falha depois da avaliação bem-sucedida de A.
+            # last_result permanece deliberadamente com o resultado de A.
+            if municipio_id == 18:
+                raise RuntimeError("Falha simulada no município B")
+
+            frost, intelligence = outcomes[municipio_id]
+
+            # Simula o comportamento real do FrostRiskService:
+            # cada avaliação bem-sucedida substitui last_result.
+            risk_service.last_result = intelligence
+
+            return frost
+
+        risk_service.evaluate_frost.side_effect = evaluate_frost
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+
+        points = [
+            {
+                "id": 17,
+                "nome": "Município A",
+                "latitude": -21.70,
+                "longitude": -46.50,
+            },
+            {
+                "id": 18,
+                "nome": "Município B",
+                "latitude": -21.80,
+                "longitude": -46.60,
+            },
+            {
+                "id": 19,
+                "nome": "Município C",
+                "latitude": -21.90,
+                "longitude": -46.70,
+            },
+        ]
+
+        with patch(
+            "dashboard.services.dashboard_service.HailMeteorologicalInputService"
+        ) as input_service:
+            input_service.return_value.fetch_for_points.return_value = {
+                17: {},
+                18: {},
+                19: {},
+            }
+
+            result = service._attach_frost_intelligence(points)
+
+        self.assertEqual(len(result), 3)
+        self.assertEqual(risk_service.evaluate_frost.call_count, 3)
+
+        # A: resultado próprio preservado.
+        self.assertEqual(
+            result[0]["intelligence_evaluation"]["hail"],
+            hail_a,
+        )
+        self.assertEqual(result[0]["fri"], 11)
+        self.assertEqual(
+            result[0]["alerts"],
+            [{
+                "municipio": "A",
+                "municipio_id": 17,
+                "municipio_nome": "Município A",
+            }],
+        )
+
+        # B: falha não pode reutilizar last_result de A.
+        self.assertEqual(result[1]["frost_evaluation"], {})
+        self.assertEqual(result[1]["hail_potential_evaluation"], {})
+        self.assertEqual(result[1]["intelligence_evaluation"]["frost"], {})
+        self.assertEqual(result[1]["intelligence_evaluation"]["hail"], {})
+        self.assertEqual(result[1]["rule_results"], [])
+        self.assertEqual(result[1]["insights"], [])
+        self.assertEqual(result[1]["recommendations"], [])
+        self.assertEqual(result[1]["alerts"], [])
+        self.assertEqual(result[1]["explainability"], {})
+        self.assertIsNone(result[1]["fri"])
+
+        # C: nova avaliação bem-sucedida não pode herdar A nem B.
+        self.assertEqual(
+            result[2]["intelligence_evaluation"]["hail"],
+            hail_c,
+        )
+        self.assertEqual(result[2]["fri"], 33)
+        self.assertEqual(
+            result[2]["alerts"],
+            [{
+                "municipio": "C",
+                "municipio_id": 19,
+                "municipio_nome": "Município C",
+            }],
+        )
