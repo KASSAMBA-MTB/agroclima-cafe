@@ -218,6 +218,69 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             2,
         )
 
+    @patch("dashboard.services.dashboard_service.HailMeteorologicalInputService")
+    def test_incomplete_batch_input_retries_municipality_individually(self, service_class):
+        incomplete_input = {
+            "series": {
+                "cape": 1200.0,
+                "wind_speed_925hPa": 12.0,
+                "wind_direction_925hPa": 270.0,
+                "wind_speed_500hPa": 25.0,
+                "wind_direction_500hPa": None,
+            },
+            "valid_from": "2026-10-29T12:00",
+            "valid_to": "2026-10-29T12:00",
+            "provenance": {"source": "open-meteo-forecast-api"},
+        }
+        complete_input = {
+            "series": {
+                "cape": 1400.0,
+                "wind_speed_925hPa": 13.0,
+                "wind_direction_925hPa": 265.0,
+                "wind_speed_500hPa": 26.0,
+                "wind_direction_500hPa": 235.0,
+            },
+            "valid_from": "2026-10-29T13:00",
+            "valid_to": "2026-10-29T13:00",
+            "provenance": {"source": "open-meteo-forecast-api"},
+        }
+        service_class.return_value.fetch_for_points.side_effect = [
+            {17: incomplete_input},
+            {17: complete_input},
+        ]
+
+        risk_service = Mock()
+        risk_service.evaluate_frost.return_value = {}
+        risk_service.last_result = {
+            "frost": {},
+            "hail": {},
+            "rule_results": [],
+            "insights": [],
+            "recommendations": [],
+            "alerts": [],
+            "explainability": {},
+        }
+
+        service = DashboardService.__new__(DashboardService)
+        service.frost_risk_service = risk_service
+        result = service._attach_frost_intelligence([{
+            "id": 17,
+            "nome": "Município de teste",
+            "latitude": -21.0,
+            "longitude": -46.0,
+        }])
+
+        self.assertEqual(
+            service_class.return_value.fetch_for_points.call_count,
+            2,
+        )
+        self.assertEqual(
+            result[0]["hail_meteorological_input"]["series"],
+            complete_input["series"],
+        )
+        evaluation_context = risk_service.evaluate_frost.call_args.args[0]
+        self.assertEqual(evaluation_context["series"], complete_input["series"])
+
     def test_dashboard_exposes_hail_from_the_single_intelligence_result(self):
         hail = {
             "id": "HAIL_POTENTIAL_001",
