@@ -94,8 +94,6 @@ class HailPotentialService:
                 },
                 derived={},
                 complementary_values=self._complementary_values(series),
-            model_grid_latitude=provenance["model_grid_latitude"],
-            model_grid_longitude=provenance["model_grid_longitude"],
                 model_grid_latitude=provenance["model_grid_latitude"],
                 model_grid_longitude=provenance["model_grid_longitude"],
             )
