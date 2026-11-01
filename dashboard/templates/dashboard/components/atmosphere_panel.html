@@ -86,17 +86,17 @@
                                     </dl>
                                 {% endif %}
                                 {% if assessment.derived %}
-                                    <h4>Indicadores derivados</h4>
-                                    <dl>
-                                        {% for key, value in assessment.derived.items %}
-                                            <dt>
-                                                {% if key == "shear_925_500_ms" %}Cisalhamento vertical do vento (925–500 hPa)
-                                                {% elif key == "cape_shear" %}CAPE × cisalhamento
-                                                {% else %}{{ key }}{% endif %}
-                                            </dt>
-                                            <dd>{% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}{% if key == "shear_925_500_ms" %} m/s{% elif key == "cape_shear" %} J/kg·m/s{% endif %}</dd>
-                                        {% endfor %}
-                                    </dl>
+                                    {% if assessment.derived.items %}
+                                        <h4>Outros indicadores derivados</h4>
+                                        <dl>
+                                            {% for key, value in assessment.derived.items %}
+                                                {% if key != "shear_925_500_ms" and key != "cape_shear" %}
+                                                    <dt>{{ key }}</dt>
+                                                    <dd>{% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}</dd>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </dl>
+                                    {% endif %}
                                 {% endif %}
                                 {% if assessment.municipal_result.complementary_values %}
                                     <h4>Variáveis complementares</h4>
