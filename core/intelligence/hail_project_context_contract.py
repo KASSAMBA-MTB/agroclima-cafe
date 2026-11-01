@@ -1,10 +1,15 @@
-"""Contrato canônico do contexto global de avaliação meteorológica de granizo.
+"""Contrato canÃ´nico do contexto global de avaliaÃ§Ã£o meteorolÃ³gica de granizo.
 
-Transporta avaliações municipais já calculadas. Não define limiares, não
-classifica potencial e não representa ocorrência factual de granizo.
+Transporta avaliaÃ§Ãµes municipais jÃ¡ calculadas. NÃ£o define limiares, nÃ£o
+classifica potencial e nÃ£o representa ocorrÃªncia factual de granizo.
 """
 from dataclasses import dataclass
 from typing import Any
+
+from core.intelligence.hail_potential_experimental_evaluator import (
+    CLASSIFICATION_STATUS as EXPERIMENTAL_CLASSIFICATION_STATUS,
+    INSUFFICIENT_STATUS as EXPERIMENTAL_INSUFFICIENT_STATUS,
+)
 
 
 CONTEXT_SCHEMA = "hail_project_context.v1"
@@ -40,7 +45,7 @@ class HailProjectContextContract:
     ) -> "HailProjectContextContract":
         """Normalize an existing municipal assessment without recalculation."""
         if not isinstance(hail, dict):
-            raise TypeError("hail deve ser um dicionário de avaliação municipal")
+            raise TypeError("hail deve ser um dicionÃ¡rio de avaliaÃ§Ã£o municipal")
 
         status = hail.get("assessment_status")
         if not isinstance(status, str) or not status.strip():
@@ -77,8 +82,41 @@ class HailProjectContextContract:
     def as_dict(self) -> dict:
         """Return the stable project-level context consumed downstream."""
         municipal_result = dict(self.municipal_result)
-        # Never leak a potential classification through the nested source payload.
         municipal_result["potential_level"] = None
+        self._sanitize_unclassified_fields(municipal_result)
+
+        # These are the two structured children the contract currently
+        # exposes: the experimental diagnostic and the canonical municipal
+        # meteorological payload. Keep their scientific values intact while
+        # enforcing the contract's non-classification boundary.
+        experimental = municipal_result.get("experimental_evaluation")
+        if isinstance(experimental, dict):
+            experimental = dict(experimental)
+            experimental["potential_level"] = None
+            experimental["operational"] = False
+            experimental["homologated"] = False
+            if (
+                "classification_status" in experimental
+                and experimental["classification_status"] not in {
+                    EXPERIMENTAL_CLASSIFICATION_STATUS,
+                    EXPERIMENTAL_INSUFFICIENT_STATUS,
+                }
+            ):
+                experimental["classification_status"] = (
+                    EXPERIMENTAL_INSUFFICIENT_STATUS
+                    if experimental.get("assessment_status")
+                    == EXPERIMENTAL_INSUFFICIENT_STATUS
+                    else EXPERIMENTAL_CLASSIFICATION_STATUS
+                )
+            self._sanitize_factual_flag(experimental)
+            municipal_result["experimental_evaluation"] = experimental
+
+        nested_municipal_result = municipal_result.get("municipal_result")
+        if isinstance(nested_municipal_result, dict):
+            nested_municipal_result = dict(nested_municipal_result)
+            nested_municipal_result["potential_level"] = None
+            self._sanitize_unclassified_fields(nested_municipal_result)
+            municipal_result["municipal_result"] = nested_municipal_result
 
         return {
             "schema": CONTEXT_SCHEMA,
@@ -92,6 +130,17 @@ class HailProjectContextContract:
             # Deliberately no potential_level: this rule does not classify hail.
             "potential_level": None,
             "method_version": self.method_version,
+            "canonical_method_version": (
+                self.municipal_result.get("canonical_method_version")
+                or self.method_version
+            ),
+            "experimental_diagnostic_version": (
+                self.municipal_result.get("experimental_diagnostic_version")
+                or (self.municipal_result.get("experimental_evaluation") or {}).get("experimental_diagnostic_version")
+                or (self.municipal_result.get("experimental_evaluation") or {}).get("method_version")
+
+            ),
+            "rule_implementation_version": self.municipal_result.get("rule_implementation_version"),
             "source": self.source,
             "model": self.model,
             "source_run": self.source_run,
@@ -102,3 +151,15 @@ class HailProjectContextContract:
             "derived": dict(self.derived),
             "municipal_result": municipal_result,
         }
+
+    @staticmethod
+    def _sanitize_unclassified_fields(payload: dict) -> None:
+        """Sanitize classification fields on a known municipal payload."""
+        if "classification_status" in payload:
+            payload["classification_status"] = CLASSIFICATION_NOT_PERFORMED
+        HailProjectContextContract._sanitize_factual_flag(payload)
+
+    @staticmethod
+    def _sanitize_factual_flag(payload: dict) -> None:
+        if "is_factual_event" in payload:
+            payload["is_factual_event"] = FACTUAL_EVENT

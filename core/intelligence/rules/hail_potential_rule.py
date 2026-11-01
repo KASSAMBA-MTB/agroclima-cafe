@@ -1,31 +1,31 @@
 """
-AgroClima Café
+AgroClima CafÃ©
 
-Hail Potential Rule — MP-01.11
+Hail Potential Rule â€” MP-01.11
 
-Regra especialista de integração do potencial meteorológico de granizo
-à arquitetura BaseRule / RuleEngine.
+Regra especialista de integraÃ§Ã£o do potencial meteorolÃ³gico de granizo
+Ã  arquitetura BaseRule / RuleEngine.
 
 Responsabilidades
 -----------------
 - consumir exclusivamente o HailPotentialService;
 - adaptar HailPotentialContract para o contrato do RuleEngine;
-- preservar CAPE, shear 925–500 hPa e CAPE-SHEAR;
+- preservar CAPE, shear 925â€“500 hPa e CAPE-SHEAR;
 - preservar provenance, drivers e data_quality;
-- representar ausência de dados como INSUFFICIENT_DATA;
-- não criar classificação normativa enquanto os limiares não estiverem
+- representar ausÃªncia de dados como INSUFFICIENT_DATA;
+- nÃ£o criar classificaÃ§Ã£o normativa enquanto os limiares nÃ£o estiverem
   homologados;
-- não gerar score, probabilidade, alerta ou recomendação;
-- não alterar FRI ou qualquer regra existente.
+- nÃ£o gerar score, probabilidade, alerta ou recomendaÃ§Ã£o;
+- nÃ£o alterar FRI ou qualquer regra existente.
 
 Canal
 -----
 context
 
-A utilização de "context" impede que o resultado seja enviado
+A utilizaÃ§Ã£o de "context" impede que o resultado seja enviado
 automaticamente ao InsightEngine ou ao AlertEngine.
 
-Versão: 1.0
+VersÃ£o: 1.0
 """
 
 from core.intelligence.base_rule import BaseRule
@@ -39,15 +39,15 @@ class HailPotentialRule(BaseRule):
     """
     Integra o HailPotentialService ao contrato BaseRule.
 
-    A regra é deliberadamente fina: não reproduz nenhum cálculo do
-    serviço e não cria novos critérios meteorológicos.
+    A regra Ã© deliberadamente fina: nÃ£o reproduz nenhum cÃ¡lculo do
+    serviÃ§o e nÃ£o cria novos critÃ©rios meteorolÃ³gicos.
     """
 
     id = "HAIL_POTENTIAL_001"
     name = "Hail Potential Rule"
     description = (
-        "Avaliação do potencial meteorológico de ambiente favorável "
-        "a granizo, sem probabilidade ou classificação normativa."
+        "AvaliaÃ§Ã£o do potencial meteorolÃ³gico de ambiente favorÃ¡vel "
+        "a granizo, sem probabilidade ou classificaÃ§Ã£o normativa."
     )
 
     VERSION = "1.0"
@@ -59,9 +59,9 @@ class HailPotentialRule(BaseRule):
 
     def evaluate(self, context):
         """
-        Executa o serviço canônico e adapta seu contrato para o RuleEngine.
+        Executa o serviÃ§o canÃ´nico e adapta seu contrato para o RuleEngine.
 
-        A ausência de dados permanece explicitamente como
+        A ausÃªncia de dados permanece explicitamente como
         INSUFFICIENT_DATA.
         """
 
@@ -89,21 +89,35 @@ class HailPotentialRule(BaseRule):
         result["id"] = self.id
         result["rule_id"] = self.id
         result["rule_version"] = self.VERSION
+        result["rule_implementation_version"] = self.VERSION
+        result["canonical_method_version"] = (
+            result.get("provenance", {}).get("input_canonical_method_version")
+            or result.get("provenance", {}).get("input_method_version")
+            or result.get("method_version")
+        )
+        experimental_evaluation = result.get("experimental_evaluation")
+        if not isinstance(experimental_evaluation, dict):
+            experimental_evaluation = {}
+
+        result["experimental_diagnostic_version"] = (
+            experimental_evaluation.get("experimental_diagnostic_version")
+            or experimental_evaluation.get("method_version")
+        )
         result["engine"] = self.name
         result["channel"] = self.CHANNEL
 
         # ------------------------------------------------------
         # Estado normativo
         # ------------------------------------------------------
-        # Enquanto os limiares de classificação não estiverem
+        # Enquanto os limiares de classificaÃ§Ã£o nÃ£o estiverem
         # homologados, potential_level permanece None.
-        # A regra não inventa uma classificação.
+        # A regra nÃ£o inventa uma classificaÃ§Ã£o.
         # ------------------------------------------------------
 
         result.setdefault("potential_level", None)
 
         # ------------------------------------------------------
-        # Proveniência da regra
+        # ProveniÃªncia da regra
         # ------------------------------------------------------
 
         provenance = result.get("provenance")

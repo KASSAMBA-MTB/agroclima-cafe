@@ -1,0 +1,37 @@
+{
+  "etapa": "MP-01.13 ? extra??o Atlas COBRADE granizo",
+  "status": "EXTRACAO_CONCLUIDA_COM_RASTREABILIDADE",
+  "arquivo": "BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.xlsx",
+  "sha256": "b7871f503d57887f5a77e7064cbf278cb8a34edfc46c9daddb241c465341cf7e",
+  "total_linhas_dados_planilha": 76190,
+  "codigo_cobrade_granizo": "13213",
+  "evidencia_dicionario": {
+    "linha_dicionario": 26,
+    "valores_linha": "13213 | Tempestade Local/Convectiva - Granizo | Granizo | 5 | Meteorológico",
+    "codigos_colunas_identificadas": "13213"
+  },
+  "total_registros_granizo_estado_base": 2284,
+  "total_registros_granizo_seis_municipios": 0,
+  "total_registros_deduplicados_por_protocolo": 0,
+  "total_linhas_em_protocolos_duplicados": 0,
+  "total_registros_sem_protocolo": 0,
+  "registros_por_municipio": {},
+  "registros_por_status": {},
+  "data_evento": {},
+  "data_registro": {},
+  "municipios_sem_registro_encontrado": [
+    "?guas da Prata",
+    "Andradas",
+    "Esp?rito Santo do Pinhal",
+    "Po?os de Caldas",
+    "S?o Jo?o da Boa Vista",
+    "Vargem Grande do Sul"
+  ],
+  "ressalvas": [
+    "Aus?ncia de registro no Atlas n?o equivale a ocorr?ncia negativa.",
+    "Status administrativo n?o comprova, isoladamente, granizo observado no solo.",
+    "Data_Registro n?o substitui Data_Evento.",
+    "Duplicidade foi identificada por Protocolo_S2iD; registros sem protocolo foram preservados.",
+    "A extra??o n?o constitui homologa??o cient?fica nem valida??o de modelo."
+  ]
+}

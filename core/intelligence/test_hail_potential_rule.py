@@ -44,6 +44,19 @@ class HailPotentialRuleTests(unittest.TestCase):
         self.assertEqual(result["id"], "HAIL_POTENTIAL_001")
         self.assertEqual(result["rule_id"], "HAIL_POTENTIAL_001")
         self.assertEqual(result["rule_version"], "1.0")
+        self.assertEqual(result["rule_implementation_version"], "1.0")
+        self.assertEqual(
+            result["canonical_method_version"],
+            result.get("method_version"),
+        )
+        self.assertEqual(
+            result["experimental_diagnostic_version"],
+            "MP-01.12.3",
+        )
+        self.assertEqual(
+            result["experimental_diagnostic_version"],
+            result["experimental_evaluation"]["experimental_diagnostic_version"],
+        )
         self.assertEqual(result["channel"], "context")
 
     def test_preserves_assessed_status(self):

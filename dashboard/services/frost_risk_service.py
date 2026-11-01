@@ -43,14 +43,6 @@ class FrostRiskService:
 
         self.intelligence = IntelligenceEngine()
 
-        # Resultado completo da última execução.
-        #
-        # Importante:
-        # evaluate_frost() e os demais consumidores devem utilizar
-        # exatamente o mesmo resultado produzido por uma única chamada
-        # ao IntelligenceEngine.
-        self.last_result = {}
-
     # ==========================================================
     # PROCESSAMENTO OFICIAL
     # ==========================================================
@@ -66,9 +58,8 @@ class FrostRiskService:
         canônico da Dashboard, preservando os campos legados existentes
         durante a migração.
 
-        O resultado completo é armazenado em ``last_result`` para que
-        evaluate_frost() e os consumidores da Dashboard não provoquem
-        uma segunda execução do IntelligenceEngine.
+        O resultado completo é retornado diretamente. Cada consumidor recebe
+        o objeto da própria chamada, sem depender de estado compartilhado.
         """
 
         result = self.intelligence.process(
@@ -184,36 +175,34 @@ class FrostRiskService:
 
             result["explainability"] = {}
 
-        # ------------------------------------------------------
-        # CACHE DA ÚLTIMA AVALIAÇÃO
-        # ------------------------------------------------------
-        # O objeto armazenado é exatamente o resultado normalizado
-        # desta execução. Nenhuma nova avaliação é realizada aqui.
-
-        self.last_result = result
-
         return result
 
     # ==========================================================
     # FRI — API CANÔNICA
     # ==========================================================
 
+    def evaluate_frost_with_result(self, context):
+        """
+        Retorna o resultado completo produzido para esta chamada.
+
+        O objeto inclui o FRI e todas as saídas das regras, insights,
+        recomendações, alertas e explicabilidade da mesma execução.
+        Nenhum resultado de outra avaliação pode substituir esse retorno.
+        """
+        return self.process(context)
+
     def evaluate_frost(self, context):
         """
-        Retorna exclusivamente o resultado canônico de FRI.
-
-        A avaliação utiliza a mesma execução do IntelligenceEngine
-        realizada por process(). O resultado completo fica disponível
-        em ``last_result``.
+        Mantém a API compatível que retorna exclusivamente o FRI.
 
         Assim, o DashboardService pode consumir:
-            evaluate_frost() -> FRI
-            last_result     -> inteligência completa
+            evaluate_frost_with_result() -> inteligência completa
+            evaluate_frost()             -> FRI
 
-        sem executar o motor duas vezes.
+        Cada chamada executa o IntelligenceEngine uma única vez.
         """
 
-        result = self.process(
+        result = self.evaluate_frost_with_result(
             context
         )
 
@@ -233,18 +222,18 @@ class FrostRiskService:
 
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — VERSÃO 1.1
+# REGISTRO DE AUDITORIA — RESULTADO VINCULADO À CHAMADA
 # ============================================================================
 #
 # Objetivo:
 #     alinhar o serviço à arquitetura de avaliação única do FRI.
 #
-# Fluxo canônico:
+# Fluxo canônico do resultado completo:
 #
 #     DashboardService
 #           |
 #           v
-#     evaluate_frost(context)
+#     evaluate_frost_with_result(context)
 #           |
 #           v
 #     process(context)
@@ -260,11 +249,12 @@ class FrostRiskService:
 #           +--> explainability
 #           |
 #           v
-#     last_result
+#     retorno local da chamada
 #
 # Garantias:
 #     - nenhuma regra de FRI neste serviço;
-#     - nenhuma segunda execução para obtenção do resultado completo;
+#     - o resultado completo pertence ao retorno da chamada;
+#     - nenhuma dependência de estado mutável compartilhado;
 #     - FRI vem exclusivamente de frost;
 #     - score não é convertido por cálculo;
 #     - alertas permanecem provenientes da Inteligência;

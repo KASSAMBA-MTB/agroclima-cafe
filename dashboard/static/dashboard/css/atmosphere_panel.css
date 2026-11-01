@@ -1,0 +1,648 @@
+/*
+ * AgroClima Café — Atmosfera
+ * Folha de estilos exclusiva do painel comparativo experimental.
+ * Não define cores por nível de risco nem altera dados.
+ */
+
+.atmosphere-panel-v2 {
+    --atm-ink: #203247;
+    --atm-muted: #64758a;
+    --atm-line: #e1e8ef;
+    --atm-soft: #f5f8fb;
+    --atm-blue: #315f83;
+    --atm-blue-soft: #edf4f9;
+    --atm-green: #28745c;
+    --atm-green-soft: #edf7f2;
+    width: 100%;
+    min-width: 0;
+    color: var(--atm-ink);
+    background: #fff;
+    border: 1px solid var(--atm-line);
+    border-radius: 14px;
+    box-shadow: 0 5px 18px rgba(31, 52, 73, 0.055);
+    padding: clamp(16px, 2.2vw, 26px);
+    overflow: hidden;
+}
+
+.atmosphere-panel-v2 *,
+.atmosphere-panel-v2 *::before,
+.atmosphere-panel-v2 *::after {
+    box-sizing: border-box;
+}
+
+.atmosphere-panel-v2__header,
+.atmosphere-panel-v2__heading,
+.atmosphere-panel-v2__intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.atmosphere-panel-v2__header {
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--atm-line);
+}
+
+.atmosphere-panel-v2__heading {
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.atmosphere-panel-v2__icon {
+    display: inline-flex;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: var(--atm-blue);
+    background: var(--atm-blue-soft);
+    font-size: 20px;
+}
+
+.atmosphere-panel-v2__heading h2 {
+    margin: 0 0 4px;
+    color: var(--atm-ink);
+    font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+.atmosphere-panel-v2__heading p {
+    max-width: 850px;
+    margin: 0;
+    color: var(--atm-muted);
+    font-size: 0.84rem;
+    line-height: 1.55;
+}
+
+.atmosphere-panel-v2__counter {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 76px;
+    padding: 9px 13px;
+    border: 1px solid var(--atm-line);
+    border-radius: 11px;
+    background: var(--atm-soft);
+}
+
+.atmosphere-panel-v2__counter strong {
+    color: var(--atm-ink);
+    font-size: 1.45rem;
+    font-weight: 750;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.atmosphere-panel-v2__counter span {
+    margin-top: 3px;
+    color: var(--atm-muted);
+    font-size: 0.7rem;
+}
+
+.atmosphere-panel-v2__intro {
+    align-items: flex-end;
+    padding: 20px 0 14px;
+}
+
+.atmosphere-panel-v2__intro h3 {
+    margin: 0 0 4px;
+    color: var(--atm-ink);
+    font-size: 1rem;
+    font-weight: 720;
+}
+
+.atmosphere-panel-v2__intro p {
+    margin: 0;
+    color: var(--atm-muted);
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+.atmosphere-panel-v2__status-note {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border: 1px solid #dce7ef;
+    border-radius: 999px;
+    color: #526b80;
+    background: #f6f9fb;
+    font-size: 0.7rem;
+    font-weight: 650;
+}
+
+.atmosphere-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--atm-line);
+    border-radius: 11px;
+    scrollbar-width: thin;
+}
+
+.atmosphere-table {
+    width: 100%;
+    min-width: 940px;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--atm-ink);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.atmosphere-table th,
+.atmosphere-table td {
+    padding: 12px 11px;
+    border-bottom: 1px solid var(--atm-line);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.atmosphere-table thead th {
+    background: #f4f7fa;
+    color: #40576c;
+    font-weight: 700;
+}
+
+.atmosphere-table__group-row th {
+    padding-top: 11px;
+    padding-bottom: 8px;
+    color: #315f83 !important;
+    background: #edf3f8 !important;
+    font-size: 0.7rem;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.atmosphere-table__group-row th:first-child {
+    min-width: 190px;
+    color: #40576c !important;
+    background: #f4f7fa !important;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.atmosphere-table__column-row th {
+    min-width: 105px;
+    padding-top: 9px;
+    padding-bottom: 11px;
+    font-size: 0.76rem;
+    line-height: 1.35;
+}
+
+.atmosphere-table__column-row th span {
+    display: block;
+    margin-top: 3px;
+    color: #7a8998;
+    font-size: 0.66rem;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.atmosphere-table__data-row {
+    transition: background-color 140ms ease;
+}
+
+.atmosphere-table__data-row:hover {
+    background: #f8fbfd;
+}
+
+.atmosphere-table__data-row:last-of-type th,
+.atmosphere-table__data-row:last-of-type td {
+    border-bottom: 0;
+}
+
+.atmosphere-table__municipality {
+    min-width: 190px;
+    background: #fff;
+}
+
+.atmosphere-table__city-name {
+    display: block;
+    color: #203247;
+    font-size: 0.82rem;
+    font-weight: 750;
+    line-height: 1.3;
+}
+
+.atmosphere-table__city-status,
+.atmosphere-table__completeness {
+    display: block;
+    margin-top: 4px;
+    color: var(--atm-muted);
+    font-size: 0.68rem;
+    font-weight: 550;
+    line-height: 1.35;
+}
+
+.atmosphere-table__city-status i {
+    margin-right: 3px;
+    color: var(--atm-green);
+}
+
+.atmosphere-table__completeness {
+    color: var(--atm-green);
+    font-size: 0.65rem;
+}
+
+.atmosphere-table__data-row td {
+    white-space: nowrap;
+    background: #fff;
+}
+
+.atmosphere-table__data-row td strong {
+    color: #233b52;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.atmosphere-table__data-row td small {
+    display: inline-block;
+    margin-left: 3px;
+    color: #718195;
+    font-size: 0.68rem;
+}
+
+.atmosphere-value-unavailable {
+    color: #9aa6b2;
+    font-size: 1rem;
+}
+
+.atmosphere-table__details-row td {
+    padding: 0 11px 8px;
+    border-bottom: 1px solid var(--atm-line);
+    background: #fff;
+}
+
+.atmosphere-details {
+    width: 100%;
+}
+
+.atmosphere-details summary {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 36px;
+    padding: 8px 2px;
+    color: #47647d;
+    cursor: pointer;
+    font-size: 0.74rem;
+    font-weight: 650;
+    list-style: none;
+}
+
+.atmosphere-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.atmosphere-details summary > i {
+    color: #6f879b;
+    font-size: 0.68rem;
+    transition: transform 160ms ease;
+}
+
+.atmosphere-details[open] summary > i {
+    transform: rotate(90deg);
+}
+
+.atmosphere-details summary:hover {
+    color: #244f72;
+}
+
+.atmosphere-details__municipality {
+    margin-left: auto;
+    color: #8391a0;
+    font-size: 0.68rem;
+    font-weight: 500;
+}
+
+.atmosphere-details__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--atm-line);
+    border-radius: 10px;
+    background: #f9fbfd;
+}
+
+.atmosphere-details__section {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #e7edf2;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.atmosphere-details__section h4 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 10px;
+    color: #355a78;
+    font-size: 0.78rem;
+    font-weight: 750;
+}
+
+.atmosphere-details__section h4 i {
+    color: #66849d;
+}
+
+.atmosphere-details__explanation,
+.atmosphere-details__quality p {
+    margin: 0 0 10px;
+    color: var(--atm-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+.atmosphere-axis-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.atmosphere-axis-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 9px;
+    border-radius: 7px;
+    background: #f4f7fa;
+}
+
+.atmosphere-axis-grid span {
+    color: #687b8d;
+    font-size: 0.67rem;
+}
+
+.atmosphere-axis-grid strong {
+    color: #315f83;
+    font-size: 0.75rem;
+}
+
+.atmosphere-axis-grid small {
+    color: #788899;
+    font-size: 0.67rem;
+    line-height: 1.4;
+}
+
+.atmosphere-provenance {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.atmosphere-provenance > div {
+    min-width: 0;
+    padding: 8px 9px;
+    border-radius: 7px;
+    background: #f4f7fa;
+}
+
+.atmosphere-provenance dt {
+    margin: 0 0 3px;
+    color: #718195;
+    font-size: 0.65rem;
+    font-weight: 550;
+}
+
+.atmosphere-provenance dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    color: #31485e;
+    font-size: 0.72rem;
+    font-weight: 650;
+}
+
+.atmosphere-details__quality {
+    grid-column: 1 / -1;
+}
+
+.atmosphere-details__quality p:last-child {
+    margin-bottom: 0;
+}
+
+.atmosphere-panel-v2__empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    border: 1px solid var(--atm-line);
+    border-radius: 10px;
+    background: var(--atm-soft);
+}
+
+.atmosphere-panel-v2__empty > i {
+    color: #6b8297;
+    font-size: 1.2rem;
+}
+
+.atmosphere-panel-v2__empty strong {
+    color: var(--atm-ink);
+    font-size: 0.9rem;
+}
+
+.atmosphere-panel-v2__empty p {
+    margin: 4px 0 0;
+    color: var(--atm-muted);
+    font-size: 0.78rem;
+}
+
+.atmosphere-panel-v2__footer {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--atm-line);
+    color: #718195;
+}
+
+.atmosphere-panel-v2__footer i {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: #68849b;
+    font-size: 0.8rem;
+}
+
+.atmosphere-panel-v2__footer p {
+    margin: 0;
+    font-size: 0.69rem;
+    line-height: 1.5;
+}
+
+.atmosphere-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 900px) {
+    .atmosphere-details__content {
+        grid-template-columns: 1fr;
+    }
+
+    .atmosphere-details__quality {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .atmosphere-panel-v2 {
+        padding: 14px;
+        border-radius: 11px;
+    }
+
+    .atmosphere-panel-v2__header {
+        align-items: flex-start;
+    }
+
+    .atmosphere-panel-v2__heading {
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .atmosphere-panel-v2__icon {
+        flex-basis: 38px;
+        width: 38px;
+        height: 38px;
+        font-size: 17px;
+    }
+
+    .atmosphere-panel-v2__heading p {
+        font-size: 0.76rem;
+    }
+
+    .atmosphere-panel-v2__counter {
+        min-width: 62px;
+        padding: 7px 9px;
+    }
+
+    .atmosphere-panel-v2__counter strong {
+        font-size: 1.2rem;
+    }
+
+    .atmosphere-panel-v2__intro {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 9px;
+    }
+
+    .atmosphere-table-wrap {
+        overflow: visible;
+        border: 0;
+    }
+
+    .atmosphere-table {
+        display: block;
+        min-width: 0;
+        border: 0;
+    }
+
+    .atmosphere-table thead {
+        display: none;
+    }
+
+    .atmosphere-table tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    .atmosphere-table__data-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow: hidden;
+        border: 1px solid var(--atm-line);
+        border-radius: 10px;
+        background: #fff;
+    }
+
+    .atmosphere-table__data-row th {
+        grid-column: 1 / -1;
+        padding: 12px;
+        border-bottom: 1px solid var(--atm-line);
+        background: #f5f8fb;
+    }
+
+    .atmosphere-table__data-row td {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        padding: 10px 12px;
+        border-bottom: 1px solid #edf1f5;
+        white-space: normal;
+    }
+
+    .atmosphere-table__data-row td::before {
+        content: attr(data-label);
+        color: #718195;
+        font-size: 0.65rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .atmosphere-table__data-row td strong {
+        font-size: 0.84rem;
+    }
+
+    .atmosphere-table__data-row td small {
+        margin-left: 0;
+    }
+
+    .atmosphere-table__details-row {
+        display: block;
+        margin-top: -12px;
+        border: 1px solid var(--atm-line);
+        border-top: 0;
+        border-radius: 0 0 10px 10px;
+        background: #fff;
+    }
+
+    .atmosphere-table__details-row td {
+        display: block;
+        padding: 0 10px 5px;
+        border: 0;
+    }
+
+    .atmosphere-details__municipality {
+        display: none;
+    }
+
+    .atmosphere-axis-grid,
+    .atmosphere-provenance {
+        grid-template-columns: 1fr;
+    }
+
+    .atmosphere-panel-v2__footer p {
+        font-size: 0.66rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .atmosphere-panel-v2 *,
+    .atmosphere-panel-v2 *::before,
+    .atmosphere-panel-v2 *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

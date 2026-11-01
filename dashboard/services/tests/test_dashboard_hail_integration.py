@@ -1,6 +1,8 @@
 """Regressão da exposição municipal do resultado experimental de granizo."""
 
 from unittest.mock import Mock, patch
+from concurrent.futures import ThreadPoolExecutor
+from threading import Event, Lock
 
 from django.test import SimpleTestCase
 from django.template.loader import render_to_string
@@ -10,9 +12,147 @@ from core.intelligence.hail_potential_contract import (
 )
 from core.intelligence.rules.hail_potential_rule import HailPotentialRule
 from dashboard.services.dashboard_service import DashboardService
+from dashboard.services.frost_risk_service import FrostRiskService
+
+
+def _mock_frost_risk_service_with_result():
+    service = FrostRiskService.__new__(FrostRiskService)
+    service.evaluate_frost_with_result = Mock()
+    return service
 
 
 class DashboardHailIntegrationTests(SimpleTestCase):
+    def test_concurrent_municipal_evaluations_keep_their_own_full_results(self):
+        first_result_is_being_consumed = Event()
+        resume_first_result = Event()
+
+        class InterleavedResult(dict):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.frost_reads = 0
+
+            def get(self, key, default=None):
+                if self["municipio_id"] == 17 and key == "frost":
+                    self.frost_reads += 1
+                    # A primeira leitura é a normalização dentro de
+                    # FrostRiskService. A segunda ocorre após o retorno do
+                    # método, já no consumo pelo DashboardService.
+                    if self.frost_reads == 2:
+                        first_result_is_being_consumed.set()
+                        if not resume_first_result.wait(timeout=10):
+                            raise TimeoutError("A avaliação A não foi liberada")
+                return super().get(key, default)
+
+        class CountingEngine:
+            def __init__(self):
+                self.calls = []
+                self.lock = Lock()
+
+            def process(self, context):
+                municipio_id = context["municipio_id"]
+                label = "A" if municipio_id == 17 else "B"
+                with self.lock:
+                    self.calls.append(municipio_id)
+
+                result = {
+                    "frost": {"score": municipio_id},
+                    "hail": {
+                        "assessment_status": "ASSESSED",
+                        "municipio": label,
+                    },
+                    "rule_results": [{
+                        "rule_id": "HAIL_POTENTIAL_001",
+                        "municipio": label,
+                        "derived": {"marker": label},
+                        "provenance": {"source_run": label},
+                        "versions": {"method": label},
+                        "data_quality": {"marker": label},
+                        "experimental_evaluation": {"marker": label},
+                    }],
+                    "insights": [{"municipio": label}],
+                    "recommendations": [{"municipio": label}],
+                    "alerts": [{"municipio": label}],
+                    "explainability": {"municipio": label},
+                }
+                if municipio_id == 17:
+                    return InterleavedResult(result, municipio_id=municipio_id)
+                result["municipio_id"] = municipio_id
+                return result
+
+        engine = CountingEngine()
+        risk_service = FrostRiskService.__new__(FrostRiskService)
+        risk_service.intelligence = engine
+        dashboard_service = DashboardService.__new__(DashboardService)
+        dashboard_service.frost_risk_service = risk_service
+
+        points_by_id = {
+            17: {"id": 17, "nome": "Município A", "latitude": -21.7, "longitude": -46.5},
+            18: {"id": 18, "nome": "Município B", "latitude": -21.8, "longitude": -46.6},
+        }
+        required_series = {
+            "cape": 100,
+            "wind_speed_925hPa": 10,
+            "wind_direction_925hPa": 180,
+            "wind_speed_500hPa": 25,
+            "wind_direction_500hPa": 240,
+        }
+
+        def fetch_for_points(points):
+            return {
+                point["id"]: {
+                    "series": {**required_series, "municipio_marker": point["id"]},
+                    "provenance": {"source_run": str(point["id"])},
+                }
+                for point in points
+            }
+
+        with patch(
+            "dashboard.services.dashboard_service.HailMeteorologicalInputService"
+        ) as input_service:
+            input_service.return_value.fetch_for_points.side_effect = fetch_for_points
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                first_future = executor.submit(
+                    dashboard_service._attach_frost_intelligence,
+                    [points_by_id[17]],
+                )
+                self.assertTrue(
+                    first_result_is_being_consumed.wait(timeout=10),
+                    "A avaliação A não chegou ao consumo do retorno individual",
+                )
+                try:
+                    second = dashboard_service._attach_frost_intelligence(
+                        [points_by_id[18]]
+                    )[0]
+                finally:
+                    resume_first_result.set()
+                first = first_future.result(timeout=10)[0]
+
+        self.assertEqual(engine.calls.count(17), 1)
+        self.assertEqual(engine.calls.count(18), 1)
+        self.assertEqual(first["fri"], 17)
+        self.assertEqual(second["fri"], 18)
+        self.assertEqual(first["intelligence_evaluation"]["hail"]["municipio"], "A")
+        self.assertEqual(second["intelligence_evaluation"]["hail"]["municipio"], "B")
+        self.assertEqual(first["rule_results"][0]["derived"], {"marker": "A"})
+        self.assertEqual(second["rule_results"][0]["derived"], {"marker": "B"})
+        for field in (
+            "insights",
+            "recommendations",
+            "alerts",
+        ):
+            self.assertTrue(all(item["municipio"] == "A" for item in first[field]))
+            self.assertTrue(all(item["municipio"] == "B" for item in second[field]))
+        self.assertEqual(first["explainability"], {"municipio": "A"})
+        self.assertEqual(second["explainability"], {"municipio": "B"})
+        self.assertEqual(first["rule_results"][0]["provenance"], {"source_run": "A"})
+        self.assertEqual(second["rule_results"][0]["provenance"], {"source_run": "B"})
+        self.assertEqual(first["rule_results"][0]["versions"], {"method": "A"})
+        self.assertEqual(second["rule_results"][0]["versions"], {"method": "B"})
+        self.assertEqual(first["rule_results"][0]["data_quality"], {"marker": "A"})
+        self.assertEqual(second["rule_results"][0]["data_quality"], {"marker": "B"})
+        self.assertEqual(first["rule_results"][0]["experimental_evaluation"], {"marker": "A"})
+        self.assertEqual(second["rule_results"][0]["experimental_evaluation"], {"marker": "B"})
+
     def test_project_context_publishes_existing_assessment_as_non_factual(self):
         hail = {
             "id": "HAIL_POTENTIAL_001",
@@ -168,27 +308,13 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIn("cape_shear", result["derived"])
 
     @patch("dashboard.services.dashboard_service.HailMeteorologicalInputService")
-    def test_batch_input_failure_retries_each_municipality_independently(self, service_class):
-        valid_input = {
-            "series": {
-                "cape": 1200.0,
-                "wind_speed_925hPa": 12.0,
-                "wind_direction_925hPa": 270.0,
-                "wind_speed_500hPa": 25.0,
-                "wind_direction_500hPa": 240.0,
-            },
-            "valid_from": "2026-10-29T12:00",
-            "valid_to": "2026-10-29T12:00",
-            "provenance": {"source": "open-meteo-forecast-api"},
-        }
+    def test_missing_result_does_not_repeat_exhausted_individual_acquisition(self, service_class):
         service_class.return_value.fetch_for_points.side_effect = [
             RuntimeError("falha simulada na aquisição em lote"),
-            {17: valid_input},
         ]
 
-        risk_service = Mock()
-        risk_service.evaluate_frost.return_value = {}
-        risk_service.last_result = {
+        risk_service = _mock_frost_risk_service_with_result()
+        risk_service.evaluate_frost_with_result.return_value = {
             "frost": {},
             "hail": {},
             "rule_results": [],
@@ -209,13 +335,10 @@ class DashboardHailIntegrationTests(SimpleTestCase):
 
         result = service._attach_frost_intelligence(points)
 
-        self.assertEqual(
-            result[0]["hail_meteorological_input"]["series"]["cape"],
-            1200.0,
-        )
+        self.assertEqual(result[0]["hail_meteorological_input"]["series"], {})
         self.assertEqual(
             service_class.return_value.fetch_for_points.call_count,
-            2,
+            1,
         )
 
     @patch("dashboard.services.dashboard_service.HailMeteorologicalInputService")
@@ -249,9 +372,8 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             {17: complete_input},
         ]
 
-        risk_service = Mock()
-        risk_service.evaluate_frost.return_value = {}
-        risk_service.last_result = {
+        risk_service = _mock_frost_risk_service_with_result()
+        risk_service.evaluate_frost_with_result.return_value = {
             "frost": {},
             "hail": {},
             "rule_results": [],
@@ -278,7 +400,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             result[0]["hail_meteorological_input"]["series"],
             complete_input["series"],
         )
-        evaluation_context = risk_service.evaluate_frost.call_args.args[0]
+        evaluation_context = risk_service.evaluate_frost_with_result.call_args.args[0]
         self.assertEqual(evaluation_context["series"], complete_input["series"])
 
     def test_dashboard_exposes_hail_from_the_single_intelligence_result(self):
@@ -305,9 +427,8 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             "alerts": [],
             "explainability": {},
         }
-        risk_service = Mock()
-        risk_service.evaluate_frost.return_value = frost
-        risk_service.last_result = intelligence
+        risk_service = _mock_frost_risk_service_with_result()
+        risk_service.evaluate_frost_with_result.return_value = intelligence
 
         service = DashboardService.__new__(DashboardService)
         service.frost_risk_service = risk_service
@@ -333,7 +454,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             ])
 
         input_service.return_value.fetch_for_points.assert_called_once()
-        evaluation_context = risk_service.evaluate_frost.call_args.args[0]
+        evaluation_context = risk_service.evaluate_frost_with_result.call_args.args[0]
         self.assertEqual(evaluation_context["series"], acquired["series"])
         self.assertEqual(evaluation_context["provenance"], acquired["provenance"])
         self.assertEqual(evaluation_context["valid_from"], acquired["valid_from"])
@@ -346,7 +467,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIsNone(
             result[0]["intelligence_evaluation"]["hail"]["potential_level"]
         )
-        risk_service.evaluate_frost.assert_called_once()
+        risk_service.evaluate_frost_with_result.assert_called_once()
 
     def test_project_context_contract_is_versioned_and_preserves_provenance(self):
         from core.intelligence.hail_project_context_contract import (
@@ -359,6 +480,10 @@ class DashboardHailIntegrationTests(SimpleTestCase):
                 "assessment_status": "ASSESSED",
                 "potential_level": None,
                 "method_version": "MP-01.11.2",
+                "rule_implementation_version": "1.0",
+                "experimental_evaluation": {
+                    "experimental_diagnostic_version": "MP-01.12.3",
+                },
                 "source": "open-meteo-forecast-api",
                 "model": "ecmwf_ifs025",
                 "source_run": "run-123",
@@ -387,6 +512,12 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertEqual(result["context_type"], "meteorological_assessment")
         self.assertFalse(result["is_factual_event"])
         self.assertEqual(result["municipio_id"], 17)
+        self.assertEqual(result["canonical_method_version"], "MP-01.11.2")
+        self.assertEqual(
+            result["experimental_diagnostic_version"],
+            "MP-01.12.3",
+        )
+        self.assertEqual(result["rule_implementation_version"], "1.0")
         self.assertEqual(result["source_run"], "run-123")
         self.assertEqual(result["valid_from"], "2026-10-15T12:00")
         self.assertTrue(result["data_quality"]["required_variables_complete"])
@@ -576,20 +707,9 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertEqual(result["hail_assessments"], hail_context)
 
 
-    def test_failed_evaluation_invalidates_previous_last_result(self):
-        stale_intelligence = {
-            "frost": {"fri": 11},
-            "hail": {"assessment_status": "ASSESSED", "case": "MUNICIPIO_ANTERIOR"},
-            "rule_results": [{"municipio": "ANTERIOR"}],
-            "insights": [],
-            "recommendations": [],
-            "alerts": [],
-            "explainability": {},
-        }
-
-        risk_service = Mock()
-        risk_service.last_result = stale_intelligence
-        risk_service.evaluate_frost.side_effect = RuntimeError(
+    def test_failed_evaluation_does_not_publish_stale_municipal_result(self):
+        risk_service = _mock_frost_risk_service_with_result()
+        risk_service.evaluate_frost_with_result.side_effect = RuntimeError(
             "Falha simulada na avaliação municipal"
         )
 
@@ -614,12 +734,11 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             }
             result = service._attach_frost_intelligence([point])
 
-        self.assertEqual(risk_service.last_result, {})
         self.assertEqual(result[0]["intelligence_evaluation"]["hail"], {})
         self.assertEqual(result[0]["rule_results"], [])
         self.assertIsNone(result[0]["fri"])
 
-    def test_failed_municipal_evaluation_does_not_reuse_previous_last_result(self):
+    def test_failed_municipal_evaluation_does_not_reuse_previous_result(self):
         frost_a = {"fri": 11, "score": 11}
         hail_a = {"assessment_status": "ASSESSED", "case": "A"}
 
@@ -651,26 +770,19 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             19: (frost_c, intelligence_c),
         }
 
-        risk_service = Mock()
-        risk_service.last_result = {}
+        risk_service = _mock_frost_risk_service_with_result()
 
-        def evaluate_frost(context):
+        def evaluate_frost_with_result(context):
             municipio_id = context["municipio_id"]
 
             # Município B falha depois da avaliação bem-sucedida de A.
-            # last_result permanece deliberadamente com o resultado de A.
             if municipio_id == 18:
                 raise RuntimeError("Falha simulada no município B")
 
-            frost, intelligence = outcomes[municipio_id]
+            _frost, intelligence = outcomes[municipio_id]
+            return intelligence
 
-            # Simula o comportamento real do FrostRiskService:
-            # cada avaliação bem-sucedida substitui last_result.
-            risk_service.last_result = intelligence
-
-            return frost
-
-        risk_service.evaluate_frost.side_effect = evaluate_frost
+        risk_service.evaluate_frost_with_result.side_effect = evaluate_frost_with_result
 
         service = DashboardService.__new__(DashboardService)
         service.frost_risk_service = risk_service
@@ -708,7 +820,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             result = service._attach_frost_intelligence(points)
 
         self.assertEqual(len(result), 3)
-        self.assertEqual(risk_service.evaluate_frost.call_count, 3)
+        self.assertEqual(risk_service.evaluate_frost_with_result.call_count, 3)
 
         # A: resultado próprio preservado.
         self.assertEqual(
@@ -725,7 +837,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
             }],
         )
 
-        # B: falha não pode reutilizar last_result de A.
+        # B: falha não pode reutilizar o resultado municipal de A.
         self.assertEqual(result[1]["frost_evaluation"], {})
         self.assertEqual(result[1]["hail_potential_evaluation"], {})
         self.assertEqual(result[1]["intelligence_evaluation"]["frost"], {})

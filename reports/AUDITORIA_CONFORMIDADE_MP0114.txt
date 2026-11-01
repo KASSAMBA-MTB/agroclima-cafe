@@ -1,0 +1,99 @@
+﻿=== AUDITORIA DE CONFORMIDADE AGROCLIMA CAFE ===
+Inicio: 2026-10-29 18:01:45
+Projeto: C:\Users\Walter\agroclima-cafe
+
+--- 1. ESTADO LOCAL ---
+Branch: main
+HEAD: c1f7bc61eae11562af2bb510d436321d53cc02f8
+Ultimo commit: feat: build hail scientific validation dataset
+
+--- 2. CONSULTA REMOTA ---
+git fetch origin: OK
+origin/main: c1f7bc61eae11562af2bb510d436321d53cc02f8
+Diferencas HEAD...origin/main (local/remoto): 0	0
+Commits somente locais: 0
+Commits somente remotos: 0
+
+--- 3. ARQUIVOS ALTERADOS OU NAO RASTREADOS ---
+## main...origin/main
+?? backup_atmosfera_20261015_095420/
+?? backup_atmosfera_integracao_20261015_095512/
+?? backup_cinco_cards_20261014_221658/
+?? backup_correcao_mp0112_20261015_101447/
+?? backup_mp012_evaluator_20261015_152703/
+?? clima/services/hail_meteorological_input_service.py.backup_20261015_141419
+?? clima/services/hail_meteorological_input_service.py.backup_antes_correcao_20261029_114100
+?? clima/services/tests/test_hail_meteorological_input_service.py.backup_20261015_141419
+?? core/intelligence/hail_potential_experimental_evaluator.py.backup_mp0112_consistencia_20261015_143806
+?? core/intelligence/test_hail_potential_experimental_evaluator.py.backup_mp012_correcao_testes_20261015_145449
+?? core/intelligence/test_hail_potential_experimental_evaluator.py.backup_mp012_regressao_20261015_144306
+?? dashboard/static/dashboard/css/dashboard_v3.backup_hail_visual_20261014_215939.css
+?? dashboard/static/dashboard/css/dashboard_v3.backup_kpis_v2_20261014_220532.css
+?? dashboard/templates/dashboard/home_v3.backup_before_dedup_20261029_01.html
+?? dashboard/templates/dashboard/home_v3.backup_correcao_card_granizo_20261015_104810.html
+?? dashboard/templates/dashboard/home_v3.backup_five_cards_v4_20261014_220812.html
+?? dashboard/templates/dashboard/home_v3.backup_granizo_20261014_215543.html
+?? dashboard/templates/dashboard/home_v3.backup_layout_atmosfera_20261015_110030.html
+?? raw/g74_p0/canonical_staging/
+?? raw/g74_p0/p9_ecmwf_ifs025_20260402T0000_20261015T172714Z.json
+?? raw/g74_p0/p9_ecmwf_ifs025_20260415T0000_20261015T172715Z.json
+?? raw/g74_p0/p9_ecmwf_ifs025_20261003T0000_20261007T131010Z.json
+?? raw/g74_p0/p9_ecmwf_ifs025_20261003T0000_20261015T172716Z.json
+?? raw/g74_p0/p9_ecmwf_ifs_20260402T0000_20261015T172717Z.json
+?? raw/g74_p0/p9_ecmwf_ifs_20260415T0000_20261015T172718Z.json
+?? raw/g74_p0/p9_ecmwf_ifs_20261003T0000_20261015T172719Z.json
+?? reports/G8_P9_3_historical_andradas_20250725.txt
+?? reports/g74_p0/MP0112_P9_REEXECUCAO_20261015_142510.txt
+?? reports/g74_p0/P9_CORRECAO_GATE_20261015_142713.txt
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261003_20261013T195222Z.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261003_20261015T142034Z.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261003_20261015T142225Z.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261003_20261015T142313Z.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261003_20261015T142622Z.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_integration_20261013.json
+?? reports/g74_p0/hail_evidence/mp011_mp012_raw_inventory_20261015T142328Z.json
+?? reports/g74_p0/hail_evidence/mp012_dashboard_gate_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_gate_4000_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_gate_full_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_gate_tall_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_hail_panel_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_kpi_after_20261015.png
+?? reports/g74_p0/hail_evidence/mp012_dashboard_top_after_20261015.png
+?? reports/g74_p0/p7_contract_validation_20261007T125629Z.json
+?? reports/g74_p0/p7_contract_validation_recovery_20261013.json
+?? reports/g74_p0/p8_controlled_integration_20261007T130339Z.json
+?? reports/g74_p0/p8_controlled_integration_recovery_20261013.json
+?? reports/g74_p0/p9_gate_recovery_20261013.json
+?? reports/g74_p0/p9_regression_validation_20261007T131012Z.json
+?? reports/g74_p0/p9_regression_validation_20261015T172719Z.json
+?? reports/testes/
+?? research_inputs/
+?? research_outputs/
+?? tests/
+?? tools/HIToB_G27_DIAGNOSTICO_INTEGRADO.py
+?? tools/HIToB_G27_correcao_codigo/
+?? tools/HIToB_G27_diagnostico_corretivo.py
+?? tools/HIToB_G27b_analise_vinculos.py
+?? tools/HIToB_G27c_reconciliar_candidatos.py
+?? tools/HIToB_G27d_validacao_independente.py
+?? tools/corrigir_crs_hitob.py
+?? tools/g74_p0_probe.py.backup_gate_detection_20261015_142713
+?? tools/g8_p9_3_historical_event_probe.py
+?? tools/validacao_espacial_hitob_4326_vs_4674.py
+?? tools/validacao_espacial_hitob_corrigida_v2.py
+?? tools/verify_mp011_mp012_raw_integration.py
+
+--- 4. ARQUIVOS-CHAVE ---
+OK: core\intelligence\hail_scientific_validation.py
+OK: core\intelligence\test_hail_scientific_validation.py
+OK: core\intelligence\hail_scientific_dataset_builder.py
+OK: core\intelligence\test_hail_scientific_dataset_builder.py
+OK: tools\build_hail_scientific_validation_dataset.py
+OK: reports\g74_p0\hail_scientific_reference_manifest.example.csv
+OK: reports\CONTINUIDADE_DESENVOLVIMENTO.md
+
+--- 5. INTEGRIDADE DO DIFF ---
+git diff --check: OK
+
+--- 6. TESTES CIENTIFICOS ---
+ERRO NA AUDITORIA: ..........

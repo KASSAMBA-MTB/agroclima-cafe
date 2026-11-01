@@ -1,0 +1,5 @@
+﻿"Localidade";"Produto";"LatitudeSolicitada";"LongitudeSolicitada";"LatitudeRetornada";"LongitudeRetornada";"AltitudeRetornada";"RegistrosDia";"Registros14a22";"PrecipitacaoDia_mm";"Precipitacao14a22_mm";"TemperaturaMin14a22_C";"TemperaturaMax14a22_C";"RajadaMax14a22";"CAPEMax14a22";"NivelCongelamentoMin14a22_m";"NivelCongelamentoMax14a22_m"
+"SERRA_DOS_LIMA";"ERA5";"-22,133975";"-46,563758";"-22,25";"-46,5";"952,0";"24";"9";"30";"30";"141";"207";"292";;;
+"SERRA_DOS_LIMA";"HISTORICAL_FORECAST";"-22,133975";"-46,563758";"-22,108963";"-46,57733";"952,0";"24";"9";"900";"740";"113";"177";"410";"9600";"353000";"372000"
+"CAMPESTRINHO";"ERA5";"-22,1427";"-46,453";"-22,25";"-46,5";"1328,0";"24";"9";"30";"30";"117";"183";"292";;;
+"CAMPESTRINHO";"HISTORICAL_FORECAST";"-22,1427";"-46,453";"-22,108963";"-46,484528";"1328,0";"24";"9";"650";"570";"100";"159";"374";"9400";"355000";"371000"

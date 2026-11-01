@@ -113,6 +113,7 @@ class HailPotentialService:
                 "unit": "J/kg",
                 "rule_id": self.RULE_ID,
                 "rule_version": self.METHOD_VERSION,
+                "canonical_method_version": self.METHOD_VERSION,
                 "role": "instability",
             },
             {
@@ -121,6 +122,7 @@ class HailPotentialService:
                 "unit": "m/s",
                 "rule_id": self.RULE_ID,
                 "rule_version": self.METHOD_VERSION,
+                "canonical_method_version": self.METHOD_VERSION,
                 "role": "vertical_wind_shear",
             },
             {
@@ -129,6 +131,7 @@ class HailPotentialService:
                 "unit": "J/kg*m/s",
                 "rule_id": self.RULE_ID,
                 "rule_version": self.METHOD_VERSION,
+                "canonical_method_version": self.METHOD_VERSION,
                 "role": "combined_environment",
             },
         )

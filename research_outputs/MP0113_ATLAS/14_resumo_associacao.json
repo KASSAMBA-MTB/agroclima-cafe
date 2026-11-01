@@ -1,0 +1,5725 @@
+{
+  "codigo_cobrade": "13213",
+  "total_registros_granizo": 2284,
+  "total_municipios_uf_distintos": 1137,
+  "distribuicao_uf": {
+    "MS": 35,
+    "SC": 642,
+    "ES": 61,
+    "RS": 712,
+    "PR": 544,
+    "SE": 2,
+    "SP": 31,
+    "BA": 8,
+    "PI": 2,
+    "MG": 187,
+    "RJ": 40,
+    "PA": 5,
+    "PE": 7,
+    "MT": 3,
+    "GO": 1,
+    "RO": 2,
+    "AP": 1,
+    "AL": 1
+  },
+  "matches_por_nome": 0,
+  "matches_por_codigo": 0,
+  "codigos_ibge_ausentes": 0,
+  "codigos_ibge_invalidos": 0,
+  "municipios_por_nome": [
+    {
+      "UF": "AL",
+      "Nome_Municipio": "Cajueiro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "AP",
+      "Nome_Municipio": "Tartarugalzinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Aracatu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Barra da Estiva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Itabela",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Lamarão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Salvador",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Utinga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "BA",
+      "Nome_Municipio": "Vitória da Conquista",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Alfredo Chaves",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Aracruz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Baixo Guandu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Bom Jesus do Norte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Brejetuba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Cachoeiro de Itapemirim",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Cariacica",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Castelo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Colatina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Domingos Martins",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Dores do Rio Preto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Ecoporanga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Guaçuí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Ibatiba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Ibiraçu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Ibitirama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Itaguaçu",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Itapemirim",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Iúna",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Jerônimo Monteiro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Laranja da Terra",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Mantenópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Mimoso do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Muniz Freire",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Nova Venécia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Ponto Belo",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Presidente Kennedy",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Santa Leopoldina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Santa Maria de Jetibá",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Santa Teresa",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "São Domingos do Norte",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "São José do Calçado",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "São Mateus",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "São Roque do Canaã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Vargem Alta",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Venda Nova do Imigrante",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "ES",
+      "Nome_Municipio": "Vila Pavão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "GO",
+      "Nome_Municipio": "Abadiânia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Acaiaca",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Alfredo Vasconcelos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Alpercata",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Alto Rio Doce",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Alvinópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Antônio Carlos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Arantina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Araxá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Areado",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Bambuí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Barbacena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Barra Longa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Barão de Monte Alto",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Bela Vista de Minas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Belo Horizonte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Betim",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Bocaiúva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Bom Despacho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Bom Jesus do Galho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Botelhos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Cabo Verde",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Campestre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Campo Belo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Campos Gerais",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Cana Verde",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Cantagalo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Capelinha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Caputira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Caranaíba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Carandaí",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Carangola",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Caratinga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Caraí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Carmo de Minas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Carmópolis de Minas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Carrancas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Cataguases",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Chiador",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Cláudio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Conceição do Rio Verde",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Congonhas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Conselheiro Lafaiete",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Contagem",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Coqueiral",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Crucilândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Divinolândia de Minas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Engenheiro Caldas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Engenheiro Navarro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Entre Rios de Minas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Eugenópolis",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ewbank da Câmara",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Fervedouro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Florestal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Guarará",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Guiricema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Iguatama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Inconfidentes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Inimutaba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ipatinga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Itabirito",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Itaguara",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Itajubá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Itanhomi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Itapecerica",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Jampruca",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Jeceaba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "João Monlevade",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Juiz de Fora",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Laranjal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Lavras",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Leopoldina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Lima Duarte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Luminárias",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Luz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Madre de Deus de Minas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Mantena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Mar de Espanha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Matipó",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Matutina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Mendes Pimentel",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Monte Belo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Monte Formoso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Montes Claros",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Mário Campos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Nova União",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ouro Preto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Padre Paraíso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Paiva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Passa Quatro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Paula Cândido",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Perdões",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Piedade de Ponte Nova",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Piedade do Rio Grande",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Piracema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Piranga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Piraúba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ponte Nova",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ponto dos Volantes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Pouso Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Pouso Alto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Poço Fundo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Presidente Bernardes",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Raposos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Recreio",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rio Acima",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rio Doce",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rio Piracicaba",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rio Pomba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rio Preto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Ritápolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Rubim",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Sacramento",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Salinas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santa Efigênia de Minas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santa Maria de Itabira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santa Maria do Suaçuí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santa Rita do Sapucaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santana do Jacaré",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santo Antônio do Amparo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santo Antônio do Grama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Santos Dumont",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Sem-Peixe",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Senador Amaral",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Senador Firmino",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Senhora de Oliveira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Senhora dos Remédios",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Simão Pereira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São Domingos do Prata",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São Gonçalo do Sapucaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São José da Barra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São José do Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São José do Goiabal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São José do Jacuri",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São João Evangelista",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São João Nepomuceno",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São João del Rei",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São Pedro do Suaçuí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São Romão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "São Sebastião da Vargem Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Taquaraçu de Minas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Teófilo Otoni",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Timóteo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Tocos do Moji",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Tombos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Três Corações",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Unaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Urucânia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Varginha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Varzelândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Visconde do Rio Branco",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Viçosa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MG",
+      "Nome_Municipio": "Wenceslau Braz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Amambai",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Bela Vista",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Bonito",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Brasilândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Campo Grande",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Coronel Sapucaia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Corumbá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Dourados",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Eldorado",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Glória de Dourados",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Iguatemi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Maracaju",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Naviraí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Novo Horizonte do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Rio Verde de Mato Grosso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Santa Rita do Pardo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Selvíria",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Tacuru",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MS",
+      "Nome_Municipio": "Três Lagoas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "MT",
+      "Nome_Municipio": "Carlinda",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MT",
+      "Nome_Municipio": "Chapada dos Guimarães",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "MT",
+      "Nome_Municipio": "Terra Nova do Norte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PA",
+      "Nome_Municipio": "Monte Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PA",
+      "Nome_Municipio": "Parauapebas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PA",
+      "Nome_Municipio": "Rondon do Pará",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PA",
+      "Nome_Municipio": "São Félix do Xingu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PA",
+      "Nome_Municipio": "Tucuruí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Brejo da Madre de Deus",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Carnaíba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Caruaru",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Custódia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Pesqueira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Petrolina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PE",
+      "Nome_Municipio": "Serra Talhada",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PI",
+      "Nome_Municipio": "Morro do Chapéu do Piauí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PI",
+      "Nome_Municipio": "Valença do Piauí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Adrianópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Agudos do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Almirante Tamandaré",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Alto Paraná",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Alto Paraíso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Altônia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Alvorada do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Amaporã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ampére",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Andirá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Antonina",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Antônio Olinto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Apucarana",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Arapongas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Araruna",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Araucária",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Assaí",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Assis Chateaubriand",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Astorga",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Balsa Nova",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Barbosa Ferraz",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Barracão",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Bela Vista da Caroba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Bela Vista do Paraíso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Bituruna",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Boa Esperança do Iguaçu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Boa Ventura de São Roque",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Boa Vista da Aparecida",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Bom Jesus do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Bom Sucesso do Sul",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Borrazópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Braganey",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cafelândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Califórnia",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cambira",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cambé",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Campina da Lagoa",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Campina do Simão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Campo Bonito",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Campo Largo",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Campo Mourão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Candói",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cantagalo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Capanema",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Capitão Leônidas Marques",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Carambeí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cascavel",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Castro",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Catanduvas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Centenário do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Chopinzinho",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cianorte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cidade Gaúcha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Clevelândia",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Colombo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Colorado",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Congonhinhas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Contenda",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Corbélia",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Coronel Domingos Soares",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Coronel Vivida",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Corumbataí do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cruzeiro do Iguaçu",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cruzeiro do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Curitiba",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Cândido de Abreu",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Céu Azul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Diamante DOeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Diamante do Norte",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Diamante do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Dois Vizinhos",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Douradina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Doutor Camargo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Doutor Ulysses",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Engenheiro Beltrão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Entre Rios do Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Enéas Marques",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Espigão Alto do Iguaçu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Farol",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Faxinal",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Fazenda Rio Grande",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Fernandes Pinheiro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Flor da Serra do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Floresta",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Formosa do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Foz do Iguaçu",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Foz do Jordão",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Francisco Beltrão",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Fênix",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "General Carneiro",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Goioerê",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Goioxim",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Guaporema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Guaraniaçu",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Guarapuava",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Guaraqueçaba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Guaratuba",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Honório Serpa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ibema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Iguatu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Imbituva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Indianópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Inácio Martins",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ipiranga",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Iracema do Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Irati",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Itambé",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ivaiporã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ivatuba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ivaí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Jandaia do Sul",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Janiópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Japira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Japurá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Jardim Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Jesuítas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Jundiaí do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Juranda",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Lapa",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Laranjal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Laranjeiras do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Leópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Lidianópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Lindoeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Loanda",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Luiziana",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Lunardelli",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mallet",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mamborê",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mandaguari",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mandaguaçu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Manfrinópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mangueirinha",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Manoel Ribas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marechal Cândido Rondon",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marialva",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marilena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Maringá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Maripá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mariópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marmeleiro",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marquinho",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Marumbi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Matelândia",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mato Rico",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mauá da Serra",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Medianeira",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Mercedes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Miraselva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Missal",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Moreira Sales",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Morretes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Munhoz de Melo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Aurora",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Cantu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Esperança",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Esperança do Sudoeste",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Laranjeiras",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Londrina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Olímpia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Prata do Iguaçu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Santa Rosa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Nova Tebas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Novo Itacolomi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ortigueira",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ourizona",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ouro Verde do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paiçandu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Palmital",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Palotina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paranacity",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paranaguá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paranavaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pato Bragado",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pato Branco",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paula Freitas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Paulo Frontin",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Peabiru",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pinhais",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pinhal de São Bento",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pinhão",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Piraquara",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Piraí do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pitanga",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Planalto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ponta Grossa",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Porto Amazonas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pranchita",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Presidente Castelo Branco",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Prudentópolis",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Pérola dOeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Quatro Barras",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Quedas do Iguaçu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Quitandinha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ramilândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rancho Alegre D`Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Realeza",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rebouças",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Renascença",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Reserva",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Reserva do Iguaçu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rio Azul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rio Bonito do Iguaçu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rio Branco do Ivaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rio Branco do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rio Negro",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rolândia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rondon",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Rosário do Ivaí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Salto do Lontra",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Helena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Isabel do Ivaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Izabel do Oeste",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Lúcia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Maria do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santa Tereza do Oeste",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Santo Antônio do Sudoeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Sarandi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Saudade do Iguaçu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Sengés",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Sertaneja",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Sulina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Jerônimo da Serra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Jorge D`Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Jorge dOeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São José da Boa Vista",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São José das Palmeiras",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São José dos Pinhais",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São João",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São João do Ivaí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São João do Triunfo",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Mateus do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Miguel do Iguaçu",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Pedro do Iguaçu",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Pedro do Ivaí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Sebastião da Amoreira",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "São Tomé",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tapejara",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Teixeira Soares",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Telêmaco Borba",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Terra Rica",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tibagi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tijucas do Sul",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Toledo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Três Barras do Paraná",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tunas do Paraná",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tuneiras do Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Tupãssi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Turvo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ubiratã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Umuarama",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "União da Vitória",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Uraí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Ventania",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Vera Cruz do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Verê",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Virmond",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Vitorino",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "PR",
+      "Nome_Municipio": "Xambrê",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Aperibé",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Araruama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Barra Mansa",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Cabo Frio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Campos dos Goytacazes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Duque de Caxias",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Iguaba Grande",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Itaperuna",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Laje do Muriaé",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Mangaratiba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Miracema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Natividade",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Nova Friburgo",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Nova Iguaçu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Paty do Alferes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Porciúncula",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Porto Real",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Quatis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Rio das Flores",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Sapucaia",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "São José de Ubá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "São João da Barra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Trajano de Moraes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Valença",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "RJ",
+      "Nome_Municipio": "Volta Redonda",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RO",
+      "Nome_Municipio": "Ji-Paraná",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RO",
+      "Nome_Municipio": "Vilhena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Aceguá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Agudo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ajuricaba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alecrim",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alegria",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alpestre",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alto Alegre",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alto Feliz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Alvorada",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Amaral Ferrador",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ametista do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "André da Rocha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Antônio Prado",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arambaré",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Aratiba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio Grande",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio do Meio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio do Padre",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio do Sal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio do Tigre",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arroio dos Ratos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Arvorezinha",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bagé",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Balneário Pinhal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barra Funda",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barra do Guarita",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barra do Ribeiro",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barra do Rio Azul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barracão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barros Cassal",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barão de Cotegipe",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Barão do Triunfo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bento Gonçalves",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Boa Vista das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Boa Vista do Buricá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Boa Vista do Cadeado",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bom Jesus",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bom Progresso",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Boqueirão do Leão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bossoroca",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Bozano",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cacequi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cachoeira do Sul",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cachoeirinha",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cacique Doble",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caibaté",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caiçara",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Camaquã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Camargo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cambará do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Campestre da Serra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Campina das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Campinas do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Campo Novo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Campos Borges",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Candelária",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Canguçu",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Canoas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Capela de Santana",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Capitão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Capão Bonito do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Capão do Cipó",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Capão do Leão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Carazinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caraá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Carlos Barbosa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caseiros",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Catuípe",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caxias do Sul",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Caçapava do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Centenário",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cerrito",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cerro Branco",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cerro Grande do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cerro Largo",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Charqueadas",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Charrua",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Chiapetta",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Chuvisca",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cidreira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ciríaco",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Constantina",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Coqueiro Baixo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Coqueiros do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Coronel Barros",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Coronel Bicaco",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Coxilha",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Crissiumal",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cristal",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cristal do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cruz Alta",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cruzaltense",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cruzeiro do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Cândido Godói",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "David Canabarro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Dezesseis de Novembro",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Dois Lajeados",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Dom Feliciano",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Doutor Maurício Cardoso",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Doutor Ricardo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Eldorado do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Encantado",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Encruzilhada do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Engenho Velho",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Entre Rios do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Entre-Ijuís",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Erebango",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Erechim",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Erval Grande",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Espumoso",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Estação",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Estrela",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Estrela Velha",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Estância Velha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Farroupilha",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Faxinal do Soturno",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Faxinalzinho",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Fazenda Vilanova",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Feliz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Flores da Cunha",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Floriano Peixoto",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Fontoura Xavier",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Formigueiro",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Frederico Westphalen",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Garruchos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "General Câmara",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Gentil",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Getúlio Vargas",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Giruá",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Glorinha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Gramado Xavier",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Gramado dos Loureiros",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Gravataí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Guabiju",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Guaíba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Harmonia",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Herval",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Herveiras",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Horizontina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Hulha Negra",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Humaitá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ibarama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ibiaçá",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ibiraiaras",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ibirapuitã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ibirubá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Igrejinha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ijuí",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ilópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Imigrante",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Independência",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ipiranga do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Iraí",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Itaara",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Itacurubi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Itapuca",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Itaqui",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Itati",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ivorá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jacuizinho",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jacutinga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jaguari",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jaguarão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jari",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Jóia",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Júlio de Castilhos",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lagoa Bonita do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lagoa Vermelha",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lagoa dos Três Cantos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lagoão",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lajeado do Bugre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Lavras do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Liberato Salzano",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Linha Nova",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Mampituba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Manoel Viana",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Maquiné",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Marau",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Marcelino Ramos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Mariana Pimentel",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Mariano Moro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Marques de Souza",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Mata",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Mato Leitão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Maximiliano de Almeida",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Minas do Leão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Miraguaí",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Monte Alegre dos Campos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Monte Belo do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Morrinhos do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Morro Redondo",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Muitos Capões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Muçum",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nonoai",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Alvorada",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Bassano",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Bréscia",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Candelária",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Palma",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Pádua",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Ramada",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Roma do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Nova Santa Rita",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Novo Barreiro",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Novo Hamburgo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Novo Tiradentes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Novo Xingu",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Não-Me-Toque",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Osório",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Paim Filho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Palmares do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Palmeira das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Palmitinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Panambi",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Paraí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Paraíso do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pareci Novo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Parobé",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Passa Sete",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Passo Fundo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Passo do Sobrado",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pedro Osório",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pejuçara",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pinhal Grande",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pinheirinho do Vale",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pinheiro Machado",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pinto Bandeira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pirapó",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Piratini",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Planalto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ponte Preta",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Pontão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Porto Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Porto Mauá",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Porto Vera Cruz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Porto Xavier",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Portão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Progresso",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Putinga",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Quaraí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Quatro Irmãos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Quevedos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Redentora",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Relvado",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Restinga Sêca",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rio Grande",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rio Pardo",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rio dos Índios",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Riozinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Roca Sales",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rodeio Bonito",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rolador",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ronda Alta",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rondinha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Roque Gonzales",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Rosário do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sagrada Família",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Saldanha Marinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Salto do Jacuí",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Salvador das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Salvador do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sananduva",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "SantAna do Livramento",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sant`Ana do Livramento",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Bárbara do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Cecília do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Clara do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Cruz do Sul",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Maria",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Maria do Herval",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Rosa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Tereza",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santa Vitória do Palmar",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santana da Boa Vista",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santiago",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Antônio da Patrulha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Antônio das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Antônio do Palma",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Augusto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Cristo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Expedito do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Santo Ângelo",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sapucaia do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sarandi",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sede Nova",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Segredo",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Selbach",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Senador Salgado Filho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sinimbu",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sobradinho",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Soledade",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Borja",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Francisco de Assis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Francisco de Paula",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Gabriel",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Jerônimo",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José das Missões",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José do Herval",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José do Hortêncio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José do Norte",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José do Ouro",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São José dos Ausentes",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São João do Polêsine",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Lourenço do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Luiz Gonzaga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Marcos",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Martinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Miguel das Missões",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Nicolau",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Paulo das Missões",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Pedro do Butiá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Sepé",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Valentim",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Valério do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "São Vicente do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Sério",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tabaí",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Taquara",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Taquari",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tavares",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tenente Portela",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tio Hugo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tiradentes do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Toropi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Travesseiro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Trindade do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Triunfo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Três Coroas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Três Forquilhas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Três Palmeiras",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Três Passos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tunas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tupanci do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tupanciretã",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Tuparendi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Ubiretama",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Unistalda",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "União da Serra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vacaria",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vale Real",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vanini",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Venâncio Aires",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vera Cruz",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Veranópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vespasiano Corrêa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Viadutos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Viamão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vicente Dutra",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Victor Graeff",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vila Flores",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vila Lângaro",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vila Maria",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vila Nova do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vista Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vista Gaúcha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Vitória das Missões",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Água Santa",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "RS",
+      "Nome_Municipio": "Áurea",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Abdon Batista",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Abelardo Luz",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Agrolândia",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Agronômica",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Alto Bela Vista",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Anchieta",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Angelina",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Anita Garibaldi",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Anitápolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Antônio Carlos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Apiúna",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Arabutã",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Araquari",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Armazém",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Arroio Trinta",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ascurra",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Atalanta",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Aurora",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Balneário Arroio do Silva",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Balneário Camboriú",
+      "quantidade_registros": 10
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Balneário Gaivota",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Balneário Piçarras",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bandeirante",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Barra Bonita",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Barra Velha",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bela Vista do Toldo",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Benedito Novo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Biguaçu",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Blumenau",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bocaina do Sul",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bom Jardim da Serra",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bom Jesus",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Bom Retiro",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Braço do Norte",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Braço do Trombudo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Brunópolis",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Brusque",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Caibi",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Calmon",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Camboriú",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Campo Alegre",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Campo Belo do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Campo Erê",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Campos Novos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Canelinha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Canoinhas",
+      "quantidade_registros": 12
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Capinzal",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Capão Alto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Catanduvas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Caxambu do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Caçador",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Celso Ramos",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Cerro Negro",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Chapadão do Lageado",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Chapecó",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Concórdia",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Cordilheira Alta",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Coronel Freitas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Correia Pinto",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Criciúma",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Cunha Porã",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Curitibanos",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Dionísio Cerqueira",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Dona Emma",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Entre Rios",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Erval Velho",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Faxinal dos Guedes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Flor do Sertão",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Florianópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Formosa do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Forquilhinha",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Fraiburgo",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Frei Rogério",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Galvão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Garuva",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Gaspar",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Governador Celso Ramos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Grão Pará",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Guaraciaba",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Guarujá do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Guatambú",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Herval D`Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Herval dOeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ibiam",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ibicaré",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ibirama",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ilhota",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Imaruí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Imbituba",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Imbuia",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ipira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ipuaçu",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ipumirim",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Iraceminha",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Irani",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Irati",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Irineópolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Itaiópolis",
+      "quantidade_registros": 11
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Itajaí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Itapema",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Itapoá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ituporanga",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Jaborá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Jacinto Machado",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Jaraguá do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Joaçaba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Joinville",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lacerdópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lages",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lajeado Grande",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Laurentino",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lauro Müller",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lebon Régis",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Leoberto Leal",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lindóia do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Lontras",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Luiz Alves",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Macieira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Mafra",
+      "quantidade_registros": 12
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Major Gercino",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Major Vieira",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Maracajá",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Maravilha",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Marema",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Matos Costa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Meleiro",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Mirim Doce",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Modelo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Mondaí",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Monte Carlo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Monte Castelo",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Morro Grande",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Navegantes",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Nova Erechim",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Nova Trento",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Nova Veneza",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Novo Horizonte",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Orleans",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Otacílio Costa",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ouro",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ouro Verde",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Painel",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Palhoça",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Palma Sola",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Palmeira",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Palmitos",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Papanduva",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Paraíso",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Passos Maia",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Peritiba",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Petrolândia",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Pinhalzinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Pinheiro Preto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Planalto Alegre",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Pomerode",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ponte Alta",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ponte Alta do Norte",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Ponte Serrada",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Porto União",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Pouso Redondo",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Praia Grande",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Presidente Getúlio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Presidente Nereu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Princesa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Quilombo",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rancho Queimado",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio Fortuna",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio Negrinho",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio Rufino",
+      "quantidade_registros": 8
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio das Antas",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio do Campo",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio do Oeste",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Rio do Sul",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Romelândia",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Salete",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Saltinho",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santa Cecília",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santa Rosa do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santa Terezinha",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santa Terezinha do Progresso",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santiago do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Santo Amaro da Imperatriz",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Saudades",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Seara",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Serra Alta",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Sombrio",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Bento do Sul",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Bernardino",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Carlos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Cristovão do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Cristóvão do Sul",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Francisco do Sul",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Joaquim",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São José do Cedro",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São José do Cerrito",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São João Batista",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São João do Itaperiú",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São João do Oeste",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São João do Sul",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Lourenço do Oeste",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Ludgero",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Martinho",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Miguel do Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "São Pedro de Alcântara",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Taió",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Tangará",
+      "quantidade_registros": 9
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Tigrinhos",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Tijucas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Timbó Grande",
+      "quantidade_registros": 9
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Trombudo Central",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Três Barras",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Tunápolis",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Turvo",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "União do Oeste",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Urubici",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Urupema",
+      "quantidade_registros": 7
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Vargem",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Vargem Bonita",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Vargeão",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Vidal Ramos",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Videira",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Witmarsum",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Xanxerê",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Xavantina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Xaxim",
+      "quantidade_registros": 5
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Zortéa",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Águas Mornas",
+      "quantidade_registros": 4
+    },
+    {
+      "UF": "SC",
+      "Nome_Municipio": "Águas de Chapecó",
+      "quantidade_registros": 6
+    },
+    {
+      "UF": "SE",
+      "Nome_Municipio": "Canindé de São Francisco",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SE",
+      "Nome_Municipio": "Riachão do Dantas",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Américo de Campos",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Cajamar",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Capão Bonito",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Dolcinópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Dracena",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Emilianópolis",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Franca",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Guarani D`Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Guareí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Ipeúna",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Jacupiranga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Mirassol",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Morro Agudo",
+      "quantidade_registros": 3
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Nantes",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Nova Campina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Nova Guataporanga",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Pacaembu",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Palmeira D`Oeste",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Paraguaçu Paulista",
+      "quantidade_registros": 2
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Parapuã",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Presidente Epitácio",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Ribeirão Preto",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Salmourão",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Sandovalina",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "São Manuel",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Tatuí",
+      "quantidade_registros": 1
+    },
+    {
+      "UF": "SP",
+      "Nome_Municipio": "Turmalina",
+      "quantidade_registros": 1
+    }
+  ],
+  "alvos": {
+    "3500402": "Águas da Prata",
+    "3102605": "Andradas",
+    "3542006": "Espírito Santo do Pinhal",
+    "3151800": "Poços de Caldas",
+    "3549102": "São João da Boa Vista",
+    "3556403": "Vargem Grande do Sul"
+  },
+  "interpretacao": "Diagnostico de associacao. Nao constitui classificacao de ocorrencia positiva ou negativa."
+}

@@ -1,0 +1,47 @@
+{
+  "protocol": "G7.4/P8",
+  "generated_at_utc": "20261013",
+  "artifact_type": "RECUPERACAO_DOCUMENTAL_E_REGISTRO_DE_EVIDENCIA",
+  "title": "P8 — REGISTRO DO RELATORIO RECUPERADO E LIMITES DE REPRODUCAO",
+  "classification": "P8_RELATORIO_RECUPERADO_REEXECUCAO_DA_INTEGRACAO_PENDENTE",
+  "authority_model": "ecmwf_ifs025",
+  "comparison_model": "ecmwf_ifs",
+  "runs": [
+    "2026-04-02T00:00",
+    "2026-04-15T00:00",
+    "2026-10-03T00:00"
+  ],
+  "variables_count": 14,
+  "recovered_local_artifact": {
+    "path": "reports/g74_p0/p8_controlled_integration_20261007T130339Z.json",
+    "bytes": 4940,
+    "json_syntax_valid": true,
+    "local_git_state_at_recovery": "untracked"
+  },
+  "prior_report_facts": {
+    "protocol": "G7.4/P8",
+    "generated_at_utc": "20261007T130339Z",
+    "prior_classification": "P8_INTEGRACAO_CONTROLADA_VALIDADA",
+    "authority_model": "ecmwf_ifs025",
+    "comparison_model": "ecmwf_ifs",
+    "variables_count": 14
+  },
+  "evidence_available_in_current_branch": {
+    "prior_p9_report": "reports/g74_p0/p9_regression_validation_20261010T201314Z.json",
+    "raw_payloads_for_the_three_runs_present_at_referenced_paths": false,
+    "canonical_staging_payloads_for_the_three_runs_present_at_referenced_paths": false
+  },
+  "decision": {
+    "historical_report_recovered": true,
+    "json_syntax_checked": true,
+    "api_to_raw_to_staging_flow_reexecuted_in_this_artifact": false,
+    "gate_pass_claimed": false,
+    "reason": "O relatório recuperado registra aprovação histórica, mas a integração não foi reexecutada neste registro e os RAW/staging referenciados pelo P9 posterior não estão presentes nos caminhos consultados da branch main."
+  },
+  "next_required_action": "Depois da validação P7 e da restauração versionada dos RAW originais, executar a integração API → RAW → staging canônico → validação para as três RUNs, preservando valores, unidades e ausências.",
+  "non_goals": [
+    "Não converter ausência em zero.",
+    "Não substituir RAW original por resposta reconstruída.",
+    "Não alterar componentes operacionais do Django."
+  ]
+}

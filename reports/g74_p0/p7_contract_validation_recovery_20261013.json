@@ -1,0 +1,54 @@
+{
+  "protocol": "G7.4/P7",
+  "generated_at_utc": "20261013",
+  "artifact_type": "RECUPERACAO_DOCUMENTAL_E_REGISTRO_DE_EVIDENCIA",
+  "title": "P7 — REGISTRO DO RELATORIO RECUPERADO E LIMITES DE REVALIDACAO",
+  "classification": "P7_RELATORIO_RECUPERADO_REVALIDACAO_DOS_DADOS_PENDENTE",
+  "authority_model": "ecmwf_ifs025",
+  "comparison_model": "ecmwf_ifs",
+  "runs": [
+    "2026-04-02T00:00",
+    "2026-04-15T00:00",
+    "2026-10-03T00:00"
+  ],
+  "variables_count": 14,
+  "recovered_local_artifact": {
+    "path": "reports/g74_p0/p7_contract_validation_20261007T125629Z.json",
+    "bytes": 1099023,
+    "json_syntax_valid": true,
+    "local_git_state_at_recovery": "untracked"
+  },
+  "prior_report_facts": {
+    "protocol": "G7.4/P7",
+    "title": "VALIDACAO_CONTRATO_CANONICO",
+    "generated_at_utc": "20261007T125629Z",
+    "reference_location": {
+      "latitude": -21.7874,
+      "longitude": -46.5614,
+      "timezone": "GMT"
+    },
+    "cell_selection": "land",
+    "forecast_days": 2,
+    "authority_model": "ecmwf_ifs025",
+    "comparison_model": "ecmwf_ifs",
+    "variables_count": 14
+  },
+  "evidence_available_in_current_branch": {
+    "prior_p9_report": "reports/g74_p0/p9_regression_validation_20261010T201314Z.json",
+    "raw_payloads_for_the_three_runs_present_at_referenced_paths": false,
+    "canonical_staging_payloads_for_the_three_runs_present_at_referenced_paths": false
+  },
+  "decision": {
+    "historical_report_recovered": true,
+    "json_syntax_checked": true,
+    "full_contract_revalidation_performed_in_this_artifact": false,
+    "gate_pass_claimed": false,
+    "reason": "Os artefatos RAW e staging referenciados pelo P9 de 10/10/2026 não estão presentes nos caminhos consultados da branch main. O relatório recuperado localmente comprova a existência do relatório anterior, mas não substitui a reprodução do contrato de 14 variáveis."
+  },
+  "next_required_action": "Na máquina local, preservar/restaurar os RAW e staging originais a partir de fonte verificável; então executar novamente P7 sobre as três RUNs e versionar o relatório e as evidências antes de P8.",
+  "non_goals": [
+    "Não reconstruir valores meteorológicos ausentes.",
+    "Não tratar este registro de recuperação como aprovação do P7.",
+    "Não alterar componentes operacionais do Django."
+  ]
+}

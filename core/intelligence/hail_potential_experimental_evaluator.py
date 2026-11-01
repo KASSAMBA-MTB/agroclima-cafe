@@ -343,6 +343,7 @@ class HailPotentialExperimentalEvaluator:
         return {
             "component_id": self.COMPONENT_ID,
             "method_version": self.METHOD_VERSION,
+            "experimental_diagnostic_version": self.METHOD_VERSION,
             "evaluation_status": EXPERIMENTAL_STATUS,
             "classification_status": CLASSIFICATION_STATUS,
             "potential_level": None,
@@ -359,6 +360,7 @@ class HailPotentialExperimentalEvaluator:
                 "valid_from": source.get("valid_from"),
                 "valid_to": source.get("valid_to"),
                 "input_method_version": source.get("method_version"),
+            "input_canonical_method_version": source.get("canonical_method_version") or source.get("method_version"),
             },
             "data_quality": deepcopy(data_quality),
             "limitations": [
@@ -434,6 +436,7 @@ class HailPotentialExperimentalEvaluator:
         return {
             "component_id": self.COMPONENT_ID,
             "method_version": self.METHOD_VERSION,
+            "experimental_diagnostic_version": self.METHOD_VERSION,
             "evaluation_status": EXPERIMENTAL_STATUS,
             "classification_status": INSUFFICIENT_STATUS,
             "potential_level": None,
@@ -450,6 +453,7 @@ class HailPotentialExperimentalEvaluator:
                 "valid_from": source.get("valid_from"),
                 "valid_to": source.get("valid_to"),
                 "input_method_version": source.get("method_version"),
+            "input_canonical_method_version": source.get("canonical_method_version") or source.get("method_version"),
             },
             "data_quality": deepcopy(data_quality),
             "limitations": [

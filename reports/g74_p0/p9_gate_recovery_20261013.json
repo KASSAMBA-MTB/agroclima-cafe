@@ -1,0 +1,49 @@
+{
+  "protocol": "G7.4/P9",
+  "generated_at_utc": "20261013",
+  "artifact_type": "DECISAO_DE_GATE_APOS_RECUPERACAO_DOCUMENTAL",
+  "classification": "P9_REEXECUCAO_CONTROLADA_PENDENTE",
+  "prior_report": "reports/g74_p0/p9_regression_validation_20261010T201314Z.json",
+  "p7_recovery_report": "reports/g74_p0/p7_contract_validation_recovery_20261013.json",
+  "p8_recovery_report": "reports/g74_p0/p8_controlled_integration_recovery_20261013.json",
+  "authority_model": "ecmwf_ifs025",
+  "comparison_model": "ecmwf_ifs",
+  "runs": [
+    "2026-04-02T00:00",
+    "2026-04-15T00:00",
+    "2026-10-03T00:00"
+  ],
+  "variables_count": 14,
+  "decisions": [
+    {
+      "run": "2026-04-02T00:00",
+      "historical_p9_reported_valid": true,
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    },
+    {
+      "run": "2026-04-15T00:00",
+      "historical_p9_reported_valid": true,
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    },
+    {
+      "run": "2026-10-03T00:00",
+      "historical_p9_reported_valid": true,
+      "raw_and_staging_available_in_main_at_referenced_paths": false
+    }
+  ],
+  "gate_decision": {
+    "p7": "RECUPERACAO_DOCUMENTAL_REGISTRADA; REVALIDACAO DOS DADOS PENDENTE",
+    "p8": "RECUPERACAO_DOCUMENTAL_REGISTRADA; REEXECUCAO DA INTEGRACAO PENDENTE",
+    "p9": "NAO REEXECUTADO; NAO HOMOLOGADO"
+  },
+  "reason": "O P9 de 10/10/2026 registrou os três runs como válidos, mas falhou por não encontrar os artefatos P7/P8 esperados. Os relatórios recuperados localmente foram registrados por novos relatórios de recuperação. Como os RAW/staging referenciados não estão disponíveis nos caminhos consultados da branch main, não é legítimo declarar nova aprovação P7/P8/P9.",
+  "required_to_close": [
+    "Disponibilizar os RAW originais e staging canônicos das três RUNs a partir de fonte verificável.",
+    "Reexecutar P7 sobre o contrato histórico de 14 variáveis.",
+    "Reexecutar P8 na sequência API → RAW → staging canônico → validação.",
+    "Reexecutar P9 e registrar as referências exatas aos relatórios P7/P8 gerados no mesmo ciclo."
+  ],
+  "operational_components_changed": false,
+  "raw_payloads_reconstructed": false,
+  "production_homologation": false
+}

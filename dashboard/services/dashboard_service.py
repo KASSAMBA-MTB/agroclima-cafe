@@ -1143,9 +1143,9 @@ class DashboardService:
         if not map_points:
             return []
 
-        # MP-01.12: uma aquisição em lote para todos os municípios, fora do
-        # loop de inteligência. A falha da fonte não interrompe o dashboard;
-        # o avaliador recebe dados ausentes e mantém INSUFFICIENT_DATA.
+        # MP-01.12: uma chamada à interface pública do serviço coleta cada
+        # município em uma solicitação Open-Meteo individual, fora do loop de
+        # inteligência. Falha individual não interrompe o dashboard.
         hail_inputs_by_id = {}
         try:
             hail_inputs_by_id = HailMeteorologicalInputService().fetch_for_points(
@@ -1175,10 +1175,9 @@ class DashboardService:
             if hail_input is None and municipio_id != point_id:
                 hail_input = hail_inputs_by_id.get(municipio_id)
 
-            # Recuperação isolada: uma resposta em lote incompleta ou inválida
-            # não pode zerar as entradas de todos os municípios. Reconsulta
-            # somente o ponto sem série utilizável; a regra de granizo continua
-            # sendo executada uma única vez pelo IntelligenceEngine.
+            # Recuperação isolada de série parcial. Ausência e falha são
+            # representadas como dados ausentes após os retries do serviço;
+            # a regra de granizo continua executada uma única vez pelo motor.
             required_hail_variables = (
                 "cape",
                 "wind_speed_925hPa",
@@ -1200,7 +1199,18 @@ class DashboardService:
                 )
             )
 
-            if hail_input_incomplete:
+            # A ausência indica que a aquisição individual já falhou ou que
+            # não havia coordenadas utilizáveis. O serviço já aplicou seu
+            # retry HTTP; repetir aqui multiplicaria as tentativas. Reconsulta
+            # somente séries parciais efetivamente recebidas, que não entram
+            # no cache e podem ser recuperadas nesta chamada isolada.
+            has_partial_hail_input = (
+                isinstance(hail_input, dict)
+                and isinstance(hail_series, dict)
+                and bool(hail_series)
+                and hail_input_incomplete
+            )
+            if has_partial_hail_input:
                 try:
                     individual_inputs = HailMeteorologicalInputService().fetch_for_points(
                         [point]
@@ -1326,58 +1336,40 @@ class DashboardService:
             }
 
             # --------------------------------------------------
-            # API CANÔNICA DO FRI
+            # RESULTADO INTEGRAL DA AVALIAÇÃO MUNICIPAL
             # --------------------------------------------------
-            # O FRI é obtido pela API pública evaluate_frost().
-            # O resultado completo da mesma execução permanece
-            # disponível em FrostRiskService.last_result.
+            # O retorno vinculado à chamada contém o FRI e o resultado
+            # integral do IntelligenceEngine desta avaliação municipal.
             #
             # Isso evita:
             #   - segunda execução do IntelligenceEngine;
             #   - divergência entre FRI e demais resultados;
-            #   - dependência direta do DashboardService sobre a
-            #     estrutura interna do motor.
-            evaluation_succeeded = False
+            #   - leitura posterior de estado mutável compartilhado.
+            intelligence = {}
 
             try:
-                frost = self.frost_risk_service.evaluate_frost(
-                    context
+                evaluate_with_result = getattr(
+                    type(self.frost_risk_service),
+                    "evaluate_frost_with_result",
+                    None,
                 )
-                evaluation_succeeded = True
+                if callable(evaluate_with_result):
+                    intelligence = self.frost_risk_service.evaluate_frost_with_result(
+                        context
+                    )
+                else:
+                    # Compatibilidade com adapters legados que só expõem
+                    # evaluate_frost(): preserva o FRI sem consultar estado
+                    # compartilhado ou executar o motor uma segunda vez.
+                    frost = self.frost_risk_service.evaluate_frost(context)
+                    intelligence = {"frost": frost}
             except Exception:
-                frost = {}
-
-                # Invalida explicitamente o resultado anterior. Mesmo que
-                # a próxima camada consulte last_result, ela não poderá
-                # reutilizar a avaliação de outro município.
-                if hasattr(self.frost_risk_service, "last_result"):
-                    self.frost_risk_service.last_result = {}
-
-            if not isinstance(frost, dict):
-                frost = {}
-
-            # last_result is consumed only after a successful evaluation.
-            # The exception path above clears it to prevent cross-municipality reuse.
-            if evaluation_succeeded:
-                intelligence = getattr(
-                    self.frost_risk_service,
-                    "last_result",
-                    {},
-                )
-            else:
                 intelligence = {}
 
             if not isinstance(intelligence, dict):
                 intelligence = {}
 
-            # Compatibilidade defensiva com testes/adapters que
-            # implementam apenas evaluate_frost(). Em produção,
-            # FrostRiskService V1.1/V1.2 sempre fornece last_result
-            # com o resultado completo da mesma avaliação.
-            if not intelligence:
-                intelligence = {
-                    "frost": frost,
-                }
+            frost = intelligence.get("frost", {})
             if not isinstance(frost, dict):
                 frost = {}
 
@@ -2264,17 +2256,18 @@ class DashboardService:
 #     FrostRiskService.evaluate_frost().
 #
 # Correção:
-#     1. evaluate_frost(context) tornou-se a API canônica para obter o FRI.
-#     2. last_result transporta o resultado completo da mesma execução.
+#     1. evaluate_frost_with_result(context) retorna o resultado completo.
+#     2. evaluate_frost(context) permanece compatível e retorna somente FRI.
 #     3. rule_results, insights, recommendations, alerts e explainability
 #        continuam provenientes da mesma avaliação.
-#     4. Nenhum cálculo de FRI foi introduzido no DashboardService.
+#     4. O transporte não usa estado compartilhado mutável.
+#     5. Nenhum cálculo de FRI foi introduzido no DashboardService.
 #
 # Garantia arquitetural:
 #     contexto municipal
-#         -> FrostRiskService.evaluate_frost()
+#         -> FrostRiskService.evaluate_frost_with_result()
 #         -> IntelligenceEngine (uma execução)
-#         -> last_result
+#         -> retorno vinculado à chamada
 #         -> FRI + demais resultados
 #         -> map_point
 #

@@ -1,0 +1,113 @@
+====================================================================================================
+G8 / P9.3 — HISTORICAL FORECAST / ANDRADAS / 2025-07-25
+====================================================================================================
+PROBE_VERSION: G8-P9.3-0.1
+EXECUTED_AT_UTC: 2026-10-08T21:46:41.323103+00:00
+
+IDENTIDADE DA CONSULTA
+LOCATION: Andradas/MG
+LATITUDE: -22.0686
+LONGITUDE: -46.5724
+DATE: 2025-07-25 -> 2025-07-25
+MODEL_REQUESTED: ecmwf_ifs025
+TIMEZONE: UTC
+WIND_SPEED_UNIT: ms
+DATASET: HISTORICAL_FORECAST_API
+
+PROVENIÊNCIA DO EVENTO
+EMATER-MG 2025: confirma ocorrência de granizo em Andradas em 2025,
+com 204,0 ha afetados, sendo 200 ha de café e 4 ha de olericultura.
+O relatório EMATER não informa a data específica do evento.
+A data 2025-07-25 usada nesta sonda vem de fonte independente anterior
+ao relatório EMATER e não deve ser atribuída à EMATER.
+
+URL DA CONSULTA
+https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=-22.0686&longitude=-46.5724&start_date=2025-07-25&end_date=2025-07-25&hourly=cape%2Cwet_bulb_temperature_2m%2Ctemperature_850hPa%2Crelative_humidity_850hPa%2Cwind_speed_925hPa%2Cwind_direction_925hPa%2Cwind_speed_500hPa%2Cwind_direction_500hPa&models=ecmwf_ifs025&timezone=UTC&wind_speed_unit=ms
+
+RESULTADO HTTP
+HTTP_STATUS: 200
+
+METADADOS RETORNADOS
+latitude: -22.0
+longitude: -46.5
+elevation: 885.0
+timezone: GMT
+timezone_abbreviation: GMT
+utc_offset_seconds: 0
+generationtime_ms: 123.40390682220459
+
+UNIDADES RETORNADAS
+cape: J/kg
+wet_bulb_temperature_2m: °C
+temperature_850hPa: °C
+relative_humidity_850hPa: %
+wind_speed_925hPa: m/s
+wind_direction_925hPa: °
+wind_speed_500hPa: m/s
+wind_direction_500hPa: °
+
+COBERTURA HORÁRIA
+TIMESTAMP_COUNT: 24
+FIRST_TIMESTAMP: 2025-07-25T00:00
+LAST_TIMESTAMP: 2025-07-25T23:00
+
+COMPLETUDE POR VARIÁVEL
+cape: count=24 valid=24 null=0
+wet_bulb_temperature_2m: count=24 valid=24 null=0
+temperature_850hPa: count=24 valid=24 null=0
+relative_humidity_850hPa: count=24 valid=24 null=0
+wind_speed_925hPa: count=24 valid=24 null=0
+wind_direction_925hPa: count=24 valid=24 null=0
+wind_speed_500hPa: count=24 valid=24 null=0
+wind_direction_500hPa: count=24 valid=24 null=0
+
+SÉRIE HORÁRIA + DERIVAÇÕES G8/P7
+timestamp | cape | wet_bulb_2m | temp_850 | rh_850 | wind925_ms | dir925_deg | wind500_ms | dir500_deg | shear_925_500_ms | cape_shear
+--------------------------------------------------------------------------------------------------------------------------------------
+2025-07-25T00:00 | 410.000 | 14.000 | 15.400 | 67 | 0.750 | 27 | 21.730 | 274 | 22.034 | 9033.885
+2025-07-25T01:00 | 430.000 | 13.700 | 15.600 | 66 | 0.960 | 36 | 22.000 | 271 | 22.564 | 9702.666
+2025-07-25T02:00 | 460.000 | 13.400 | 15.900 | 65 | 1.350 | 42 | 22.680 | 268 | 23.638 | 10873.363
+2025-07-25T03:00 | 480.000 | 13.300 | 15.900 | 65 | 1.580 | 45 | 23.060 | 266 | 24.275 | 11651.800
+2025-07-25T04:00 | 470.000 | 13.300 | 15.300 | 69 | 1.660 | 42 | 23.420 | 265 | 24.660 | 11590.223
+2025-07-25T05:00 | 450.000 | 13.200 | 14.500 | 75 | 1.750 | 40 | 23.750 | 265 | 25.018 | 11258.126
+2025-07-25T06:00 | 420.000 | 13.200 | 13.900 | 80 | 1.750 | 40 | 24.060 | 266 | 25.307 | 10628.932
+2025-07-25T07:00 | 380.000 | 13.100 | 13.600 | 81 | 1.660 | 42 | 24.060 | 266 | 25.280 | 9606.558
+2025-07-25T08:00 | 340.000 | 13.100 | 13.500 | 81 | 1.500 | 48 | 23.700 | 267 | 24.884 | 8460.434
+2025-07-25T09:00 | 320.000 | 13.400 | 13.600 | 80 | 1.430 | 51 | 23.690 | 268 | 24.847 | 7951.026
+2025-07-25T10:00 | 300.000 | 13.900 | 13.800 | 77 | 1.430 | 51 | 23.680 | 268 | 24.837 | 7451.089
+2025-07-25T11:00 | 300.000 | 15.000 | 14.000 | 74 | 1.590 | 51 | 24.000 | 270 | 25.255 | 7576.648
+2025-07-25T12:00 | 360.000 | 15.700 | 14.200 | 72 | 1.820 | 43 | 24.340 | 271 | 25.594 | 9213.689
+2025-07-25T13:00 | 570.000 | 16.400 | 14.500 | 72 | 2.450 | 30 | 24.670 | 271 | 25.946 | 14789.459
+2025-07-25T14:00 | 840.000 | 16.900 | 14.800 | 74 | 3.320 | 20 | 24.670 | 271 | 25.942 | 21790.873
+2025-07-25T15:00 | 960.000 | 17.200 | 14.700 | 77 | 3.440 | 13 | 24.330 | 270 | 25.327 | 24313.545
+2025-07-25T16:00 | 770.000 | 17.000 | 14.000 | 81 | 2.130 | 354 | 22.690 | 267 | 22.678 | 17462.443
+2025-07-25T17:00 | 430.000 | 16.500 | 13.000 | 86 | 1.570 | 274 | 20.470 | 263 | 18.931 | 8140.423
+2025-07-25T18:00 | 190.000 | 16.000 | 12.300 | 89 | 2.760 | 238 | 19.020 | 259 | 16.473 | 3129.877
+2025-07-25T19:00 | 190.000 | 15.700 | 12.300 | 89 | 2.370 | 225 | 18.110 | 257 | 16.149 | 3068.317
+2025-07-25T20:00 | 280.000 | 15.700 | 12.700 | 86 | 1.380 | 194 | 17.790 | 257 | 17.207 | 4818.095
+2025-07-25T21:00 | 330.000 | 15.200 | 13.200 | 82 | 1.050 | 148 | 16.990 | 254 | 17.309 | 5711.928
+2025-07-25T22:00 | 240.000 | 14.500 | 13.600 | 75 | 0.870 | 130 | 15.850 | 248 | 16.277 | 3906.378
+2025-07-25T23:00 | 100.000 | 13.500 | 14.200 | 66 | 0.460 | 104 | 14.810 | 239 | 15.139 | 1513.876
+
+VALIDAÇÃO P9.3
+ROWS_WITH_CAPE_SHEAR: 24
+TOTAL_ROWS: 24
+DECISÃO_P9_3: EVIDÊNCIA DISPONÍVEL — Historical Forecast retornou o conjunto mínimo necessário para reproduzir G8/P7 no período consultado.
+
+RESTRIÇÕES
+- Não interpretar CAPE-SHEAR como probabilidade de granizo.
+- Não aplicar thresholds de NONE/LOW/MODERATE/HIGH.
+- Não declarar ocorrência de granizo a partir desta série.
+- Não misturar esta série com Single Runs.
+- Não alterar código de produção nesta etapa.
+
+RAW_RESPONSE_METADATA
+{
+  "latitude": -22.0,
+  "longitude": -46.5,
+  "generationtime_ms": 123.40390682220459,
+  "utc_offset_seconds": 0,
+  "timezone": "GMT",
+  "timezone_abbreviation": "GMT",
+  "elevation": 885.0
+}

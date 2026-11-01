@@ -1,0 +1,34 @@
+AGROCLIMA CAFE ? MP-01.13
+AUDITORIA DE REGISTROS ATLAS / GRANIZO
+========================================================================
+
+Arquivo: BD_Atlas_1991_2025_v1.1_2026.08.06_Consolidado.xlsx
+SHA-256: b7871f503d57887f5a77e7064cbf278cb8a34edfc46c9daddb241c465341cf7e
+COBRADE granizo: 13213
+
+Linhas examinadas: 76190
+Registros de granizo na base: 2284
+Registros nos seis munic?pios: 0
+Registros ap?s deduplica??o: 0
+Linhas em protocolos duplicados: 0
+Registros sem protocolo: 0
+
+REGISTROS POR MUNICIPIO
+- ?guas da Prata: 0
+- Andradas: 0
+- Esp?rito Santo do Pinhal: 0
+- Po?os de Caldas: 0
+- S?o Jo?o da Boa Vista: 0
+- Vargem Grande do Sul: 0
+
+REGISTROS POR STATUS
+
+RESSALVAS
+- Aus?ncia de registro no Atlas n?o equivale a ocorr?ncia negativa.
+- Status administrativo n?o comprova, isoladamente, granizo observado no solo.
+- Data_Registro n?o substitui Data_Evento.
+- Duplicidade foi identificada por Protocolo_S2iD; registros sem protocolo foram preservados.
+- A extra??o n?o constitui homologa??o cient?fica nem valida??o de modelo.
+
+DECISAO
+A extra??o organiza candidatos documentais. N?o homologa ocorr?ncias nem cria negativos cient?ficos.

@@ -1,0 +1,12 @@
+﻿{
+    "evento":  "Granizo em Andradas",
+    "data_evento":  "2025-07-25",
+    "municipio":  "Andradas",
+    "codigo_ibge":  "3102605",
+    "latitude_consulta":  -22.071,
+    "longitude_consulta":  -46.573,
+    "fonte_era5":  "https://archive-api.open-meteo.com/v1/archive?latitude=-22.071\u0026longitude=-46.573\u0026start_date=2025-07-25\u0026end_date=2025-07-25\u0026hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,pressure_msl,surface_pressure,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,wind_speed_10m,wind_direction_10m,wind_gusts_10m,boundary_layer_height,wet_bulb_temperature_2m,total_column_integrated_water_vapour\u0026timezone=America%2FSao_Paulo\u0026models=era5\u0026timeformat=iso8601",
+    "fonte_previsao":  "https://historical-forecast-api.open-meteo.com/v1/forecast?latitude=-22.071\u0026longitude=-46.573\u0026start_date=2025-07-25\u0026end_date=2025-07-25\u0026hourly=temperature_2m,relative_humidity_2m,dew_point_2m,precipitation,rain,showers,weather_code,pressure_msl,cloud_cover,wind_speed_10m,wind_gusts_10m,cape,lifted_index,convective_inhibition,freezing_level_height,boundary_layer_height\u0026timezone=America%2FSao_Paulo\u0026timeformat=iso8601",
+    "finalidade":  "Reconstrução meteorológica observacional indireta",
+    "ressalva":  "Reanálise e previsão não comprovam granizo no solo."
+}

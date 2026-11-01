@@ -1,4 +1,4 @@
-﻿"""Executa a montagem MP-01.13 a partir de um manifesto CSV local."""
+"""Executa a montagem MP-01.13 a partir de um manifesto CSV local."""
 
 import argparse
 import json
@@ -40,6 +40,10 @@ def main():
     report["records_received"] = rows_received
     report["records_rejected"] += len(build_errors)
     report["dataset_build_errors"] = build_errors
+    # Preserva cada amostra e sua proveniência para auditoria reproduzível.
+    report["dataset_records"] = records
+    report["record_retention"] = "FULL_RECORDS_WITH_REFERENCE_AND_RAW_PROVENANCE"
+
     report["dataset_builder"] = {
         "component_id": "HAIL_SCIENTIFIC_DATASET_BUILDER",
         "method_version": HailScientificDatasetBuilder.METHOD_VERSION,

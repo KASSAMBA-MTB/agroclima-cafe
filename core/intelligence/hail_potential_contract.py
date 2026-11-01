@@ -56,6 +56,7 @@ class HailPotentialContract:
             "assessment_status": self.assessment_status,
             "potential_level": self.potential_level,
             "method_version": self.method_version,
+            "canonical_method_version": self.method_version,
             "source": self.source,
             "model": self.model,
             "source_run": self.source_run,

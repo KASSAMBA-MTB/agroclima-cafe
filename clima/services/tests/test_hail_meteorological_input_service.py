@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 from zoneinfo import ZoneInfo
 
-from django.test import SimpleTestCase
+import requests
 from django.core.cache import cache
+from django.test import SimpleTestCase
 
 from clima.services.hail_meteorological_input_service import (
     HailMeteorologicalInputService,
@@ -34,8 +35,6 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
         ).isoformat(timespec="minutes")
 
     def setUp(self):
-        # Tests isolate this process-local cache; the application server's
-        # separate LocMemCache process is never touched.
         cache.clear()
 
     def _point_inputs(self):
@@ -48,6 +47,7 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
         return {
             "latitude": latitude,
             "longitude": longitude,
+            "elevation": 850.0,
             "timezone": "America/Sao_Paulo",
             "hourly": {
                 "time": [self.valid_time],
@@ -66,22 +66,73 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
     def _http_response(locations):
         response = Mock()
         response.json.return_value = locations
+        response.raise_for_status.return_value = None
         return response
 
-    def test_six_municipalities_are_associated_by_grid_not_response_order(self):
-        points = self._point_inputs()
-        capes = (650.0, 740.0, 1070.0, 560.0, 650.0, 390.0)
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], cape)
-            for point, cape in zip(points, capes)
-        ]
-        response = self._http_response(list(reversed(locations)))
-        service = HailMeteorologicalInputService(http_get=Mock(return_value=response))
+    def _service_for_locations(self, points, locations):
+        """Mock individual responses selected by the originating point ID."""
+        locations_by_requested_coordinate = {
+            (f"{point['latitude']:.6f}", f"{point['longitude']:.6f}"):
+                locations[point["id"]]
+            for point in points
+        }
 
-        acquired = service.fetch_for_points(points)
+        def response_for_request(_url, *, params, timeout):
+            self.assertEqual(timeout, HailMeteorologicalInputService.TIMEOUT_SECONDS)
+            self.assertNotIn(",", params["latitude"])
+            self.assertNotIn(",", params["longitude"])
+            key = (params["latitude"], params["longitude"])
+            return self._http_response(locations_by_requested_coordinate[key])
+
+        http_get = Mock(side_effect=response_for_request)
+        return HailMeteorologicalInputService(http_get=http_get), http_get
+
+    def _locations_for_points(self, points, capes=None):
+        capes = capes or [100.0] * len(points)
+        return {
+            point["id"]: self._api_location(
+                point["latitude"],
+                point["longitude"],
+                capes[index],
+            )
+            for index, point in enumerate(points)
+        }
+
+    def test_six_municipalities_use_six_individual_requests_and_keep_id(self):
+        points = self._point_inputs()
+        capes = (650.0, 740.0, 1070.0, 560.0, 820.0, 390.0)
+        locations = self._locations_for_points(points, capes)
+
+        service, http_get = self._service_for_locations(points, locations)
+        with self.assertLogs(
+            "clima.services.hail_meteorological_input_service",
+            level="INFO",
+        ) as captured_logs:
+            acquired = service.fetch_for_points(points)
 
         self.assertEqual(len(acquired), 6)
-        for point, expected_cape in zip(points, capes):
+        self.assertEqual(set(acquired), {point["id"] for point in points})
+        self.assertEqual(http_get.call_count, 6)
+        log_output = "\n".join(captured_logs.output)
+        self.assertIn("requests=6", log_output)
+        for point in points:
+            self.assertIn(f"municipio_id={point['id']}", log_output)
+            self.assertNotIn(point["nome"], log_output)
+
+        requested_coordinates = {
+            (call.kwargs["params"]["latitude"], call.kwargs["params"]["longitude"])
+            for call in http_get.call_args_list
+        }
+        self.assertEqual(
+            requested_coordinates,
+            {
+                (f"{point['latitude']:.6f}", f"{point['longitude']:.6f}")
+                for point in points
+            },
+        )
+
+        for index, point in enumerate(points):
+            expected_cape = capes[index]
             with self.subTest(municipality=point["nome"]):
                 entry = acquired[point["id"]]
                 self.assertEqual(entry["series"]["cape"], expected_cape)
@@ -90,176 +141,480 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
                     point["latitude"],
                 )
                 self.assertEqual(
+                    entry["provenance"]["requested_longitude"],
+                    point["longitude"],
+                )
+                self.assertEqual(
                     entry["provenance"]["model_grid_latitude"],
                     point["latitude"],
                 )
+                self.assertEqual(entry["valid_from"], self.valid_time)
+                self.assertEqual(entry["valid_to"], self.valid_time)
+                self.assertEqual(
+                    entry["provenance"]["unit_contract"]["cape"],
+                    "J/kg",
+                )
+                self.assertEqual(
+                    entry["provenance"]["unit_contract"]["wind_speed_925hPa"],
+                    "m/s",
+                )
 
-        # Equal observations for two municipalities are valid evidence, not
-        # proof of a swapped association.
-        self.assertEqual(acquired[3]["series"]["cape"], acquired[1]["series"]["cape"])
-
-    def test_two_municipalities_on_same_grid_receive_same_grid_series(self):
+    def test_same_grid_municipalities_preserve_distinct_returned_series(self):
         points = self._point_inputs()
-        shared_grid = (-21.95, -46.75)
-        locations = []
-        for point in points:
-            grid = (
-                shared_grid
-                if point["id"] in {3, 1}
-                else (point["latitude"], point["longitude"])
-            )
-            locations.append(
-                self._api_location(grid[0], grid[1], 500.0 if grid == shared_grid else 100.0 + point["id"])
-            )
-        acquired = HailMeteorologicalInputService(
-            http_get=Mock(return_value=self._http_response(locations))
-        ).fetch_for_points(points)
+        locations = self._locations_for_points(
+            points,
+            [100.0 + point["id"] for point in points],
+        )
 
-        self.assertEqual(acquired[3]["series"]["cape"], 500.0)
-        self.assertEqual(acquired[1]["series"]["cape"], 500.0)
+        # A mesma grade retornada não autoriza deduplicar nem substituir
+        # a série de um município pela série do outro.
+        shared_latitude = -21.95
+        shared_longitude = -46.75
+        locations[points[0]["id"]]["latitude"] = shared_latitude
+        locations[points[0]["id"]]["longitude"] = shared_longitude
+        locations[points[1]["id"]]["latitude"] = shared_latitude
+        locations[points[1]["id"]]["longitude"] = shared_longitude
+        locations[points[0]["id"]]["hourly"]["cape"] = [321.0]
+        locations[points[1]["id"]]["hourly"]["cape"] = [987.0]
+
+        service, http_get = self._service_for_locations(points, locations)
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertEqual(acquired[points[0]["id"]]["series"]["cape"], 321.0)
+        self.assertEqual(acquired[points[1]["id"]]["series"]["cape"], 987.0)
         self.assertEqual(
-            acquired[3]["provenance"]["model_grid_longitude"],
-            acquired[1]["provenance"]["model_grid_longitude"],
+            acquired[points[0]["id"]]["provenance"]["model_grid_latitude"],
+            acquired[points[1]["id"]]["provenance"]["model_grid_latitude"],
+        )
+        self.assertEqual(
+            acquired[points[0]["id"]]["provenance"]["model_grid_longitude"],
+            acquired[points[1]["id"]]["provenance"]["model_grid_longitude"],
         )
         self.assertNotEqual(
-            acquired[3]["provenance"]["requested_longitude"],
-            acquired[1]["provenance"]["requested_longitude"],
+            acquired[points[0]["id"]]["provenance"]["requested_longitude"],
+            acquired[points[1]["id"]]["provenance"]["requested_longitude"],
         )
 
-    def test_grid_association_ambiguity_fails_closed(self):
-        points = [
-            {"id": 1, "latitude": 0.0, "longitude": -1.0},
-            {"id": 2, "latitude": 0.0, "longitude": 0.0},
-        ]
-        locations = [
-            self._api_location(0.0, -0.5, 100.0),
-            self._api_location(0.0, 0.5, 100.0),
-        ]
-        service = HailMeteorologicalInputService(
-            http_get=Mock(return_value=self._http_response(locations))
-        )
-        with self.assertRaisesRegex(ValueError, "ambígua"):
-            service.fetch_for_points(points)
-
-    def test_missing_grid_coordinates_fail_without_positional_fallback(self):
+    def test_malformed_individual_response_is_omitted_without_shifting_others(self):
         points = self._point_inputs()
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], 100.0)
-            for point in points
-        ]
-        locations[0].pop("latitude")
-        service = HailMeteorologicalInputService(
-            http_get=Mock(return_value=self._http_response(locations))
-        )
-        with self.assertRaisesRegex(ValueError, "coordenadas de grade"):
-            service.fetch_for_points(points)
+        locations = self._locations_for_points(points)
+        locations[points[2]["id"]] = {
+            "error": True,
+            "reason": "invalid location response",
+        }
+        service, http_get = self._service_for_locations(points, locations)
 
-    def test_source_run_is_preserved_only_when_returned(self):
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertNotIn(points[2]["id"], acquired)
+        self.assertEqual(
+            set(acquired),
+            {point["id"] for index, point in enumerate(points) if index != 2},
+        )
+        for index, point in enumerate(points):
+            if index != 2:
+                self.assertEqual(acquired[point["id"]]["series"]["cape"], 100.0)
+
+    def test_failure_for_one_municipality_does_not_shift_other_responses(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(
+            points,
+            [200.0 + index for index, _point in enumerate(points)],
+        )
+        service, http_get = self._service_for_locations(points, locations)
+        original_side_effect = http_get.side_effect
+        failed_key = (
+            f"{points[2]['latitude']:.6f}",
+            f"{points[2]['longitude']:.6f}",
+        )
+
+        def fail_only_third_request(url, *, params, timeout):
+            if (params["latitude"], params["longitude"]) == failed_key:
+                response = Mock()
+                response.status_code = 400
+                raise requests.HTTPError(
+                    "invalid request",
+                    response=response,
+                )
+            return original_side_effect(url, params=params, timeout=timeout)
+
+        http_get.side_effect = fail_only_third_request
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertNotIn(points[2]["id"], acquired)
+        for index, point in enumerate(points):
+            if index != 2:
+                self.assertEqual(
+                    acquired[point["id"]]["series"]["cape"],
+                    200.0 + index,
+                )
+
+    def test_single_location_list_response_is_malformed_and_not_associated(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(
+            points,
+            [300.0 + index for index, _point in enumerate(points)],
+        )
+        locations[points[4]["id"]] = [locations[points[4]["id"]]]
+        service, http_get = self._service_for_locations(points, locations)
+
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertNotIn(points[4]["id"], acquired)
+        for index, point in enumerate(points):
+            if index != 4:
+                self.assertEqual(
+                    acquired[point["id"]]["series"]["cape"],
+                    300.0 + index,
+                )
+
+    def test_missing_grid_coordinates_fail_only_for_that_municipality(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(points)
+        locations[points[0]["id"]].pop("latitude")
+        service, http_get = self._service_for_locations(points, locations)
+
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertNotIn(points[0]["id"], acquired)
+        self.assertEqual(len(acquired), 5)
+
+    def test_invalid_grid_coordinates_fail_only_for_that_municipality(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(points)
+        locations[points[0]["id"]]["longitude"] = 999.0
+        service, http_get = self._service_for_locations(points, locations)
+
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(http_get.call_count, 6)
+        self.assertNotIn(points[0]["id"], acquired)
+        self.assertEqual(len(acquired), 5)
+
+    def test_municipality_without_coordinates_receives_no_data_or_request(self):
+        points = self._point_inputs()
+        points[0]["latitude"] = None
+        valid_points = self._point_inputs()[1:]
+        locations = self._locations_for_points(valid_points)
+        service, http_get = self._service_for_locations(valid_points, locations)
+
+        acquired = service.fetch_for_points(points)
+
+        self.assertNotIn(points[0]["id"], acquired)
+        self.assertEqual(set(acquired), {point["id"] for point in points[1:]})
+        self.assertEqual(http_get.call_count, 5)
+
+    def test_duplicate_municipal_ids_fail_closed(self):
+        points = self._point_inputs()
+        points[1]["id"] = points[0]["id"]
+        http_get = Mock()
+        service = HailMeteorologicalInputService(http_get=http_get)
+
+        with self.assertRaisesRegex(ValueError, "IDs municipais duplicados"):
+            service.fetch_for_points(points)
+        http_get.assert_not_called()
+
+    def test_source_run_and_grid_elevation_are_preserved_when_returned(self):
         service = HailMeteorologicalInputService(http_get=Mock())
         payload = self._api_location(-21.9, -46.7, 200.0)
-        self.assertIsNone(service._normalise_location(payload)["provenance"]["source_run"])
+
+        entry = service._normalise_location(payload)
+        self.assertIsNone(entry["provenance"]["source_run"])
+
         payload["model_run"] = "2026-10-15T00:00Z"
+        entry = service._normalise_location(payload)
         self.assertEqual(
-            service._normalise_location(payload)["provenance"]["source_run"],
+            entry["provenance"]["source_run"],
             "2026-10-15T00:00Z",
         )
+        self.assertEqual(
+            entry["provenance"]["model_grid_elevation"],
+            850.0,
+        )
+
+    def test_individual_result_keeps_request_and_provider_metadata(self):
+        point = self._point_inputs()[0]
+        location = self._api_location(
+            point["latitude"] + 0.01,
+            point["longitude"] - 0.01,
+            765.0,
+        )
+        location["model_run"] = "2026-11-01T00:00Z"
+        service, http_get = self._service_for_locations(
+            [point],
+            {point["id"]: location},
+        )
+
+        result = service.fetch_for_points([point])[point["id"]]
+
+        self.assertEqual(http_get.call_count, 1)
+        self.assertEqual(
+            http_get.call_args.kwargs["params"]["latitude"],
+            f"{point['latitude']:.6f}",
+        )
+        self.assertEqual(
+            http_get.call_args.kwargs["params"]["longitude"],
+            f"{point['longitude']:.6f}",
+        )
+        provenance = result["provenance"]
+        self.assertEqual(provenance["source"], HailMeteorologicalInputService.SOURCE)
+        self.assertEqual(provenance["model"], HailMeteorologicalInputService.MODEL)
+        self.assertEqual(provenance["source_run"], "2026-11-01T00:00Z")
+        self.assertEqual(provenance["requested_latitude"], point["latitude"])
+        self.assertEqual(provenance["requested_longitude"], point["longitude"])
+        self.assertEqual(provenance["model_grid_latitude"], location["latitude"])
+        self.assertEqual(provenance["model_grid_longitude"], location["longitude"])
+        self.assertEqual(provenance["model_grid_elevation"], 850.0)
+        self.assertEqual(result["valid_from"], self.valid_time)
+        self.assertEqual(result["valid_to"], self.valid_time)
+
+    def test_missing_required_variable_is_marked_incomplete_not_classified(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(points)
+        locations[points[0]["id"]]["hourly"]["wind_speed_925hPa"] = [None]
+
+        service, http_get = self._service_for_locations(points, locations)
+        with patch(
+            "clima.services.hail_meteorological_input_service.cache.set"
+        ) as cache_set:
+            acquired = service.fetch_for_points(points)
+        entry = acquired[points[0]["id"]]
+
+        cached_ids = {
+            next(iter(call.args[1]))
+            for call in cache_set.call_args_list
+        }
+        self.assertNotIn(points[0]["id"], cached_ids)
+        self.assertEqual(
+            cached_ids,
+            {point["id"] for point in points[1:]},
+        )
+        self.assertEqual(http_get.call_count, 6)
+        self.assertFalse(entry["provenance"]["required_variables_complete"])
+        self.assertIsNone(entry["series"]["wind_speed_925hPa"])
+        canonical = HailPotentialService().evaluate(entry).as_dict()
+        result = HailPotentialExperimentalEvaluator().evaluate(canonical)
+        self.assertIsNone(result["potential_level"])
 
     def test_six_acquired_series_flow_independently_through_evaluator(self):
         points = self._point_inputs()
-        capes = (650.0, 740.0, 1070.0, 560.0, 650.0, 390.0)
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], cape)
-            for point, cape in zip(points, capes)
-        ]
-        acquired = HailMeteorologicalInputService(
-            http_get=Mock(return_value=self._http_response(locations))
-        ).fetch_for_points(points)
+        capes = (650.0, 740.0, 1070.0, 560.0, 820.0, 390.0)
+        locations = self._locations_for_points(points, capes)
+        service, http_get = self._service_for_locations(points, locations)
+        acquired = service.fetch_for_points(points)
+        self.assertEqual(http_get.call_count, 6)
+
         canonical_service = HailPotentialService()
         evaluator = HailPotentialExperimentalEvaluator()
         outputs = {}
+
         for point in points:
-            canonical = canonical_service.evaluate(acquired[point["id"]]).as_dict()
+            canonical = canonical_service.evaluate(
+                acquired[point["id"]]
+            ).as_dict()
             outputs[point["id"]] = evaluator.evaluate(canonical)
 
         self.assertEqual(len(outputs), 6)
-        for point, expected_cape in zip(points, capes):
+        for index, point in enumerate(points):
+            expected_cape = capes[index]
             output = outputs[point["id"]]
-            self.assertEqual(output["axes"]["instability"]["evidence"]["value"], expected_cape)
+            self.assertEqual(
+                output["axes"]["instability"]["evidence"]["value"],
+                expected_cape,
+            )
             self.assertTrue(output["diagnostics_complete"])
             self.assertIsNone(output["potential_level"])
-        self.assertEqual(
-            outputs[3]["axes"]["instability"]["evidence"]["value"],
-            outputs[1]["axes"]["instability"]["evidence"]["value"],
-        )
 
     def test_transient_http_failure_is_retried(self):
-        import requests
-        from unittest.mock import Mock, patch
-
         points = self._point_inputs()
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], 100.0)
-            for point in points
-        ]
-        response = self._http_response(locations)
-        http_get = Mock(
-            side_effect=[
-                requests.ConnectionError("falha transit?ria"),
-                response,
-            ]
+        locations = self._locations_for_points(points)
+        service, http_get = self._service_for_locations(points, locations)
+        original_side_effect = http_get.side_effect
+        first_requested_key = (
+            f"{points[0]['latitude']:.6f}",
+            f"{points[0]['longitude']:.6f}",
         )
-        service = HailMeteorologicalInputService(http_get=http_get)
+        first_attempt = {"failed": False}
+
+        def fail_once_for_first_municipality(url, *, params, timeout):
+            if (
+                (params["latitude"], params["longitude"]) == first_requested_key
+                and not first_attempt["failed"]
+            ):
+                first_attempt["failed"] = True
+                raise requests.ConnectionError("falha transitória")
+            return original_side_effect(url, params=params, timeout=timeout)
+
+        http_get.side_effect = fail_once_for_first_municipality
 
         with patch(
             "clima.services.hail_meteorological_input_service.cache.get",
             return_value=None,
         ), patch(
             "clima.services.hail_meteorological_input_service.cache.set"
-        ), patch("time.sleep"):
+        ), patch(
+            "clima.services.hail_meteorological_input_service.time.sleep"
+        ):
             result = service.fetch_for_points(points)
 
-        self.assertEqual(http_get.call_count, 2)
+        self.assertEqual(http_get.call_count, 7)
         self.assertEqual(set(result), {point["id"] for point in points})
+        first_municipality_calls = [
+            call for call in http_get.call_args_list
+            if call.kwargs["params"]["latitude"] == first_requested_key[0]
+        ]
+        self.assertEqual(len(first_municipality_calls), 2)
+        self.assertEqual(
+            {
+                (
+                    call.kwargs["params"]["latitude"],
+                    call.kwargs["params"]["longitude"],
+                )
+                for call in first_municipality_calls
+            },
+            {first_requested_key},
+        )
+
+    def test_429_and_5xx_retry_only_the_originating_municipality(self):
+        points = self._point_inputs()
+        locations = self._locations_for_points(points)
+        first_key = (
+            f"{points[0]['latitude']:.6f}",
+            f"{points[0]['longitude']:.6f}",
+        )
+
+        for status_code in (429, 500, 503):
+            with self.subTest(status_code=status_code):
+                service, http_get = self._service_for_locations(points, locations)
+                original_side_effect = http_get.side_effect
+                first_attempt = {"failed": False}
+
+                def fail_once_for_first_municipality(
+                    url,
+                    *,
+                    params,
+                    timeout,
+                    _status_code=status_code,
+                ):
+                    if (
+                        (params["latitude"], params["longitude"]) == first_key
+                        and not first_attempt["failed"]
+                    ):
+                        first_attempt["failed"] = True
+                        response = Mock()
+                        response.status_code = _status_code
+                        raise requests.HTTPError(
+                            "transient provider status",
+                            response=response,
+                        )
+                    return original_side_effect(
+                        url,
+                        params=params,
+                        timeout=timeout,
+                    )
+
+                http_get.side_effect = fail_once_for_first_municipality
+                with patch(
+                    "clima.services.hail_meteorological_input_service.cache.get",
+                    return_value=None,
+                ), patch(
+                    "clima.services.hail_meteorological_input_service.cache.set"
+                ), patch(
+                    "clima.services.hail_meteorological_input_service.time.sleep"
+                ):
+                    acquired = service.fetch_for_points(points)
+
+                self.assertEqual(set(acquired), {point["id"] for point in points})
+                self.assertEqual(http_get.call_count, 7)
+                repeated_first_requests = [
+                    call for call in http_get.call_args_list
+                    if call.kwargs["params"]["latitude"] == first_key[0]
+                ]
+                self.assertEqual(len(repeated_first_requests), 2)
+                self.assertEqual(
+                    {
+                        (
+                            call.kwargs["params"]["latitude"],
+                            call.kwargs["params"]["longitude"],
+                        )
+                        for call in repeated_first_requests
+                    },
+                    {first_key},
+                )
 
     def test_cache_keeps_900_second_ttl_and_avoids_second_http_call(self):
         points = self._point_inputs()
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], 100.0)
-            for point in points
-        ]
-        response = self._http_response(locations)
-        http_get = Mock(return_value=response)
-        service = HailMeteorologicalInputService(http_get=http_get)
+        locations = self._locations_for_points(points)
+        service, http_get = self._service_for_locations(points, locations)
         cache_value = {}
-        cache_get = Mock(side_effect=lambda key: deepcopy(cache_value) or None)
+        cache_get = Mock(
+            side_effect=lambda key: deepcopy(cache_value.get(key))
+        )
 
         def cache_set(key, value, timeout):
             self.assertEqual(timeout, 900)
-            cache_value.update(deepcopy(value))
+            self.assertEqual(len(value), 1)
+            cache_value[key] = deepcopy(value)
 
-        with patch("clima.services.hail_meteorological_input_service.cache.get", cache_get), patch(
-            "clima.services.hail_meteorological_input_service.cache.set", cache_set
+        with patch(
+            "clima.services.hail_meteorological_input_service.cache.get",
+            cache_get,
+        ), patch(
+            "clima.services.hail_meteorological_input_service.cache.set",
+            cache_set,
         ):
             first = service.fetch_for_points(points)
             second = service.fetch_for_points(points)
 
-        self.assertEqual(http_get.call_count, 1)
+        self.assertEqual(http_get.call_count, 6)
         self.assertEqual(first[3]["provenance"]["cache_status"], "MISS")
         self.assertEqual(second[3]["provenance"]["cache_status"], "HIT")
         self.assertIn("cache_created_at", second[3]["provenance"])
-        self.assertEqual(second[3]["provenance"]["cache_ttl_seconds"], 900)
-
-    def test_same_grid_entries_with_different_values_fail_closed(self):
-        points = self._point_inputs()
-        locations = [
-            self._api_location(point["latitude"], point["longitude"], 100.0)
-            for point in points
-        ]
-        locations[1]["latitude"] = locations[0]["latitude"]
-        locations[1]["longitude"] = locations[0]["longitude"]
-        locations[1]["hourly"]["cape"] = [999.0]
-        service = HailMeteorologicalInputService(
-            http_get=Mock(return_value=self._http_response(locations))
+        self.assertEqual(
+            second[3]["provenance"]["cache_ttl_seconds"],
+            900,
         )
-        with self.assertRaisesRegex(ValueError, "séries divergentes"):
-            service.fetch_for_points(points)
+        self.assertEqual(len(cache_value), 6)
+        self.assertEqual(len(set(cache_get.call_args_list[index].args[0] for index in range(6))), 6)
+
+        # Reusing the same coordinates under another municipal ID is a cache
+        # miss; an entry cannot cross the municipal identity boundary.
+        other_id_point = {**points[0], "id": 99}
+        other_id_result = service.fetch_for_points([other_id_point])
+        self.assertEqual(other_id_result[99]["series"]["cape"], 100.0)
+        self.assertEqual(other_id_result[99]["provenance"]["cache_status"], "MISS")
+        self.assertEqual(http_get.call_count, 7)
+
+    def test_reference_time_selects_same_valid_hour_deterministically(self):
+        reference = datetime(2026, 10, 30, 10, 30)
+        times = [
+            "2026-10-30T10:00",
+            "2026-10-30T11:00",
+            "2026-10-30T12:00",
+        ]
+
+        selected = HailMeteorologicalInputService._select_valid_index(
+            times,
+            reference_time=reference,
+        )
+
+        self.assertEqual(selected, 1)
+
+    def test_no_future_or_current_timestamp_returns_none(self):
+        reference = datetime(2026, 10, 30, 12, 30)
+        times = [
+            "2026-10-30T10:00",
+            "2026-10-30T11:00",
+        ]
+
+        self.assertIsNone(
+            HailMeteorologicalInputService._select_valid_index(
+                times,
+                reference_time=reference,
+            )
+        )

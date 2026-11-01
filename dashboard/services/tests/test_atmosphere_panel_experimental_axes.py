@@ -18,8 +18,33 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
                     "method_version": "MP-01.12.3",
                     "valid_from": "2026-10-30T12:00",
                     "valid_to": "2026-10-30T12:00",
-                    "derived": {},
+                    "derived": {
+                        "shear_925_500_ms": 10.0,
+                        "cape_shear": 900.0,
+                    },
                     "municipal_result": {
+                        "drivers": [
+                            {
+                                "variable": "cape",
+                                "observed_value": 90.0,
+                                "unit": "J/kg",
+                            },
+                            {
+                                "variable": "shear_925_500",
+                                "observed_value": 10.0,
+                                "unit": "m/s",
+                            },
+                            {
+                                "variable": "cape_shear",
+                                "observed_value": 900.0,
+                                "unit": "J/kg*m/s",
+                            },
+                        ],
+                        "complementary_values": {
+                            "wet_bulb_temperature_2m": 15.2,
+                            "temperature_850hPa": 8.4,
+                            "relative_humidity_850hPa": 78.0,
+                        },
                         "experimental_evaluation": {
                             "method_version": "MP-01.12.3",
                             "evaluation_status": "EXPERIMENTAL_NOT_HOMOLOGATED",
@@ -92,6 +117,18 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
         self.assertIn("15.20", normalized_html)
         self.assertIn("8.40", normalized_html)
         self.assertIn("78.00", normalized_html)
+
+        # Cada valor deve aparecer uma unica vez, mesmo quando
+        # os contratos legado e experimental possuem o mesmo dado.
+        self.assertEqual(normalized_html.count("90.00"), 1)
+        self.assertEqual(normalized_html.count("10.00"), 1)
+        self.assertEqual(normalized_html.count("900.00"), 1)
+        self.assertEqual(normalized_html.count("15.20"), 1)
+        self.assertEqual(normalized_html.count("8.40"), 1)
+        self.assertEqual(normalized_html.count("78.00"), 1)
+
+        self.assertNotIn("<h4>Indicadores derivados</h4>", html)
+        self.assertNotIn("<h4>Variáveis complementares</h4>", html)
         self.assertIn("Classificação de potencial: não homologada.", html)
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)

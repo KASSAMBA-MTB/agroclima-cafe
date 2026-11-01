@@ -1,0 +1,24 @@
+﻿**********************
+Início da transcrição do Windows PowerShell
+Hora de início: 20261015142510
+Nome de Usuário: DESKTOP-MGANOIR\Walter
+Executar como Usuário: DESKTOP-MGANOIR\Walter
+Nome da Configuração: 
+Computador: DESKTOP-MGANOIR (Microsoft Windows NT 10.0.26200.0)
+Aplicativo Host: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -noexit -command try { . "c:\Users\Walter\AppData\Local\Programs\Microsoft VS Code\16507d91be\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+ID do Processo: 20752
+PSVersion: 5.1.26100.9711
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9711
+BuildVersion: 10.0.26100.9711
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+
+=== 1. VALIDAR OS GATES ANTERIORES ===
+**********************
+Fim da transcrição do Windows PowerShell
+Hora de término: 20261015142510
+**********************
