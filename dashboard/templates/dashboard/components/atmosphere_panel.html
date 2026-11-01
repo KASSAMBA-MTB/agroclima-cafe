@@ -82,7 +82,7 @@
                                     {% for driver in assessment.municipal_result.drivers %}
                                         <dt>
                                             {% if driver.variable == "cape" %}CAPE (energia potencial convectiva disponível)
-                                            {% elif driver.variable == "shear_925_500" %}Cisalhamento 925–500 hPa
+                                            {% elif driver.variable == "shear_925_500" %}Cisalhamento vertical do vento (925–500 hPa)
                                             {% elif driver.variable == "cape_shear" %}CAPE-SHEAR (produto CAPE × cisalhamento)
                                             {% else %}{{ driver.variable }}{% endif %}
                                         </dt>
