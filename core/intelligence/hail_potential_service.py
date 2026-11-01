@@ -94,6 +94,8 @@ class HailPotentialService:
                 },
                 derived={},
                 complementary_values=self._complementary_values(series),
+                model_grid_latitude=provenance["model_grid_latitude"],
+                model_grid_longitude=provenance["model_grid_longitude"],
             )
 
         shear = self._calculate_shear(
@@ -267,4 +269,6 @@ class HailPotentialService:
                 provenance.get("source_run")
                 or context.get("source_run")
             ),
+            "model_grid_latitude": provenance.get("model_grid_latitude"),
+            "model_grid_longitude": provenance.get("model_grid_longitude"),
         }

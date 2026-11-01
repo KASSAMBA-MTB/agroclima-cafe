@@ -29,6 +29,8 @@ class HailProjectContextContract:
     data_quality: dict
     derived: dict
     municipal_result: dict
+    model_grid_latitude: Any = None
+    model_grid_longitude: Any = None
 
     @classmethod
     def from_municipal_result(
@@ -72,6 +74,8 @@ class HailProjectContextContract:
             data_quality=dict(data_quality),
             derived=dict(derived),
             municipal_result=dict(hail),
+            model_grid_latitude=hail.get("model_grid_latitude"),
+            model_grid_longitude=hail.get("model_grid_longitude"),
         )
 
     def as_dict(self) -> dict:
@@ -97,6 +101,8 @@ class HailProjectContextContract:
             "source_run": self.source_run,
             "valid_from": self.valid_from,
             "valid_to": self.valid_to,
+            "model_grid_latitude": self.model_grid_latitude,
+            "model_grid_longitude": self.model_grid_longitude,
             "missing_variables": list(self.missing_variables),
             "data_quality": dict(self.data_quality),
             "derived": dict(self.derived),

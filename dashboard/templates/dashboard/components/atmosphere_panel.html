@@ -17,6 +17,15 @@
         </div>
     </div>
 
+    <section class="atmosphere-indicator-guide" aria-label="Sobre estes indicadores">
+        <h3>Sobre estes indicadores</h3>
+        <p><strong>CAPE (J/kg):</strong> energia disponível para a convecção; valores maiores representam maior instabilidade potencial da parcela de ar.</p>
+        <p><strong>Cisalhamento 925–500 hPa (m/s):</strong> variação vetorial do vento entre os níveis de pressão de 925 e 500 hPa.</p>
+        <p><strong>CAPE-SHEAR (J/kg·m/s):</strong> produto matemático do CAPE pelo cisalhamento 925–500 hPa; não representa probabilidade nem nível de risco.</p>
+        <p><strong>Isoterma de 0 °C:</strong> indisponível na fonte atual deste fluxo meteorológico.</p>
+        <p><strong>Referências científicas:</strong> os estudos citados na documentação descrevem métodos, camadas e períodos diferentes; seus valores não são diretamente comparáveis aos indicadores horários deste painel.</p>
+    </section>
+
     {% if hail_assessments %}
         <div class="atmosphere-assessments">
             {% for assessment in hail_assessments %}
@@ -39,17 +48,17 @@
                         </div>
 
                         <p class="alert-message">
-                            Avaliação meteorológica experimental.
-                            Classificação de potencial: não homologada.
+                            Indica ambiente meteorológico favorável, não previsão localizada de granizo. Resultado experimental, não homologado.
                         </p>
 
                         <div class="alert-metadata">
-                            <span><i class="bi bi-diagram-3"></i> Contexto: {{ assessment.context_type|default:"meteorological_assessment" }}</span>
-                            {% if assessment.source %}<span><i class="bi bi-database"></i> Fonte: {{ assessment.source }}</span>{% endif %}
-                            {% if assessment.model %}<span><i class="bi bi-cpu"></i> Modelo: {{ assessment.model }}</span>{% endif %}
-                            {% if assessment.method_version %}<span><i class="bi bi-tag"></i> Método: {{ assessment.method_version }}</span>{% endif %}
-                            {% if assessment.valid_from %}<span><i class="bi bi-clock"></i> Início da validade: {{ assessment.valid_from }}</span>{% endif %}
-                            {% if assessment.valid_to %}<span><i class="bi bi-clock-history"></i> Fim da validade: {{ assessment.valid_to }}</span>{% endif %}
+                            <span><i class="bi bi-database"></i> Fonte: {{ assessment.source|default:"indisponível" }}</span>
+                            <span><i class="bi bi-cpu"></i> Modelo: {{ assessment.model|default:"indisponível" }}</span>
+                            <span><i class="bi bi-clock"></i> Validade do dado: {{ assessment.valid_from|default:"indisponível" }}</span>
+                            <span><i class="bi bi-clock-history"></i> Fim da validade: {{ assessment.valid_to|default:"indisponível" }}</span>
+                            <span><i class="bi bi-geo"></i> Latitude da grade: {% if assessment.model_grid_latitude != None %}{{ assessment.model_grid_latitude|floatformat:6 }}{% else %}indisponível{% endif %}</span>
+                            <span><i class="bi bi-geo"></i> Longitude da grade: {% if assessment.model_grid_longitude != None %}{{ assessment.model_grid_longitude|floatformat:6 }}{% else %}indisponível{% endif %}</span>
+                            <span><i class="bi bi-arrow-repeat"></i> Atualização do painel: {{ dashboard_updated_at|default:"consulte o cabeçalho da Dashboard" }}</span>
                         </div>
 
                         {% if assessment.missing_variables %}
@@ -66,58 +75,40 @@
                             </p>
                         {% endif %}
 
-                        {% if assessment.derived or assessment.municipal_result.drivers or assessment.municipal_result.complementary_values %}
+                        {% if assessment.municipal_result.drivers %}
                             <section class="atmosphere-derived" aria-label="Indicadores meteorológicos calculados">
                                 <h3>Indicadores meteorológicos calculados</h3>
-                                {% if assessment.municipal_result.drivers %}
-                                    <dl>
-                                        {% for driver in assessment.municipal_result.drivers %}
-                                            <dt>
-                                                {% if driver.variable == "cape" %}CAPE (energia potencial convectiva disponível)
-                                                {% elif driver.variable == "shear_925_500" %}Cisalhamento vertical do vento (925–500 hPa)
-                                                {% elif driver.variable == "cape_shear" %}Índice combinado CAPE × cisalhamento
-                                                {% else %}{{ driver.variable }}{% endif %}
-                                            </dt>
-                                            <dd>
-                                                {% if driver.observed_value != None %}{{ driver.observed_value|floatformat:2 }}{% else %}Não disponível{% endif %}
-                                                {% if driver.unit %} {{ driver.unit }}{% endif %}
-                                            </dd>
-                                        {% endfor %}
-                                    </dl>
-                                {% endif %}
-                                {% if assessment.derived %}
-                                    {% if assessment.derived.items %}
-                                        <h4>Outros indicadores derivados</h4>
-                                        <dl>
-                                            {% for key, value in assessment.derived.items %}
-                                                {% if key != "shear_925_500_ms" and key != "cape_shear" %}
-                                                    <dt>{{ key }}</dt>
-                                                    <dd>{% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}</dd>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </dl>
-                                    {% endif %}
-                                {% endif %}
-                                {% if assessment.municipal_result.complementary_values %}
-                                    <h4>Variáveis complementares</h4>
-                                    <dl>
-                                        {% for key, value in assessment.municipal_result.complementary_values.items %}
-                                            <dt>
-                                                {% if key == "wet_bulb_temperature_2m" %}Temperatura de bulbo úmido (2 m)
-                                                {% elif key == "temperature_850hPa" %}Temperatura em 850 hPa
-                                                {% elif key == "relative_humidity_850hPa" %}Umidade relativa em 850 hPa
-                                                {% else %}{{ key }}{% endif %}
-                                            </dt>
-                                            <dd>
-                                                {% if value != None %}{{ value|floatformat:2 }}{% else %}Não disponível{% endif %}
-                                                {% if key == "wet_bulb_temperature_2m" or key == "temperature_850hPa" %} °C{% elif key == "relative_humidity_850hPa" %} %{% endif %}
-                                            </dd>
-                                        {% endfor %}
-                                    </dl>
-                                {% endif %}
+                                <dl>
+                                    {% for driver in assessment.municipal_result.drivers %}
+                                        <dt>
+                                            {% if driver.variable == "cape" %}CAPE (energia potencial convectiva disponível)
+                                            {% elif driver.variable == "shear_925_500" %}Cisalhamento vertical do vento (925–500 hPa)
+                                            {% elif driver.variable == "cape_shear" %}CAPE-SHEAR (produto CAPE × cisalhamento)
+                                            {% else %}{{ driver.variable }}{% endif %}
+                                        </dt>
+                                        <dd>{% if driver.observed_value != None %}{{ driver.observed_value|floatformat:2 }}{% else %}indisponível{% endif %}{% if driver.unit %} {{ driver.unit }}{% endif %}</dd>
+                                    {% endfor %}
+                                </dl>
                             </section>
                         {% else %}
-                            <p class="alert-message">Não há indicadores derivados disponíveis para esta avaliação.</p>
+                            <p class="alert-message">Indicadores calculados: indisponível.</p>
+                        {% endif %}
+
+                        {% if assessment.municipal_result.complementary_values %}
+                            <section class="atmosphere-derived" aria-label="Variáveis meteorológicas complementares">
+                                <h3>Variáveis complementares</h3>
+                                <dl>
+                                    {% for key, value in assessment.municipal_result.complementary_values.items %}
+                                        <dt>
+                                            {% if key == "wet_bulb_temperature_2m" %}Temperatura de bulbo úmido (2 m)
+                                            {% elif key == "temperature_850hPa" %}Temperatura em 850 hPa
+                                            {% elif key == "relative_humidity_850hPa" %}Umidade relativa em 850 hPa
+                                            {% else %}{{ key }}{% endif %}
+                                        </dt>
+                                        <dd>{% if value != None %}{{ value|floatformat:2 }}{% else %}indisponível{% endif %}{% if key == "wet_bulb_temperature_2m" or key == "temperature_850hPa" %} °C{% elif key == "relative_humidity_850hPa" %} %{% endif %}</dd>
+                                    {% endfor %}
+                                </dl>
+                            </section>
                         {% endif %}
                     </div>
                 </article>
@@ -136,7 +127,7 @@
     <div class="panel-footer">
         <small>
             <i class="bi bi-shield-check"></i>
-            Contexto versionado; evento factual: não; classificação: não realizada. Dados e proveniência são exibidos sem criar regras no frontend.
+            Contexto versionado; evento factual: não; classificação: não realizada. A atualização do painel é distinta da validade meteorológica de cada avaliação.
         </small>
     </div>
 </section>
