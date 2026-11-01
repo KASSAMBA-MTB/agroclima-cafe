@@ -99,7 +99,9 @@ class HailMeteorologicalInputService:
                 "Open-Meteo retornou quantidade de locais diferente da solicitada."
             )
 
-        # Primeiro valida e agrupa os resultados pela identidade da grade.
+        # Preserva cada resposta individual. A API pode devolver valores
+        # diferentes para municípios associados à mesma coordenada de grade;
+        # isso não autoriza descartar nem fundir essas séries.
         grids = {}
         for location in locations:
             if not isinstance(location, dict):
@@ -122,41 +124,26 @@ class HailMeteorologicalInputService:
             grid_key = self._grid_key(latitude, longitude)
             normalized["provenance"]["model_grid_latitude"] = latitude
             normalized["provenance"]["model_grid_longitude"] = longitude
-
-            if grid_key in grids:
-                previous = grids[grid_key]
-                if (
-                    previous["series"] != normalized["series"]
-                    or previous["valid_from"] != normalized["valid_from"]
-                    or previous["valid_to"] != normalized["valid_to"]
-                ):
-                    raise ValueError(
-                        "Open-Meteo retornou séries divergentes para a mesma grade."
-                    )
-            else:
-                grids[grid_key] = normalized
+            grids.setdefault(grid_key, []).append(normalized)
 
         if not grids:
             raise ValueError("Open-Meteo não retornou coordenadas de grade.")
 
         grid_items = list(grids.items())
-        results = {}
-        created_at = datetime.now(
-            ZoneInfo(self.TIMEZONE)
-        ).isoformat(timespec="seconds")
+        assigned_points = {grid_key: [] for grid_key in grids}
 
-        # Cada município é associado à grade mais próxima. Empates não
-        # são resolvidos pela ordem da resposta: são rejeitados.
+        # Primeiro identifica a grade mais próxima de cada município.
+        # Empates entre grades distintas continuam sendo rejeitados.
         for point, (requested_lat, requested_lon) in zip(
             valid_points, coordinates
         ):
             distances = [
                 (
-                    (requested_lat - entry["provenance"]["model_grid_latitude"]) ** 2
-                    + (requested_lon - entry["provenance"]["model_grid_longitude"]) ** 2,
+                    (requested_lat - entries[0]["provenance"]["model_grid_latitude"]) ** 2
+                    + (requested_lon - entries[0]["provenance"]["model_grid_longitude"]) ** 2,
                     grid_key,
                 )
-                for grid_key, entry in grid_items
+                for grid_key, entries in grid_items
             ]
             minimum = min(distance for distance, _ in distances)
             nearest = [
@@ -170,14 +157,34 @@ class HailMeteorologicalInputService:
                     "Associação de município à grade meteorológica ambígua."
                 )
 
-            entry = deepcopy(grids[nearest[0]])
-            provenance = entry["provenance"]
-            provenance["requested_latitude"] = requested_lat
-            provenance["requested_longitude"] = requested_lon
-            provenance["cache_status"] = "MISS"
-            provenance["cache_created_at"] = created_at
-            provenance["cache_ttl_seconds"] = self.CACHE_TTL_SECONDS
-            results[point.get("id")] = entry
+            assigned_points[nearest[0]].append((point, requested_lat, requested_lon))
+
+        # Para respostas que compartilham a mesma grade, mantém a associação
+        # posicional documentada da resposta multi-localidade do Open-Meteo.
+        # Quantidades diferentes são rejeitadas: não há fallback silencioso.
+        results = {}
+        created_at = datetime.now(
+            ZoneInfo(self.TIMEZONE)
+        ).isoformat(timespec="seconds")
+
+        for grid_key, entries in grid_items:
+            municipal_assignments = assigned_points[grid_key]
+            if len(entries) != len(municipal_assignments):
+                raise ValueError(
+                    "Quantidade de respostas por grade incompatível com os municípios associados."
+                )
+
+            for (point, requested_lat, requested_lon), source_entry in zip(
+                municipal_assignments, entries
+            ):
+                entry = deepcopy(source_entry)
+                provenance = entry["provenance"]
+                provenance["requested_latitude"] = requested_lat
+                provenance["requested_longitude"] = requested_lon
+                provenance["cache_status"] = "MISS"
+                provenance["cache_created_at"] = created_at
+                provenance["cache_ttl_seconds"] = self.CACHE_TTL_SECONDS
+                results[point.get("id")] = entry
 
         cache.set(cache_key, deepcopy(results), self.CACHE_TTL_SECONDS)
         return results
