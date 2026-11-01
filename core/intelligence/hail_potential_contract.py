@@ -50,6 +50,8 @@ class HailPotentialContract:
     data_quality: dict
     derived: dict
     complementary_values: dict | None = None
+    model_grid_latitude: Any = None
+    model_grid_longitude: Any = None
 
     def as_dict(self) -> dict:
         return {
@@ -67,6 +69,8 @@ class HailPotentialContract:
             "data_quality": dict(self.data_quality),
             "derived": dict(self.derived),
             "complementary_values": dict(self.complementary_values or {}),
+            "model_grid_latitude": self.model_grid_latitude,
+            "model_grid_longitude": self.model_grid_longitude,
         }
 
 
