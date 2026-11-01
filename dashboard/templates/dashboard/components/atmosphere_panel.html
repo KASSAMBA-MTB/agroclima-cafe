@@ -49,7 +49,7 @@
                     <tr class="atmosphere-table__column-row">
                         <th scope="col">CAPE (energia potencial convectiva disponível) <span>J/kg</span></th>
                         <th scope="col">Cisalhamento vertical do vento (925–500 hPa) <span>m/s</span></th>
-                        <th scope="col">CAPE × cisalhamento <span>Indicador combinado CAPE × cisalhamento</span></th>
+                        <th scope="col">CAPE × cisalhamento <span>Indicador combinado</span></th>
                         <th scope="col">Umidade relativa <span>850 hPa · %</span></th>
                         <th scope="col">Temperatura <span>850 hPa · °C</span></th>
                         <th scope="col">Temperatura de bulbo úmido (2 m) <span>°C</span></th>
@@ -94,7 +94,7 @@
                                             <small>{{ axes.organization_shear.evidence.unit }}</small>
                                         {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
                                     </td>
-                                    <td data-label="CAPE × cisalhamento">
+                                    <td data-label="Indicador combinado">
                                         {% if axes.combined_cape_shear.evidence.value != None %}
                                             <strong>{{ axes.combined_cape_shear.evidence.value|floatformat:2 }}</strong>
                                             <small>{{ axes.combined_cape_shear.evidence.unit }}</small>
@@ -152,7 +152,7 @@
                                                                 {% if axes.organization_shear.interpretation %}<small>{{ axes.organization_shear.interpretation }}</small>{% endif %}
                                                             </div>
                                                             <div>
-                                                                <span>Indicador combinado CAPE × cisalhamento</span>
+                                                                <span>Indicador combinado</span>
                                                                 <strong>{% if axes.combined_cape_shear.status == "AVAILABLE" %}Disponível{% elif axes.combined_cape_shear.status == "PARTIAL" %}Parcial{% else %}Indisponível{% endif %}</strong>
                                                                 {% if axes.combined_cape_shear.interpretation %}<small>{{ axes.combined_cape_shear.interpretation }}</small>{% endif %}
                                                             </div>

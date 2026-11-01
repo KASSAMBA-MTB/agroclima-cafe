@@ -607,6 +607,8 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIn("ecmwf_ifs025", html)
         self.assertIn("cape", html)
         self.assertIn("Cisalhamento vertical do vento (925–500 hPa)", html)
+        self.assertEqual(html.count("Cisalhamento vertical do vento (925–500 hPa)"), 1)
+        self.assertEqual(html.count("CAPE × cisalhamento"), 1)
         self.assertIn("CAPE (energia potencial convectiva disponível)", html)
         self.assertIn("Temperatura de bulbo úmido (2 m)", html)
         self.assertIn("Avaliação meteorológica experimental.", html)
