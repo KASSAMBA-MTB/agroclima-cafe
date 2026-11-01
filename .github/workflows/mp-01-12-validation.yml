@@ -95,9 +95,9 @@ jobs:
           # Coordenadas provenientes de municipios/management/commands/carregar_municipios.py.
           points = [
               {"id": 3549102, "nome": "São João da Boa Vista", "latitude": -21.9699, "longitude": -46.7981},
-              {"id": 3515186, "nome": "Espírito Santo do Pinhal", "latitude": -22.1900, "longitude": -46.7478},
+              {"id": 3542006, "nome": "Espírito Santo do Pinhal", "latitude": -22.1900, "longitude": -46.7478},
               {"id": 3500402, "nome": "Águas da Prata", "latitude": -21.9319, "longitude": -46.7178},
-              {"id": 3556404, "nome": "Vargem Grande do Sul", "latitude": -21.8322, "longitude": -46.8925},
+              {"id": 3556403, "nome": "Vargem Grande do Sul", "latitude": -21.8322, "longitude": -46.8925},
               {"id": 3102605, "nome": "Andradas", "latitude": -22.0686, "longitude": -46.5724},
               {"id": 3151800, "nome": "Poços de Caldas", "latitude": -21.7874, "longitude": -46.5614},
           ]
