@@ -249,17 +249,31 @@ class HailMeteorologicalInputServiceTests(SimpleTestCase):
         self.assertIn("cache_created_at", second[3]["provenance"])
         self.assertEqual(second[3]["provenance"]["cache_ttl_seconds"], 900)
 
-    def test_same_grid_entries_with_different_values_fail_closed(self):
+    def test_same_grid_entries_with_distinct_values_remain_municipal(self):
         points = self._point_inputs()
         locations = [
-            self._api_location(point["latitude"], point["longitude"], 100.0)
-            for point in points
+            self._api_location(point["latitude"], point["longitude"], 100.0 + index)
+            for index, point in enumerate(points)
         ]
+        # Dois municípios recebem a mesma coordenada de grade, mas a API
+        # devolve séries distintas. Cada resposta deve permanecer associada
+        # ao município correspondente, sem fusão ou descarte.
         locations[1]["latitude"] = locations[0]["latitude"]
         locations[1]["longitude"] = locations[0]["longitude"]
         locations[1]["hourly"]["cape"] = [999.0]
         service = HailMeteorologicalInputService(
             http_get=Mock(return_value=self._http_response(locations))
         )
-        with self.assertRaisesRegex(ValueError, "séries divergentes"):
-            service.fetch_for_points(points)
+
+        acquired = service.fetch_for_points(points)
+
+        self.assertEqual(acquired[points[0]["id"]]["series"]["cape"], 100.0)
+        self.assertEqual(acquired[points[1]["id"]]["series"]["cape"], 999.0)
+        self.assertEqual(
+            acquired[points[0]["id"]]["provenance"]["model_grid_latitude"],
+            acquired[points[1]["id"]]["provenance"]["model_grid_latitude"],
+        )
+        self.assertNotEqual(
+            acquired[points[0]["id"]]["series"]["cape"],
+            acquired[points[1]["id"]]["series"]["cape"],
+        )
