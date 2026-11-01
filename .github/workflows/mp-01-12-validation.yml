@@ -3,6 +3,7 @@ name: MP-01.12 operational validation
 on:
   pull_request:
     branches:
+      - main
       - integration/mp-01-12-dashboard-context
 
 permissions:
