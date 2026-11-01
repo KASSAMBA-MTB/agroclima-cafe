@@ -295,8 +295,16 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertEqual(html.count("CAPE × cisalhamento"), 1)
         self.assertIn("CAPE (energia potencial convectiva disponível)", html)
         self.assertIn("Temperatura de bulbo úmido (2 m)", html)
-        self.assertIn("Avaliação meteorológica experimental.", html)
-        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertIn("Indica ambiente meteorológico favorável, não previsão localizada de granizo. Resultado experimental, não homologado.", html)
+        self.assertIn("CAPE (J/kg)", html)
+        self.assertIn("Cisalhamento 925–500 hPa (m/s)", html)
+        self.assertIn("produto matemático do CAPE", html)
+        self.assertIn("Isoterma de 0 °C", html)
+        self.assertIn("indisponível na fonte atual", html)
+        self.assertIn("Validade do dado", html)
+        self.assertIn("Atualização do painel", html)
+        self.assertIn("Latitude da grade", html)
+        self.assertIn("Longitude da grade", html)
         self.assertNotIn("<details", html)
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)
@@ -325,3 +333,51 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         result = facade.get_dashboard_data()
 
         self.assertEqual(result["hail_assessments"], hail_context)
+
+
+    def test_optional_grid_coordinates_are_preserved_by_project_context_contract(self):
+        from core.intelligence.hail_project_context_contract import (
+            HailProjectContextContract,
+        )
+
+        result = HailProjectContextContract.from_municipal_result(
+            hail={
+                "assessment_status": "ASSESSED",
+                "source": "open-meteo-forecast-api",
+                "model": "ecmwf_ifs025",
+                "model_grid_latitude": -21.95,
+                "model_grid_longitude": -46.72,
+            },
+            municipio_id=17,
+            municipio_nome="Município de teste",
+        ).as_dict()
+
+        self.assertEqual(result["model_grid_latitude"], -21.95)
+        self.assertEqual(result["model_grid_longitude"], -46.72)
+
+    def test_missing_optional_grid_coordinates_do_not_break_contract_or_render(self):
+        from core.intelligence.hail_project_context_contract import (
+            HailProjectContextContract,
+        )
+
+        result = HailProjectContextContract.from_municipal_result(
+            hail={
+                "assessment_status": "INSUFFICIENT_DATA",
+                "source": None,
+                "model": None,
+            },
+            municipio_id=18,
+            municipio_nome="Município sem grade",
+        ).as_dict()
+
+        self.assertIsNone(result["model_grid_latitude"])
+        self.assertIsNone(result["model_grid_longitude"])
+        html = render_to_string(
+            "dashboard/components/atmosphere_panel.html",
+            {"hail_assessments": [result]},
+        )
+        self.assertIn("Latitude da grade: indisponível", html)
+        self.assertIn("Longitude da grade: indisponível", html)
+        self.assertIn("Fonte: indisponível", html)
+        self.assertIn("Modelo: indisponível", html)
+        self.assertIn("Validade do dado: indisponível", html)
