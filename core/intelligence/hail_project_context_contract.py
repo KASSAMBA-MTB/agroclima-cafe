@@ -111,6 +111,63 @@ class HailProjectContextContract:
             self._sanitize_factual_flag(experimental)
             municipal_result["experimental_evaluation"] = experimental
 
+        # MP-01.14.2 / Pacote C1: projeção municipal aditiva do potencial
+        # experimental. Não homologa thresholds nem cria ocorrência factual.
+        experimental = municipal_result.get("experimental_evaluation")
+        if isinstance(experimental, dict):
+            axes = experimental.get("axes")
+            if not isinstance(axes, dict):
+                axes = {}
+            determining_indicators = []
+            for axis_name, axis in axes.items():
+                if not isinstance(axis, dict) or axis.get("status") != "AVAILABLE":
+                    continue
+                evidence = axis.get("evidence")
+                if isinstance(evidence, dict) and evidence.get("value") is not None:
+                    determining_indicators.append(axis_name)
+
+            municipal_result.update({
+                "potential_level": None,
+                "classification_status": (
+                    EXPERIMENTAL_INSUFFICIENT_STATUS
+                    if experimental.get("evaluation_status")
+                    == EXPERIMENTAL_INSUFFICIENT_STATUS
+                    else EXPERIMENTAL_CLASSIFICATION_STATUS
+                ),
+                "rule_version": (
+                    experimental.get("experimental_diagnostic_version")
+                    or experimental.get("method_version")
+                ),
+                "rule_applied": "HAIL_POTENTIAL_EXPERIMENTAL_EVALUATOR",
+                "determining_indicators": determining_indicators,
+                "threshold_set_version": None,
+                "threshold_set_status": "NOT_CONFIGURED",
+                "validation_reference": None,
+                "limitations": [
+                    "Classificação experimental não homologada.",
+                    "Conjunto de limiares não associado ao município.",
+                    "Resultado não representa ocorrência factual.",
+                ],
+                "operational": False,
+                "is_factual_event": False,
+            })
+        else:
+            municipal_result.update({
+                "potential_level": None,
+                "classification_status": CLASSIFICATION_NOT_PERFORMED,
+                "rule_version": self.method_version,
+                "rule_applied": "HAIL_POTENTIAL_EXPERIMENTAL_EVALUATOR",
+                "determining_indicators": [],
+                "threshold_set_version": None,
+                "threshold_set_status": "NOT_CONFIGURED",
+                "validation_reference": None,
+                "limitations": [
+                    "Avaliação experimental indisponível ou insuficiente.",
+                ],
+                "operational": False,
+                "is_factual_event": False,
+            })
+
         nested_municipal_result = municipal_result.get("municipal_result")
         if isinstance(nested_municipal_result, dict):
             nested_municipal_result = dict(nested_municipal_result)

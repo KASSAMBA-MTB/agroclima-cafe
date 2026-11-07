@@ -1,4 +1,4 @@
-"""Regressão da exposição municipal do resultado experimental de granizo."""
+﻿"""Regressão da exposição municipal do resultado experimental de granizo."""
 
 from unittest.mock import Mock, patch
 from concurrent.futures import ThreadPoolExecutor
@@ -22,6 +22,7 @@ def _mock_frost_risk_service_with_result():
 
 
 class DashboardHailIntegrationTests(SimpleTestCase):
+    databases = {"default"}
     def test_concurrent_municipal_evaluations_keep_their_own_full_results(self):
         first_result_is_being_consumed = Event()
         resume_first_result = Event()
@@ -612,7 +613,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIn("CAPE (energia potencial convectiva disponível)", html)
         self.assertIn("Temperatura de bulbo úmido (2 m)", html)
         self.assertIn("Avaliação meteorológica experimental.", html)
-        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertIn("Classificação de potencial não homologada", html)
         self.assertNotIn("<details", html)
         self.assertNotIn("ALTO", html)
         self.assertNotIn("CRÍTICO", html)
@@ -680,7 +681,7 @@ class DashboardHailIntegrationTests(SimpleTestCase):
         self.assertIn("12.50", normalized_html)
         self.assertIn("8.00", normalized_html)
         self.assertIn("75.00", normalized_html)
-        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertIn("Classificação de potencial não homologada", html)
         self.assertNotIn("<details", html)
 
     def test_dashboard_facade_preserves_global_hail_context(self):

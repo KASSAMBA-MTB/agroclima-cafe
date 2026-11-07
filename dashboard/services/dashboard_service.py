@@ -1,32 +1,34 @@
-"""
+﻿"""
 ===============================================================================
-UNIVERSIDADE VIRTUAL DO ESTADO DE SÃƒO PAULO - UNIVESP
+UNIVERSIDADE VIRTUAL DO ESTADO DE SÃƒÆ’O PAULO - UNIVESP
 
-Curso...........: Bacharelado em CiÃªncia de Dados
-Disciplina......: Trabalho de ConclusÃ£o de Curso (TCC)
-Projeto.........: AgroClima CafÃ©
-MÃ³dulo..........: Dashboard
+Curso...........: Bacharelado em CiÃƒÂªncia de Dados
+Disciplina......: Trabalho de ConclusÃƒÂ£o de Curso (TCC)
+Projeto.........: AgroClima CafÃƒÂ©
+MÃƒÂ³dulo..........: Dashboard
 Arquivo.........: dashboard_service.py
 
 Autor...........: Walter Junio Pontes Teixeira
-Polo............: SÃ£o JoÃ£o da Boa Vista - SP
+Polo............: SÃƒÂ£o JoÃƒÂ£o da Boa Vista - SP
 Ano.............: 2026
 
-DescriÃ§Ã£o.......:
-ServiÃ§o responsÃ¡vel por consolidar todos os dados estruturados
+DescriÃƒÂ§ÃƒÂ£o.......:
+ServiÃƒÂ§o responsÃƒÂ¡vel por consolidar todos os dados estruturados
 da Dashboard Principal.
 
 Responsabilidades:
-    â€¢ Consolidar KPIs, grÃ¡ficos, ranking, eventos e mapa.
-    â€¢ Enriquecer os pontos geogrÃ¡ficos com dados meteorolÃ³gicos.
-    â€¢ Disponibilizar ocorrÃªncias histÃ³ricas reais de geada.
-    â€¢ Disponibilizar indicadores histÃ³ricos estruturados para a
-      camada de InteligÃªncia.
-    â€¢ NÃ£o executar regras de InteligÃªncia.
+    Ã¢â‚¬Â¢ Consolidar KPIs, grÃƒÂ¡ficos, ranking, eventos e mapa.
+    Ã¢â‚¬Â¢ Enriquecer os pontos geogrÃƒÂ¡ficos com dados meteorolÃƒÂ³gicos.
+    Ã¢â‚¬Â¢ Disponibilizar ocorrÃƒÂªncias histÃƒÂ³ricas reais de geada.
+    Ã¢â‚¬Â¢ Disponibilizar indicadores histÃƒÂ³ricos estruturados para a
+      camada de InteligÃƒÂªncia.
+    Ã¢â‚¬Â¢ NÃƒÂ£o executar regras de InteligÃƒÂªncia.
 
-VersÃ£o..........: 3.12
+VersÃƒÂ£o..........: 3.12
 ===============================================================================
 """
+
+from core.intelligence.hail_threshold_classification_service import HailThresholdClassificationService
 
 from datetime import timedelta
 import logging
@@ -72,9 +74,9 @@ class DashboardService:
     Consolida todos os dados estruturados utilizados pela
     Dashboard.
 
-    NÃ£o executa regras de negÃ³cio inteligentes.
+    NÃƒÂ£o executa regras de negÃƒÂ³cio inteligentes.
 
-    A camada de InteligÃªncia permanece responsabilidade da
+    A camada de InteligÃƒÂªncia permanece responsabilidade da
     DashboardFacade.
     """
 
@@ -90,34 +92,34 @@ class DashboardService:
 
         self.map_service = MapService()
 
-        # Serviço meteorológico responsável por atualizar a observação
+        # ServiÃ§o meteorolÃ³gico responsÃ¡vel por atualizar a observaÃ§Ã£o
         # atual antes da montagem dos KPIs e dos pontos do mapa.
         self.weather_service = WeatherService()
 
-        # AvaliaÃ§Ã£o oficial e Ãºnica do FRI por municÃpio.
-        # O resultado Ã© incorporado ao map_point e passa a ser a
+        # AvaliaÃƒÂ§ÃƒÂ£o oficial e ÃƒÂºnica do FRI por municÃƒpio.
+        # O resultado ÃƒÂ© incorporado ao map_point e passa a ser a
         # fonte autoritativa consumida por mapa, popup, ranking,
         # alerta e insight.
         self.frost_risk_service = FrostRiskService()
 
-        # Serviço responsável pela classificação operacional da temperatura.
-        # A classificação é derivada exclusivamente da temperatura observada
+        # ServiÃ§o responsÃ¡vel pela classificaÃ§Ã£o operacional da temperatura.
+        # A classificaÃ§Ã£o Ã© derivada exclusivamente da temperatura observada
         # e materializada no map_point para consumo uniforme pelos componentes.
-        # O serviço não acessa banco de dados, API, FRI ou regras de geada.
+        # O serviÃ§o nÃ£o acessa banco de dados, API, FRI ou regras de geada.
         self.thermal_classification_service = ThermalClassificationService()
 
         self.agroclimate_indicator_service = AgroClimateIndicatorService()
 
-        # Histórico canônico utilizado como fonte dos indicadores derivados.
-        # O HistoryService fornece a série; o serviço especializado calcula
+        # HistÃ³rico canÃ´nico utilizado como fonte dos indicadores derivados.
+        # O HistoryService fornece a sÃ©rie; o serviÃ§o especializado calcula
         # somente os indicadores autorizados da Fase 5.
         self.history_service = HistoryService()
         self.historical_climate_indicator_service = (
             HistoricalClimateIndicatorService()
         )
 
-        # Composição regional dos resultados já produzidos por
-        # HYDRIC_PRESSURE_001. Este serviço não recalcula balanço nem regra.
+        # ComposiÃ§Ã£o regional dos resultados jÃ¡ produzidos por
+        # HYDRIC_PRESSURE_001. Este serviÃ§o nÃ£o recalcula balanÃ§o nem regra.
         self.hydric_pressure_regional_service = (
             HydricPressureRegionalService()
         )
@@ -125,10 +127,10 @@ class DashboardService:
             HydricPressureRegionalSynthesisService()
         )
 
-        # Mantém os DTOs da atualização meteorológica corrente disponíveis
+        # MantÃ©m os DTOs da atualizaÃ§Ã£o meteorolÃ³gica corrente disponÃ­veis
         # para o enriquecimento do map_point. Isso evita perder campos que
-        # já existem no WeatherDTO, mas ainda não possuem persistência própria
-        # em WeatherObservation, como UV e dados de nascer/pôr do sol.
+        # jÃ¡ existem no WeatherDTO, mas ainda nÃ£o possuem persistÃªncia prÃ³pria
+        # em WeatherObservation, como UV e dados de nascer/pÃ´r do sol.
         self._current_weather_dtos = {}
 
     # ==========================================================
@@ -143,25 +145,25 @@ class DashboardService:
         context = {}
 
         # ======================================================
-        # ATUALIZAÇÃO METEOROLÓGICA
+        # ATUALIZAÃ‡ÃƒO METEOROLÃ“GICA
         # ======================================================
-        # WeatherObservation é atualizada antes dos KPIs e do mapa.
-        # Uma falha isolada não interrompe os demais municípios.
+        # WeatherObservation Ã© atualizada antes dos KPIs e do mapa.
+        # Uma falha isolada nÃ£o interrompe os demais municÃ­pios.
         # ======================================================
 
         weather_refresh = self._refresh_current_weather()
         context["weather_refresh"] = weather_refresh
 
         # ======================================================
-        # CONTEXTO CANÔNICO ÚNICO — KPIs
+        # CONTEXTO CANÃ”NICO ÃšNICO â€” KPIs
         # ======================================================
         #
-        # O KPIService não realiza nova aquisição meteorológica.
-        # Ele recebe exclusivamente o contexto já produzido pelo
-        # ciclo corrente de atualização do DashboardService.
+        # O KPIService nÃ£o realiza nova aquisiÃ§Ã£o meteorolÃ³gica.
+        # Ele recebe exclusivamente o contexto jÃ¡ produzido pelo
+        # ciclo corrente de atualizaÃ§Ã£o do DashboardService.
         #
         # Assim, KPI, mapa e demais consumidores partem da mesma
-        # cadeia de dados, sem segunda consulta ou interpretação.
+        # cadeia de dados, sem segunda consulta ou interpretaÃ§Ã£o.
         # ======================================================
 
         canonical_context = self._build_canonical_weather_context()
@@ -181,7 +183,7 @@ class DashboardService:
         context["kpis"] = kpis
 
         # ======================================================
-        # GRÃFICOS
+        # GRÃƒFICOS
         # ======================================================
 
         context["chart"] = (
@@ -189,17 +191,17 @@ class DashboardService:
         )
 
         # ======================================================
-        # PERÃODOS DO GRÃFICO
+        # PERÃƒODOS DO GRÃƒFICO
         #
         # Disponibiliza separadamente:
         #
         #   Hoje
         #   7 dias
         #   30 dias
-        #   HistÃ³rico
+        #   HistÃƒÂ³rico
         #
         # O frontend apenas alterna entre os dados
-        # jÃ¡ consolidados pelo ChartService.
+        # jÃƒÂ¡ consolidados pelo ChartService.
         # ======================================================
 
         context["chart_periods"] = (
@@ -225,11 +227,11 @@ class DashboardService:
         )
 
         # ======================================================
-        # DADOS CLIMÃTICOS DOS MUNICÃPIOS
+        # DADOS CLIMÃƒTICOS DOS MUNICÃƒPIOS
         #
         # Somente dados estruturados.
         #
-        # Nenhuma regra de inteligÃªncia Ã© executada aqui.
+        # Nenhuma regra de inteligÃƒÂªncia ÃƒÂ© executada aqui.
         # ======================================================
 
         map_points = self._attach_climate_data(
@@ -237,10 +239,10 @@ class DashboardService:
         )
 
         # ======================================================
-        # AVALIAÃ‡ÃƒO MUNICIPAL ÃšNICA DO FRI
+        # AVALIAÃƒâ€¡ÃƒÆ’O MUNICIPAL ÃƒÅ¡NICA DO FRI
         #
-        # Cada municÃpio Ã© avaliado exatamente uma vez depois
-        # que os dados climÃ¡ticos e histÃ³ricos jÃ¡ foram anexados.
+        # Cada municÃƒpio ÃƒÂ© avaliado exatamente uma vez depois
+        # que os dados climÃƒÂ¡ticos e histÃƒÂ³ricos jÃƒÂ¡ foram anexados.
         # O resultado completo passa a integrar o map_point.
         # Nenhum consumidor posterior deve recalcular o FRI.
         # ======================================================
@@ -249,14 +251,16 @@ class DashboardService:
             map_points
         )
 
-        # MP-01.12 — contexto global canônico da avaliação de granizo.
-        # Reutiliza o resultado municipal já calculado; não reavalia a regra
-        # e não mistura potencial meteorológico com evento factual observado.
+        # MP-01.12 â€” contexto global canÃ´nico da avaliaÃ§Ã£o de granizo.
+        # Reutiliza o resultado municipal jÃ¡ calculado; nÃ£o reavalia a regra
+        # e nÃ£o mistura potencial meteorolÃ³gico com evento factual observado.
+        threshold_set = HailThresholdClassificationService().get_latest_provisional()
         context["hail_assessments"] = self._compose_hail_assessments(
-            map_points
+            map_points,
+            threshold_set=threshold_set,
         )
 
-        # MP-01.6 e MP-01.7 apenas compõem resultados já calculados.
+        # MP-01.6 e MP-01.7 apenas compÃµem resultados jÃ¡ calculados.
         self._attach_hydric_pressure_context(
             context=context,
             map_points=map_points,
@@ -264,18 +268,18 @@ class DashboardService:
         )
 
         # ======================================================
-        # ALERTAS CANÔNICOS DA DASHBOARD — ESCOPO TERRITORIAL
+        # ALERTAS CANÃ”NICOS DA DASHBOARD â€” ESCOPO TERRITORIAL
         #
-        # Cada map_point mantém a inteligência e os alertas do próprio
-        # município em ``municipal_alerts`` e ``alerts``.
+        # Cada map_point mantÃ©m a inteligÃªncia e os alertas do prÃ³prio
+        # municÃ­pio em ``municipal_alerts`` e ``alerts``.
         #
-        # Para o painel global, os alertas já materializados pela camada
-        # de Inteligência são consolidados uma única vez neste ciclo.
-        # Esta etapa é somente de transporte/normalização:
-        # não recalcula regras, não altera severidade e não transforma
-        # score meteorológico em FRI.
+        # Para o painel global, os alertas jÃ¡ materializados pela camada
+        # de InteligÃªncia sÃ£o consolidados uma Ãºnica vez neste ciclo.
+        # Esta etapa Ã© somente de transporte/normalizaÃ§Ã£o:
+        # nÃ£o recalcula regras, nÃ£o altera severidade e nÃ£o transforma
+        # score meteorolÃ³gico em FRI.
         #
-        # O ponto principal recebe a coleção territorial somente como
+        # O ponto principal recebe a coleÃ§Ã£o territorial somente como
         # contrato de transporte para a DashboardFacade.
         # ======================================================
 
@@ -307,12 +311,12 @@ class DashboardService:
             if not isinstance(municipal_alerts, list):
                 municipal_alerts = []
 
-            # Preserva a coleção original produzida pela Intelligence
+            # Preserva a coleÃ§Ã£o original produzida pela Intelligence
             # para rastreabilidade municipal.
             point["municipal_alerts"] = list(municipal_alerts)
 
-            # Consolidação somente de resultados já produzidos.
-            # Nenhuma regra é executada nesta etapa.
+            # ConsolidaÃ§Ã£o somente de resultados jÃ¡ produzidos.
+            # Nenhuma regra Ã© executada nesta etapa.
             for alert in municipal_alerts:
                 if not isinstance(alert, dict):
                     continue
@@ -335,7 +339,7 @@ class DashboardService:
                 seen_alerts.add(identity)
                 territorial_alerts.append(dict(alert))
 
-            # Cada ponto continua disponibilizando seus próprios alertas
+            # Cada ponto continua disponibilizando seus prÃ³prios alertas
             # para consumidores territoriais, sem substituir a origem.
             point["alerts"] = list(municipal_alerts)
             point["alert"] = (
@@ -344,13 +348,13 @@ class DashboardService:
                 else None
             )
 
-        # A coleção territorial é o contrato global já consolidado.
-        # A Facade deve apenas distribuí-la, sem reconstruí-la.
+        # A coleÃ§Ã£o territorial Ã© o contrato global jÃ¡ consolidado.
+        # A Facade deve apenas distribuÃ­-la, sem reconstruÃ­-la.
         context["alerts"] = territorial_alerts
 
         # O ponto principal funciona como portador do contrato global
-        # para compatibilidade com consumidores que recebem a inteligência
-        # a partir do município principal.
+        # para compatibilidade com consumidores que recebem a inteligÃªncia
+        # a partir do municÃ­pio principal.
         if primary_point is not None:
             primary_point["alerts"] = list(territorial_alerts)
 
@@ -360,8 +364,8 @@ class DashboardService:
         # RANKING
         #
         # O Ranking recebe exatamente os mesmos map_points que
-        # foram disponibilizados ao mapa. O FRI jÃ¡ estÃ¡ calculado
-        # nesses objetos e nÃ£o pode ser recalculado pelo Ranking.
+        # foram disponibilizados ao mapa. O FRI jÃƒÂ¡ estÃƒÂ¡ calculado
+        # nesses objetos e nÃƒÂ£o pode ser recalculado pelo Ranking.
         # ======================================================
 
         context["ranking"] = (
@@ -378,36 +382,36 @@ class DashboardService:
 
         context["recommendations"] = []
 
-        # ``alerts`` já foi publicado acima como coleção canônica
-        # de cardinalidade máxima 1. A Facade deve apenas consumir
-        # esse resultado, sem reconstruí-lo a partir de municípios.
+        # ``alerts`` jÃ¡ foi publicado acima como coleÃ§Ã£o canÃ´nica
+        # de cardinalidade mÃ¡xima 1. A Facade deve apenas consumir
+        # esse resultado, sem reconstruÃ­-lo a partir de municÃ­pios.
 
         return context
 
     # ==========================================================
-    # DADOS CLIMÃTICOS DO MAPA
+    # DADOS CLIMÃƒTICOS DO MAPA
     # ==========================================================
 
 
     # ==========================================================
-    # ATUALIZAÇÃO METEOROLÓGICA PARA A DASHBOARD
+    # ATUALIZAÃ‡ÃƒO METEOROLÃ“GICA PARA A DASHBOARD
     # ==========================================================
 
     def _refresh_current_weather(self):
         """
-        Atualiza o clima atual de todos os municípios antes da
-        consolidação dos KPIs e dos pontos consumidos pelo mapa.
+        Atualiza o clima atual de todos os municÃ­pios antes da
+        consolidaÃ§Ã£o dos KPIs e dos pontos consumidos pelo mapa.
 
-        Não calcula FRI nem executa regras de Inteligência.
-        Cada município é processado independentemente.
+        NÃ£o calcula FRI nem executa regras de InteligÃªncia.
+        Cada municÃ­pio Ã© processado independentemente.
         """
 
         atualizados = 0
         erros = 0
         resultados = []
 
-        # Cada execução representa um novo ciclo de atualização.
-        # Remove DTOs de municípios que eventualmente falhem neste ciclo.
+        # Cada execuÃ§Ã£o representa um novo ciclo de atualizaÃ§Ã£o.
+        # Remove DTOs de municÃ­pios que eventualmente falhem neste ciclo.
         self._current_weather_dtos = {}
 
         municipios = (
@@ -425,7 +429,7 @@ class DashboardService:
                     Provider.OPEN_METEO,
                 )
 
-                # O DTO é a fonte corrente dos campos meteorológicos
+                # O DTO Ã© a fonte corrente dos campos meteorolÃ³gicos
                 # complementares. O map_point recebe esses valores sem
                 # recalcular, inferir ou substituir dados ausentes.
                 self._current_weather_dtos[municipio.nome] = dto
@@ -464,54 +468,54 @@ class DashboardService:
         map_points,
     ):
         """
-        Adiciona aos pontos geogrÃ¡ficos os dados estruturados
-        disponÃveis para cada municÃpio.
+        Adiciona aos pontos geogrÃƒÂ¡ficos os dados estruturados
+        disponÃƒveis para cada municÃƒpio.
 
-        Dados meteorolÃ³gicos:
-            â€¢ temperatura;
-            â€¢ umidade;
-            â€¢ vento;
-            â€¢ cobertura de nuvens;
-            â€¢ chuva ocorrendo agora;
-            â€¢ precipitaÃ§Ã£o da Ãºltima hora;
-            â€¢ precipitaÃ§Ã£o acumulada em 24 horas;
-            â€¢ horÃ¡rio da observaÃ§Ã£o.
+        Dados meteorolÃƒÂ³gicos:
+            Ã¢â‚¬Â¢ temperatura;
+            Ã¢â‚¬Â¢ umidade;
+            Ã¢â‚¬Â¢ vento;
+            Ã¢â‚¬Â¢ cobertura de nuvens;
+            Ã¢â‚¬Â¢ chuva ocorrendo agora;
+            Ã¢â‚¬Â¢ precipitaÃƒÂ§ÃƒÂ£o da ÃƒÂºltima hora;
+            Ã¢â‚¬Â¢ precipitaÃƒÂ§ÃƒÂ£o acumulada em 24 horas;
+            Ã¢â‚¬Â¢ horÃƒÂ¡rio da observaÃƒÂ§ÃƒÂ£o.
 
-        Contrato canÃ´nico:
-            â€¢ chuva_agora;
-            â€¢ precipitacao_1h;
-            â€¢ precipitacao_24h.
+        Contrato canÃƒÂ´nico:
+            Ã¢â‚¬Â¢ chuva_agora;
+            Ã¢â‚¬Â¢ precipitacao_1h;
+            Ã¢â‚¬Â¢ precipitacao_24h.
 
-        O campo legado ``precipitation`` Ã© preservado no map_point
-        para compatibilidade, mas seu valor corresponde Ã 
-        precipitaÃ§Ã£o da Ãºltima hora nesta etapa da migraÃ§Ã£o.
+        O campo legado ``precipitation`` ÃƒÂ© preservado no map_point
+        para compatibilidade, mas seu valor corresponde Ãƒ
+        precipitaÃƒÂ§ÃƒÂ£o da ÃƒÂºltima hora nesta etapa da migraÃƒÂ§ÃƒÂ£o.
 
-        Dados histÃ³ricos de geada:
-            â€¢ ocorrÃªncia;
-            â€¢ quantidade de ocorrÃªncias;
-            â€¢ quantidade total de registros histÃ³ricos;
-            â€¢ frequÃªncia histÃ³rica de geada;
-            â€¢ quantidade de episÃ³dios de geada;
-            â€¢ Ãºltima data de ocorrÃªncia;
-            â€¢ temperatura mÃnima da Ãºltima ocorrÃªncia;
-            â€¢ menor temperatura registrada em ocorrÃªncia de geada.
+        Dados histÃƒÂ³ricos de geada:
+            Ã¢â‚¬Â¢ ocorrÃƒÂªncia;
+            Ã¢â‚¬Â¢ quantidade de ocorrÃƒÂªncias;
+            Ã¢â‚¬Â¢ quantidade total de registros histÃƒÂ³ricos;
+            Ã¢â‚¬Â¢ frequÃƒÂªncia histÃƒÂ³rica de geada;
+            Ã¢â‚¬Â¢ quantidade de episÃƒÂ³dios de geada;
+            Ã¢â‚¬Â¢ ÃƒÂºltima data de ocorrÃƒÂªncia;
+            Ã¢â‚¬Â¢ temperatura mÃƒnima da ÃƒÂºltima ocorrÃƒÂªncia;
+            Ã¢â‚¬Â¢ menor temperatura registrada em ocorrÃƒÂªncia de geada.
 
-        CritÃ©rio objetivo para ocorrÃªncia histÃ³rica de geada:
+        CritÃƒÂ©rio objetivo para ocorrÃƒÂªncia histÃƒÂ³rica de geada:
 
-            temperatura_minima <= 0 Â°C
+            temperatura_minima <= 0 Ã‚Â°C
 
-        Este mÃ©todo NÃƒO:
-            â€¢ calcula FRI;
-            â€¢ classifica risco;
-            â€¢ calcula confianÃ§a;
-            â€¢ gera alertas;
-            â€¢ gera recomendaÃ§Ãµes;
-            â€¢ executa regras de InteligÃªncia.
+        Este mÃƒÂ©todo NÃƒÆ’O:
+            Ã¢â‚¬Â¢ calcula FRI;
+            Ã¢â‚¬Â¢ classifica risco;
+            Ã¢â‚¬Â¢ calcula confianÃƒÂ§a;
+            Ã¢â‚¬Â¢ gera alertas;
+            Ã¢â‚¬Â¢ gera recomendaÃƒÂ§ÃƒÂµes;
+            Ã¢â‚¬Â¢ executa regras de InteligÃƒÂªncia.
 
+        Os indicadores histÃƒÂ³ricos adicionados aqui constituem
         Os indicadores histÃ³ricos adicionados aqui constituem
-        Os indicadores históricos adicionados aqui constituem
-        evidência estruturada para a etapa posterior da FrostRule.
-        O cálculo é delegado ao HistoricalClimateIndicatorService.
+        evidÃªncia estruturada para a etapa posterior da FrostRule.
+        O cÃ¡lculo Ã© delegado ao HistoricalClimateIndicatorService.
         """
 
         if not map_points:
@@ -529,7 +533,7 @@ class DashboardService:
             return map_points
 
         # ======================================================
-        # ÃšLTIMA OBSERVAÃ‡ÃƒO METEOROLÃ“GICA
+        # ÃƒÅ¡LTIMA OBSERVAÃƒâ€¡ÃƒÆ’O METEOROLÃƒâ€œGICA
         # ======================================================
 
         observations = (
@@ -570,13 +574,13 @@ class DashboardService:
             ] = observation
 
         # ======================================================
-        # HISTÃ“RICO REAL DE GEADAS
+        # HISTÃƒâ€œRICO REAL DE GEADAS
         #
         # Fonte:
         # HistoricalWeatherDaily
         #
-        # Somente registros persistidos sÃ£o considerados.
-        # NÃ£o utiliza previsÃ£o.
+        # Somente registros persistidos sÃƒÂ£o considerados.
+        # NÃƒÂ£o utiliza previsÃƒÂ£o.
         # ======================================================
 
         historical_records = (
@@ -634,7 +638,7 @@ class DashboardService:
             ):
                 summary["minimum_temperature"] = minimum
 
-            # CritÃ©rio real de geada.
+            # CritÃƒÂ©rio real de geada.
             if minimum <= 0:
 
                 summary["frost_records"] += 1
@@ -644,8 +648,8 @@ class DashboardService:
                         record.data
                     )
 
-                # O queryset estÃ¡ em ordem crescente; portanto,
-                # o Ãºltimo registro de geada Ã© o mais recente.
+                # O queryset estÃƒÂ¡ em ordem crescente; portanto,
+                # o ÃƒÂºltimo registro de geada ÃƒÂ© o mais recente.
                 summary["last_date"] = (
                     record.data.isoformat()
                     if record.data
@@ -659,14 +663,14 @@ class DashboardService:
         # ======================================================
 
         # ======================================================
-        # INDICADORES HISTÓRICOS — FASE 5
+        # INDICADORES HISTÃ“RICOS â€” FASE 5
         # ======================================================
-        # A série diária é obtida pelo HistoryService. O cálculo da
-        # amplitude térmica permanece exclusivamente no serviço
+        # A sÃ©rie diÃ¡ria Ã© obtida pelo HistoryService. O cÃ¡lculo da
+        # amplitude tÃ©rmica permanece exclusivamente no serviÃ§o
         # especializado HistoricalClimateIndicatorService.
         #
-        # O resultado é estruturado por município e será anexado ao
-        # map_point sem alterar a avaliação oficial do FRI.
+        # O resultado Ã© estruturado por municÃ­pio e serÃ¡ anexado ao
+        # map_point sem alterar a avaliaÃ§Ã£o oficial do FRI.
         # ======================================================
 
         historical_indicators_by_municipality = {}
@@ -718,9 +722,9 @@ class DashboardService:
             except Exception:
                 historical_data = {}
 
-            # Compatibilidade defensiva com testes e instanciações controladas
-            # que utilizam __new__ e, portanto, não executam __init__.
-            # Em produção, o atributo é sempre criado no __init__.
+            # Compatibilidade defensiva com testes e instanciaÃ§Ãµes controladas
+            # que utilizam __new__ e, portanto, nÃ£o executam __init__.
+            # Em produÃ§Ã£o, o atributo Ã© sempre criado no __init__.
             historical_indicator_service = getattr(
                 self,
                 "historical_climate_indicator_service",
@@ -760,14 +764,14 @@ class DashboardService:
             )
 
             # ==================================================
-            # PADRÃƒO SEM DADO
+            # PADRÃƒÆ’O SEM DADO
             # ==================================================
 
             enriched["temperature"] = None
 
-            # Classificação térmica canônica.
-            # O valor permanece ``unavailable`` até que uma temperatura
-            # válida seja efetivamente disponibilizada pela observação.
+            # ClassificaÃ§Ã£o tÃ©rmica canÃ´nica.
+            # O valor permanece ``unavailable`` atÃ© que uma temperatura
+            # vÃ¡lida seja efetivamente disponibilizada pela observaÃ§Ã£o.
             enriched["temperature_class"] = (
                 ThermalClassificationService.CLASS_UNAVAILABLE
             )
@@ -784,23 +788,23 @@ class DashboardService:
             enriched["cloud_cover"] = None
 
             # ==================================================
-            # CONTRATO METEOROLÃ“GICO CANÃ”NICO â€” FASE 1
+            # CONTRATO METEOROLÃƒâ€œGICO CANÃƒâ€NICO Ã¢â‚¬â€ FASE 1
             # ==================================================
 
             # Chuva ocorrendo agora.
             enriched["rain_now"] = None
             enriched["chuva_agora"] = None
 
-            # PrecipitaÃ§Ã£o da Ãºltima hora.
+            # PrecipitaÃƒÂ§ÃƒÂ£o da ÃƒÂºltima hora.
             enriched["precipitation_1h_mm"] = None
             enriched["precipitacao_1h"] = None
 
-            # PrecipitaÃ§Ã£o acumulada em 24 horas.
+            # PrecipitaÃƒÂ§ÃƒÂ£o acumulada em 24 horas.
             enriched["precipitation_24h_mm"] = None
             enriched["precipitacao_24h"] = None
 
-            # ETo diária corrente recebida diretamente do WeatherDTO.
-            # Ausência permanece None; não há cálculo ou estimativa aqui.
+            # ETo diÃ¡ria corrente recebida diretamente do WeatherDTO.
+            # AusÃªncia permanece None; nÃ£o hÃ¡ cÃ¡lculo ou estimativa aqui.
             enriched["eto_mm_day"] = None
 
             # Campo legado: mantido por compatibilidade.
@@ -808,8 +812,8 @@ class DashboardService:
 
             enriched["observation_time"] = None
 
-            # Indicadores históricos derivados. A ausência permanece
-            # explicitamente representada pelo contrato do serviço.
+            # Indicadores histÃ³ricos derivados. A ausÃªncia permanece
+            # explicitamente representada pelo contrato do serviÃ§o.
             enriched["historical_indicators"] = (
                 historical_indicators_by_municipality.get(
                     municipality,
@@ -819,7 +823,7 @@ class DashboardService:
 
 
             # ==================================================
-            # DADOS DA OBSERVAÃ‡ÃƒO
+            # DADOS DA OBSERVAÃƒâ€¡ÃƒÆ’O
             # ==================================================
 
             if observation:
@@ -849,7 +853,7 @@ class DashboardService:
                 )
 
                 # --------------------------------------------------
-                # CONTRATO METEOROLÃ“GICO CANÃ”NICO
+                # CONTRATO METEOROLÃƒâ€œGICO CANÃƒâ€NICO
                 # --------------------------------------------------
 
                 rain_now = getattr(
@@ -874,7 +878,7 @@ class DashboardService:
                     )
                 )
 
-                # VariÃ¡veis canÃ´nicas.
+                # VariÃƒÂ¡veis canÃƒÂ´nicas.
                 enriched["rain_now"] = rain_now
                 enriched["chuva_agora"] = rain_now
 
@@ -885,11 +889,11 @@ class DashboardService:
                 enriched["precipitacao_24h"] = precipitation_24h
 
                 # Compatibilidade com consumidores legados.
-                # O campo genÃ©rico passa a representar explicitamente
-                # a precipitaÃ§Ã£o da Ãºltima hora.
+                # O campo genÃƒÂ©rico passa a representar explicitamente
+                # a precipitaÃƒÂ§ÃƒÂ£o da ÃƒÂºltima hora.
                 enriched["precipitation"] = precipitation_1h
 
-                # CondiÃ§Ã£o meteorolÃ³gica canÃ´nica, quando disponÃvel.
+                # CondiÃƒÂ§ÃƒÂ£o meteorolÃƒÂ³gica canÃƒÂ´nica, quando disponÃƒvel.
                 enriched["weather_condition"] = getattr(
                     observation,
                     "condicao_tempo",
@@ -909,9 +913,9 @@ class DashboardService:
             # ==================================================
             # DADOS COMPLEMENTARES DO WEATHERDTO
             # ==================================================
-            # Estes campos podem estar disponíveis na coleta atual mesmo
-            # quando ainda não existem como colunas em WeatherObservation.
-            # O serviço apenas transporta o valor recebido do Provider.
+            # Estes campos podem estar disponÃ­veis na coleta atual mesmo
+            # quando ainda nÃ£o existem como colunas em WeatherObservation.
+            # O serviÃ§o apenas transporta o valor recebido do Provider.
 
             current_dto = self._current_weather_dtos.get(municipality)
 
@@ -997,13 +1001,13 @@ class DashboardService:
                     None,
                 )
 
-                # ETo diária corrente: transporte direto do WeatherDTO.
+                # ETo diÃ¡ria corrente: transporte direto do WeatherDTO.
                 enriched["eto_mm_day"] = self._to_float(
                     getattr(current_dto, "eto_mm_day", None)
                 )
 
             # ==================================================
-            # INDICADORES AGROCLIMÁTICOS — FASE 2
+            # INDICADORES AGROCLIMÃTICOS â€” FASE 2
             # ==================================================
             agroclimate_indicators = (
                 self.agroclimate_indicator_service.calculate(
@@ -1023,13 +1027,13 @@ class DashboardService:
                 enriched["precipitation_24h_mm"],
             )
 
-            # Contrato canônico da classificação pluviométrica 24h.
-            # A classificação é produzida pelo AgroClimateIndicatorService;
-            # este serviço apenas materializa o resultado no map_point.
-            # O serviço especializado é a autoridade desses campos.
-            # ``get`` mantém compatibilidade com testes/adapters que retornam
-            # apenas o subconjunto de indicadores disponível no contrato.
-            # Ausência permanece None e nunca é convertida em valor sintético.
+            # Contrato canÃ´nico da classificaÃ§Ã£o pluviomÃ©trica 24h.
+            # A classificaÃ§Ã£o Ã© produzida pelo AgroClimateIndicatorService;
+            # este serviÃ§o apenas materializa o resultado no map_point.
+            # O serviÃ§o especializado Ã© a autoridade desses campos.
+            # ``get`` mantÃ©m compatibilidade com testes/adapters que retornam
+            # apenas o subconjunto de indicadores disponÃ­vel no contrato.
+            # AusÃªncia permanece None e nunca Ã© convertida em valor sintÃ©tico.
             enriched["precipitation_24h_class"] = (
                 agroclimate_indicators.get("precipitation_24h_class")
             )
@@ -1044,7 +1048,7 @@ class DashboardService:
             enriched["precipitation"] = agroclimate_indicators["precipitation_1h_mm"]
 
             # ==================================================
-            # HISTÃ“RICO REAL DE GEADA
+            # HISTÃƒâ€œRICO REAL DE GEADA
             # ==================================================
 
             historical = (
@@ -1061,7 +1065,7 @@ class DashboardService:
                 enriched["frost_temperature_minimum"] = None
                 enriched["historical_frost"] = False
 
-                # EvidÃªncia histÃ³rica estruturada.
+                # EvidÃƒÂªncia histÃƒÂ³rica estruturada.
                 enriched["historical_total_days"] = 0
                 enriched["historical_frost_days"] = 0
                 enriched["historical_frost_frequency"] = 0.0
@@ -1106,18 +1110,18 @@ class DashboardService:
             )
 
         # ==========================================================
-        # CONTRATO TÉRMICO MATERIALIZADO
+        # CONTRATO TÃ‰RMICO MATERIALIZADO
         # ==========================================================
-        # Cada ponto devolvido por este método possui sempre: temperature,
+        # Cada ponto devolvido por este mÃ©todo possui sempre: temperature,
         # temperature_class e temperature_class_label. Quando a temperatura
-        # não está disponível, a classificação permanece explicitamente como
-        # ``unavailable`` / ``Sem dado``. Assim, ausência de dado nunca é
-        # convertida em uma faixa térmica válida por conveniência visual.
+        # nÃ£o estÃ¡ disponÃ­vel, a classificaÃ§Ã£o permanece explicitamente como
+        # ``unavailable`` / ``Sem dado``. Assim, ausÃªncia de dado nunca Ã©
+        # convertida em uma faixa tÃ©rmica vÃ¡lida por conveniÃªncia visual.
 
         return enriched_points
 
     # ==========================================================
-    # AVALIAÃ‡ÃƒO MUNICIPAL ÃšNICA DO FRI
+    # AVALIAÃƒâ€¡ÃƒÆ’O MUNICIPAL ÃƒÅ¡NICA DO FRI
     # ==========================================================
 
     def _attach_frost_intelligence(
@@ -1125,27 +1129,27 @@ class DashboardService:
         map_points,
     ):
         """
-        Executa exatamente uma avaliação de Inteligência por município.
+        Executa exatamente uma avaliaÃ§Ã£o de InteligÃªncia por municÃ­pio.
 
-        NÚCLEO DA CORREÇÃO — ALERTAS:
+        NÃšCLEO DA CORREÃ‡ÃƒO â€” ALERTAS:
 
-        - Cada município recebe um contexto próprio e isolado.
-        - O resultado de Intelligence pertence exclusivamente ao município
+        - Cada municÃ­pio recebe um contexto prÃ³prio e isolado.
+        - O resultado de Intelligence pertence exclusivamente ao municÃ­pio
           avaliado e permanece dentro do respectivo map_point.
-        - O DashboardService não recalcula alertas nem cruza contextos
+        - O DashboardService nÃ£o recalcula alertas nem cruza contextos
           municipais.
-        - Os alertas permanecem municipais durante a avaliação.
-        - A consolidação territorial posterior é apenas de transporte.
-        - FRI somente é obtido do resultado ``frost``.
-        - O score de uma regra meteorológica não é apresentado como FRI.
+        - Os alertas permanecem municipais durante a avaliaÃ§Ã£o.
+        - A consolidaÃ§Ã£o territorial posterior Ã© apenas de transporte.
+        - FRI somente Ã© obtido do resultado ``frost``.
+        - O score de uma regra meteorolÃ³gica nÃ£o Ã© apresentado como FRI.
         """
 
         if not map_points:
             return []
 
-        # MP-01.12: uma chamada à interface pública do serviço coleta cada
-        # município em uma solicitação Open-Meteo individual, fora do loop de
-        # inteligência. Falha individual não interrompe o dashboard.
+        # MP-01.12: uma chamada Ã  interface pÃºblica do serviÃ§o coleta cada
+        # municÃ­pio em uma solicitaÃ§Ã£o Open-Meteo individual, fora do loop de
+        # inteligÃªncia. Falha individual nÃ£o interrompe o dashboard.
         hail_inputs_by_id = {}
         try:
             hail_inputs_by_id = HailMeteorologicalInputService().fetch_for_points(
@@ -1153,7 +1157,7 @@ class DashboardService:
             )
         except Exception:
             logger.exception(
-                "Falha ao adquirir variáveis meteorológicas MP-01.12 para granizo."
+                "Falha ao adquirir variÃ¡veis meteorolÃ³gicas MP-01.12 para granizo."
             )
             hail_inputs_by_id = {}
 
@@ -1165,19 +1169,19 @@ class DashboardService:
                 point.get("historical_indicators") or {}
             )
 
-            # HailMeteorologicalInputService indexa a saída pelo id
-            # original de cada map_point. Esse é o identificador primário
-            # do contrato de MapService; municipio_id é apenas alias de
-            # compatibilidade e não deve sombrear a chave canônica.
+            # HailMeteorologicalInputService indexa a saÃ­da pelo id
+            # original de cada map_point. Esse Ã© o identificador primÃ¡rio
+            # do contrato de MapService; municipio_id Ã© apenas alias de
+            # compatibilidade e nÃ£o deve sombrear a chave canÃ´nica.
             point_id = point.get("id")
             municipio_id = point.get("municipio_id")
             hail_input = hail_inputs_by_id.get(point_id)
             if hail_input is None and municipio_id != point_id:
                 hail_input = hail_inputs_by_id.get(municipio_id)
 
-            # Recuperação isolada de série parcial. Ausência e falha são
-            # representadas como dados ausentes após os retries do serviço;
-            # a regra de granizo continua executada uma única vez pelo motor.
+            # RecuperaÃ§Ã£o isolada de sÃ©rie parcial. AusÃªncia e falha sÃ£o
+            # representadas como dados ausentes apÃ³s os retries do serviÃ§o;
+            # a regra de granizo continua executada uma Ãºnica vez pelo motor.
             required_hail_variables = (
                 "cape",
                 "wind_speed_925hPa",
@@ -1199,10 +1203,10 @@ class DashboardService:
                 )
             )
 
-            # A ausência indica que a aquisição individual já falhou ou que
-            # não havia coordenadas utilizáveis. O serviço já aplicou seu
+            # A ausÃªncia indica que a aquisiÃ§Ã£o individual jÃ¡ falhou ou que
+            # nÃ£o havia coordenadas utilizÃ¡veis. O serviÃ§o jÃ¡ aplicou seu
             # retry HTTP; repetir aqui multiplicaria as tentativas. Reconsulta
-            # somente séries parciais efetivamente recebidas, que não entram
+            # somente sÃ©ries parciais efetivamente recebidas, que nÃ£o entram
             # no cache e podem ser recuperadas nesta chamada isolada.
             has_partial_hail_input = (
                 isinstance(hail_input, dict)
@@ -1222,8 +1226,8 @@ class DashboardService:
                         hail_input = individual_input
                 except Exception:
                     logger.exception(
-                        "Falha na recuperação meteorológica individual de granizo "
-                        "para município id=%s nome=%s.",
+                        "Falha na recuperaÃ§Ã£o meteorolÃ³gica individual de granizo "
+                        "para municÃ­pio id=%s nome=%s.",
                         point_id,
                         point.get("nome") or point.get("municipio_nome"),
                     )
@@ -1232,15 +1236,15 @@ class DashboardService:
                 hail_input = {}
 
             context = {
-                # MP-01.12 — variáveis meteorológicas reais da coordenada municipal.
-                # A proveniência e o instante válido acompanham os valores.
+                # MP-01.12 â€” variÃ¡veis meteorolÃ³gicas reais da coordenada municipal.
+                # A proveniÃªncia e o instante vÃ¡lido acompanham os valores.
                 "series": hail_input.get("series") or {},
                 "provenance": hail_input.get("provenance") or {},
                 "valid_from": hail_input.get("valid_from"),
                 "valid_to": hail_input.get("valid_to"),
 
-                # MapService publica o PK do município como ``id``. O alias
-                # ``municipio_id`` continua aceito para pontos já adaptados.
+                # MapService publica o PK do municÃ­pio como ``id``. O alias
+                # ``municipio_id`` continua aceito para pontos jÃ¡ adaptados.
                 "municipio_id": (
                     point.get("municipio_id") or point.get("id")
                 ),
@@ -1278,10 +1282,10 @@ class DashboardService:
                 ),
 
                 # ==================================================
-                # BALANÇO HÍDRICO CANÔNICO — MP-01.6
+                # BALANÃ‡O HÃDRICO CANÃ”NICO â€” MP-01.6
                 #
-                # Estes campos são somente transportados do resultado
-                # já calculado por HistoricalClimateIndicatorService.
+                # Estes campos sÃ£o somente transportados do resultado
+                # jÃ¡ calculado por HistoricalClimateIndicatorService.
                 # HydricPressureRule continua sendo a autoridade para
                 # produzir hydric_state.
                 # ==================================================
@@ -1336,15 +1340,15 @@ class DashboardService:
             }
 
             # --------------------------------------------------
-            # RESULTADO INTEGRAL DA AVALIAÇÃO MUNICIPAL
+            # RESULTADO INTEGRAL DA AVALIAÃ‡ÃƒO MUNICIPAL
             # --------------------------------------------------
-            # O retorno vinculado à chamada contém o FRI e o resultado
-            # integral do IntelligenceEngine desta avaliação municipal.
+            # O retorno vinculado Ã  chamada contÃ©m o FRI e o resultado
+            # integral do IntelligenceEngine desta avaliaÃ§Ã£o municipal.
             #
             # Isso evita:
-            #   - segunda execução do IntelligenceEngine;
-            #   - divergência entre FRI e demais resultados;
-            #   - leitura posterior de estado mutável compartilhado.
+            #   - segunda execuÃ§Ã£o do IntelligenceEngine;
+            #   - divergÃªncia entre FRI e demais resultados;
+            #   - leitura posterior de estado mutÃ¡vel compartilhado.
             intelligence = {}
 
             try:
@@ -1358,7 +1362,7 @@ class DashboardService:
                         context
                     )
                 else:
-                    # Compatibilidade com adapters legados que só expõem
+                    # Compatibilidade com adapters legados que sÃ³ expÃµem
                     # evaluate_frost(): preserva o FRI sem consultar estado
                     # compartilhado ou executar o motor uma segunda vez.
                     frost = self.frost_risk_service.evaluate_frost(context)
@@ -1378,9 +1382,9 @@ class DashboardService:
                 rule_results = []
 
             # Contrato de granizo: comparar todos os resultados da mesma
-            # execução e escolher o payload com maior completude estrutural.
-            # derived + drivers não bastam se complementary_values se perdeu.
-            # Nenhuma regra é reexecutada e nenhum indicador é recalculado aqui.
+            # execuÃ§Ã£o e escolher o payload com maior completude estrutural.
+            # derived + drivers nÃ£o bastam se complementary_values se perdeu.
+            # Nenhuma regra Ã© reexecutada e nenhum indicador Ã© recalculado aqui.
             hail = intelligence.get("hail", {})
             if not isinstance(hail, dict):
                 hail = {}
@@ -1445,9 +1449,9 @@ class DashboardService:
             if not isinstance(explainability, dict):
                 explainability = {}
 
-            # Normalização transversal: deduplicação somente dentro da
-            # avaliação do município corrente. Municípios distintos nunca
-            # são comparados ou fundidos.
+            # NormalizaÃ§Ã£o transversal: deduplicaÃ§Ã£o somente dentro da
+            # avaliaÃ§Ã£o do municÃ­pio corrente. MunicÃ­pios distintos nunca
+            # sÃ£o comparados ou fundidos.
             alerts = self._normalize_municipal_alerts(
                 alerts,
                 municipio_id=(
@@ -1459,7 +1463,7 @@ class DashboardService:
                 ),
             )
 
-            # FRI canônico: somente o resultado da FrostRule.
+            # FRI canÃ´nico: somente o resultado da FrostRule.
             evaluated["fri"] = frost.get("fri")
             if evaluated["fri"] is None:
                 evaluated["fri"] = frost.get("score")
@@ -1473,7 +1477,7 @@ class DashboardService:
             if evaluated["frost_factors"] is None:
                 evaluated["frost_factors"] = frost.get("factors")
 
-            # Inteligência exclusivamente deste município.
+            # InteligÃªncia exclusivamente deste municÃ­pio.
             evaluated["rule_results"] = rule_results
             evaluated["insights"] = insights
             evaluated["recommendations"] = recommendations
@@ -1493,13 +1497,13 @@ class DashboardService:
                 alerts[0] if alerts else None
             )
 
-            # Rastreabilidade da mesma avaliação.
+            # Rastreabilidade da mesma avaliaÃ§Ã£o.
             evaluated["frost_evaluation"] = frost
 
-            # MP-01.11 / MP-01.12 — transporte do resultado experimental
-            # produzido na mesma execução do IntelligenceEngine. A ausência
-            # de variáveis obrigatórias permanece explícita no resultado da
-            # HailPotentialRule; não é convertida em potencial baixo/zero.
+            # MP-01.11 / MP-01.12 â€” transporte do resultado experimental
+            # produzido na mesma execuÃ§Ã£o do IntelligenceEngine. A ausÃªncia
+            # de variÃ¡veis obrigatÃ³rias permanece explÃ­cita no resultado da
+            # HailPotentialRule; nÃ£o Ã© convertida em potencial baixo/zero.
             evaluated["hail_potential_evaluation"] = hail
             evaluated["hail_meteorological_input"] = {
                 "series": dict(hail_input.get("series") or {}),
@@ -1519,16 +1523,17 @@ class DashboardService:
 
             evaluated_points.append(evaluated)
 
-        # Não criar, concatenar ou deduplicar alertas globais aqui.
+        # NÃ£o criar, concatenar ou deduplicar alertas globais aqui.
         return evaluated_points
 
     @staticmethod
-    def _compose_hail_assessments(map_points):
+    def _compose_hail_assessments(map_points, threshold_set=None):
         """
-        Publica o contrato global a partir das avaliações municipais já
-        produzidas pela execução única de Inteligência.
+        Publica o contrato global a partir das avaliaÃ§Ãµes municipais jÃ¡
+        produzidas pela execuÃ§Ã£o Ãºnica de InteligÃªncia.
         """
         assessments = []
+        classification_service = HailThresholdClassificationService()
 
         for point in map_points or []:
             if not isinstance(point, dict):
@@ -1553,8 +1558,8 @@ class DashboardService:
                     )
                 )
 
-            # Não aceitar um dicionário vazio/incompleto como autoridade
-            # quando a mesma avaliação já contém o resultado canônico completo.
+            # NÃ£o aceitar um dicionÃ¡rio vazio/incompleto como autoridade
+            # quando a mesma avaliaÃ§Ã£o jÃ¡ contÃ©m o resultado canÃ´nico completo.
             candidates = [
                 candidate
                 for candidate in [hail, *fallback_candidates]
@@ -1597,23 +1602,30 @@ class DashboardService:
 
             hail = max(candidates, key=_project_hail_completeness)
 
-            assessments.append(
+            assessment = (
                 HailProjectContextContract.from_municipal_result(
-                    hail=hail,
-                    municipio_id=point.get("id", point.get("municipio_id")),
-                    municipio_nome=point.get("nome", point.get("municipio_nome")),
-                ).as_dict()
+                                    hail=hail,
+                                    municipio_id=point.get("id", point.get("municipio_id")),
+                                    municipio_nome=point.get("nome", point.get("municipio_nome")),
+                                ).as_dict()
             )
+            assessment["experimental_threshold_classification"] = (
+                classification_service.evaluate(
+                    hail,
+                    threshold_set=threshold_set,
+                )
+            )
+            assessments.append(assessment)
 
         return assessments
 
     def _compose_hydric_pressure_regional(self, map_points):
         """
-        Reúne exclusivamente os resultados municipais já produzidos por
-        HYDRIC_PRESSURE_001 na mesma avaliação de Inteligência.
+        ReÃºne exclusivamente os resultados municipais jÃ¡ produzidos por
+        HYDRIC_PRESSURE_001 na mesma avaliaÃ§Ã£o de InteligÃªncia.
 
-        Não recalcula balanço, não executa HydricPressureRule novamente e
-        não cria um novo estado hídrico regional.
+        NÃ£o recalcula balanÃ§o, nÃ£o executa HydricPressureRule novamente e
+        nÃ£o cria um novo estado hÃ­drico regional.
         """
         results = []
 
@@ -1648,7 +1660,7 @@ class DashboardService:
         map_points,
         primary_municipio_id=None,
     ):
-        """Transporta a coleção MP-01.6 e sua síntese MP-01.7."""
+        """Transporta a coleÃ§Ã£o MP-01.6 e sua sÃ­ntese MP-01.7."""
         regional_context = self._compose_hydric_pressure_regional(
             map_points
         )
@@ -1669,8 +1681,8 @@ class DashboardService:
         context["hydric_pressure_regional"] = regional_context
         context["hydric_pressure_regional_synthesis"] = synthesis
 
-        # A explicabilidade recebe a síntese pronta pela API do mesmo
-        # IntelligenceEngine. Esta chamada não avalia regras nem altera FRI.
+        # A explicabilidade recebe a sÃ­ntese pronta pela API do mesmo
+        # IntelligenceEngine. Esta chamada nÃ£o avalia regras nem altera FRI.
         context["hydric_pressure_regional_explainability"] = (
             self.frost_risk_service.intelligence.explain_regional_evidence(
                 context
@@ -1700,10 +1712,10 @@ class DashboardService:
         municipio_nome=None,
     ):
         """
-        Normaliza os alertas de uma única avaliação municipal.
+        Normaliza os alertas de uma Ãºnica avaliaÃ§Ã£o municipal.
 
-        A deduplicação é intra-municipal. Alertas de municípios distintos
-        permanecem independentes e nunca são fundidos aqui.
+        A deduplicaÃ§Ã£o Ã© intra-municipal. Alertas de municÃ­pios distintos
+        permanecem independentes e nunca sÃ£o fundidos aqui.
         """
 
         if not isinstance(alerts, list):
@@ -1718,7 +1730,7 @@ class DashboardService:
 
             item = dict(alert)
 
-            # Proveniência territorial explícita.
+            # ProveniÃªncia territorial explÃ­cita.
             item["municipio_id"] = municipio_id
             item["municipio_nome"] = municipio_nome
 
@@ -1740,7 +1752,7 @@ class DashboardService:
         return normalized
 
 
-    # EPISÃ“DIOS HISTÃ“RICOS DE GEADA
+    # EPISÃƒâ€œDIOS HISTÃƒâ€œRICOS DE GEADA
     # ==========================================================
 
     @staticmethod
@@ -1748,14 +1760,14 @@ class DashboardService:
         frost_dates,
     ):
         """
-        Conta episÃ³dios distintos de geada.
+        Conta episÃƒÂ³dios distintos de geada.
 
-        Dias consecutivos pertencem ao mesmo episÃ³dio.
+        Dias consecutivos pertencem ao mesmo episÃƒÂ³dio.
         Dias separados por pelo menos um dia sem geada
-        iniciam novo episÃ³dio.
+        iniciam novo episÃƒÂ³dio.
 
-        NÃ£o calcula risco. Apenas estrutura a evidÃªncia
-        histÃ³rica para a camada de InteligÃªncia.
+        NÃƒÂ£o calcula risco. Apenas estrutura a evidÃƒÂªncia
+        histÃƒÂ³rica para a camada de InteligÃƒÂªncia.
         """
 
         if not frost_dates:
@@ -1778,14 +1790,14 @@ class DashboardService:
         return episodes
 
     # ==========================================================
-    # SERIALIZAÇÃO DE DATAS
+    # SERIALIZAÃ‡ÃƒO DE DATAS
     # ==========================================================
 
     @staticmethod
     def _serialize_datetime(value):
         """
-        Converte datas recebidas pelo WeatherDTO para representação
-        serializável no map_point, preservando None quando ausentes.
+        Converte datas recebidas pelo WeatherDTO para representaÃ§Ã£o
+        serializÃ¡vel no map_point, preservando None quando ausentes.
         """
 
         if value is None:
@@ -1797,45 +1809,45 @@ class DashboardService:
         return str(value)
 
     # ==========================================================
-    # CONVERSÃƒO NUMÃ‰RICA
+    # CONVERSÃƒÆ’O NUMÃƒâ€°RICA
     # ==========================================================
 
     # ==========================================================
-    # CONTEXTO METEOROLÓGICO CANÔNICO
+    # CONTEXTO METEOROLÃ“GICO CANÃ”NICO
     # ==========================================================
 
     def _build_canonical_weather_context(self):
         """
-        Constrói o contexto meteorológico regional único do ciclo atual.
+        ConstrÃ³i o contexto meteorolÃ³gico regional Ãºnico do ciclo atual.
 
         Fonte exclusiva:
             self._current_weather_dtos
 
-        O método não realiza nova aquisição e não consulta Provider.
+        O mÃ©todo nÃ£o realiza nova aquisiÃ§Ã£o e nÃ£o consulta Provider.
         Os DTOs foram produzidos previamente por
         ``_refresh_current_weather()``.
 
-        Contrato semântico:
-            - ``temperature`` representa a média regional das temperaturas
-              disponíveis quando todos os municípios monitorados possuem
-              observação válida;
-            - ``precipitation_1h_mm`` representa a média regional da chuva
-              da última hora quando todos os municípios possuem valor válido;
-            - ``precipitation_24h_mm`` representa a média regional do
-              acumulado de 24 horas quando todos os municípios possuem
-              valor válido;
-            - ``eto_mm_day`` representa a média regional da ETo diária
-              corrente quando todos os municípios possuem valor válido;
-            - ``rain_now`` representa ocorrência de chuva no território
-              quando todos os estados municipais são conhecidos;
+        Contrato semÃ¢ntico:
+            - ``temperature`` representa a mÃ©dia regional das temperaturas
+              disponÃ­veis quando todos os municÃ­pios monitorados possuem
+              observaÃ§Ã£o vÃ¡lida;
+            - ``precipitation_1h_mm`` representa a mÃ©dia regional da chuva
+              da Ãºltima hora quando todos os municÃ­pios possuem valor vÃ¡lido;
+            - ``precipitation_24h_mm`` representa a mÃ©dia regional do
+              acumulado de 24 horas quando todos os municÃ­pios possuem
+              valor vÃ¡lido;
+            - ``eto_mm_day`` representa a mÃ©dia regional da ETo diÃ¡ria
+              corrente quando todos os municÃ­pios possuem valor vÃ¡lido;
+            - ``rain_now`` representa ocorrÃªncia de chuva no territÃ³rio
+              quando todos os estados municipais sÃ£o conhecidos;
             - ``municipio`` permanece como compatibilidade e identifica o
-              município principal do ciclo. Ele não define os valores
+              municÃ­pio principal do ciclo. Ele nÃ£o define os valores
               regionais agregados.
 
-        Ausência de dado:
-            nenhuma média regional é calculada a partir de subconjunto
-            silenciosamente. Se faltar um valor obrigatório em qualquer
-            município monitorado, a média correspondente permanece None.
+        AusÃªncia de dado:
+            nenhuma mÃ©dia regional Ã© calculada a partir de subconjunto
+            silenciosamente. Se faltar um valor obrigatÃ³rio em qualquer
+            municÃ­pio monitorado, a mÃ©dia correspondente permanece None.
         """
 
         municipios = list(
@@ -1861,8 +1873,8 @@ class DashboardService:
         if not valid_dtos:
             return None
 
-        # O município principal é apenas uma referência de transporte.
-        # Os indicadores regionais não dependem de sua posição na lista.
+        # O municÃ­pio principal Ã© apenas uma referÃªncia de transporte.
+        # Os indicadores regionais nÃ£o dependem de sua posiÃ§Ã£o na lista.
         municipio = next(
             (
                 municipio
@@ -1939,9 +1951,9 @@ class DashboardService:
             if dto is not None
         ]
 
-        # Acumulados históricos canônicos de precipitação.
-        # A fonte é exclusivamente HistoricalWeatherDaily através do
-        # HistoryService; não há substituição por precipitation_24h_mm.
+        # Acumulados histÃ³ricos canÃ´nicos de precipitaÃ§Ã£o.
+        # A fonte Ã© exclusivamente HistoricalWeatherDaily atravÃ©s do
+        # HistoryService; nÃ£o hÃ¡ substituiÃ§Ã£o por precipitation_24h_mm.
         precipitation_7d_mm = (
             self.history_service.precipitation_7d_mm()
         )
@@ -1974,15 +1986,15 @@ class DashboardService:
             "municipio": municipio,
             "observation": observation,
 
-            # Identidade explícita do município de referência.
+            # Identidade explÃ­cita do municÃ­pio de referÃªncia.
             "primary_municipio": municipio,
 
-            # Escopo regional explícito.
+            # Escopo regional explÃ­cito.
             "municipality_count": len(municipios),
             "municipalities_available": len(valid_dtos),
             "all_municipalities_available": all_municipalities_available,
 
-            # Valores regionais canônicos.
+            # Valores regionais canÃ´nicos.
             "temperature": aggregate(temperature_values),
             "temperature_mean": aggregate(temperature_values),
             "humidity": aggregate(humidity_values),
@@ -1998,7 +2010,7 @@ class DashboardService:
             "eto_mm_day": aggregate(eto_values),
             "eto_values": eto_values,
 
-            # Métricas temporais canônicas para consumidores derivados.
+            # MÃ©tricas temporais canÃ´nicas para consumidores derivados.
             "precipitation_7d_mm": precipitation_7d_mm,
             "precipitation_30d_mm": precipitation_30d_mm,
 
@@ -2034,13 +2046,13 @@ class DashboardService:
 
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — FASE 5.2 — INTEGRAÇÃO
+# REGISTRO DE AUDITORIA â€” FASE 5.2 â€” INTEGRAÃ‡ÃƒO
 # ============================================================================
 #
 # Arquivo-base:
 #     dashboard_service.py v3.8
 #
-# Integração implementada:
+# IntegraÃ§Ã£o implementada:
 #     HistoryService
 #         -> HistoricalClimateIndicatorService
 #         -> map_point["historical_indicators"]
@@ -2054,27 +2066,27 @@ class DashboardService:
 #     amplitude_termica_dias_disponiveis
 #
 # Garantias preservadas:
-#     - nenhuma regra de FRI é criada ou repetida;
-#     - FrostRiskService continua sendo a única avaliação oficial do FRI;
-#     - nenhum indicador é calculado no frontend;
-#     - HistoryService permanece responsável apenas pela série histórica;
-#     - HistoricalClimateIndicatorService permanece responsável pelo cálculo;
-#     - None permanece None quando não há dado suficiente;
-#     - os demais dados do map_point são preservados.
+#     - nenhuma regra de FRI Ã© criada ou repetida;
+#     - FrostRiskService continua sendo a Ãºnica avaliaÃ§Ã£o oficial do FRI;
+#     - nenhum indicador Ã© calculado no frontend;
+#     - HistoryService permanece responsÃ¡vel apenas pela sÃ©rie histÃ³rica;
+#     - HistoricalClimateIndicatorService permanece responsÃ¡vel pelo cÃ¡lculo;
+#     - None permanece None quando nÃ£o hÃ¡ dado suficiente;
+#     - os demais dados do map_point sÃ£o preservados.
 #
-# A integração não altera ainda a interface visual. A apresentação dos novos
-# indicadores será tratada somente na etapa correspondente do cronograma.
+# A integraÃ§Ã£o nÃ£o altera ainda a interface visual. A apresentaÃ§Ã£o dos novos
+# indicadores serÃ¡ tratada somente na etapa correspondente do cronograma.
 # ============================================================================
 
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — FASE 5.3 — INTEGRAÇÃO
+# REGISTRO DE AUDITORIA â€” FASE 5.3 â€” INTEGRAÃ‡ÃƒO
 # ============================================================================
 #
 # Arquivo-base:
-#     dashboard_service.py v3.9 — integração anterior da Fase 5.
+#     dashboard_service.py v3.9 â€” integraÃ§Ã£o anterior da Fase 5.
 #
-# Evolução implementada:
+# EvoluÃ§Ã£o implementada:
 #     HistoricalClimateIndicatorService v5.3
 #         -> map_point["historical_indicators"]
 #
@@ -2093,158 +2105,158 @@ class DashboardService:
 #     amplitude_termica_dias_disponiveis
 #
 # Responsabilidades preservadas:
-#     - HistoryService fornece a série histórica estruturada;
+#     - HistoryService fornece a sÃ©rie histÃ³rica estruturada;
 #     - HistoricalClimateIndicatorService calcula os indicadores;
 #     - DashboardService somente integra e distribui os resultados;
-#     - frontend não calcula indicadores;
-#     - FRI continua com avaliação oficial única;
-#     - nenhuma regra de severidade, confiança, alerta ou recomendação foi criada.
+#     - frontend nÃ£o calcula indicadores;
+#     - FRI continua com avaliaÃ§Ã£o oficial Ãºnica;
+#     - nenhuma regra de severidade, confianÃ§a, alerta ou recomendaÃ§Ã£o foi criada.
 #
-# Tratamento de ausência:
-#     None permanece None quando não houver série válida suficiente.
+# Tratamento de ausÃªncia:
+#     None permanece None quando nÃ£o houver sÃ©rie vÃ¡lida suficiente.
 #
-# Nenhuma alteração visual foi realizada nesta etapa.
+# Nenhuma alteraÃ§Ã£o visual foi realizada nesta etapa.
 # ============================================================================
 
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — FASE 8 / CORREÇÃO DE CONTRATO PLUVIOMÉTRICO 24H
+# REGISTRO DE AUDITORIA â€” FASE 8 / CORREÃ‡ÃƒO DE CONTRATO PLUVIOMÃ‰TRICO 24H
 # ============================================================================
 #
-# Correção: materialização explícita de precipitation_24h_class e
-# precipitation_24h_class_label no map_point após a execução do
+# CorreÃ§Ã£o: materializaÃ§Ã£o explÃ­cita de precipitation_24h_class e
+# precipitation_24h_class_label no map_point apÃ³s a execuÃ§Ã£o do
 # AgroClimateIndicatorService.
 #
-# A regra de classificação permanece exclusivamente no serviço especializado.
-# O DashboardService não cria limiares, não recalcula a classificação e não
-# altera FRI, severidade, confiança, ranking ou demais indicadores.
+# A regra de classificaÃ§Ã£o permanece exclusivamente no serviÃ§o especializado.
+# O DashboardService nÃ£o cria limiares, nÃ£o recalcula a classificaÃ§Ã£o e nÃ£o
+# altera FRI, severidade, confianÃ§a, ranking ou demais indicadores.
 #
-# Objetivo: impedir que o valor numérico precipitation_24h_mm chegue ao
-# consumidor sem os respectivos campos de classificação já produzidos pelo
+# Objetivo: impedir que o valor numÃ©rico precipitation_24h_mm chegue ao
+# consumidor sem os respectivos campos de classificaÃ§Ã£o jÃ¡ produzidos pelo
 # backend.
 # ============================================================================
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — VERSÃO 3.10 — CONTRATO CANÔNICO
+# REGISTRO DE AUDITORIA â€” VERSÃƒO 3.10 â€” CONTRATO CANÃ”NICO
 # ============================================================================
 #
 # Arquivo-base:
-#     dashboard_service.py v3.8 — arquivo corrente anexado em 17/09/2026.
+#     dashboard_service.py v3.8 â€” arquivo corrente anexado em 17/09/2026.
 #
-# Correções incorporadas nesta versão:
+# CorreÃ§Ãµes incorporadas nesta versÃ£o:
 #
 # 1. CONTEXTO REGIONAL
-#    O contexto meteorológico deixou de usar silenciosamente o primeiro
-#    município como origem dos valores regionais. ``municipio`` permanece
-#    apenas como referência de compatibilidade.
+#    O contexto meteorolÃ³gico deixou de usar silenciosamente o primeiro
+#    municÃ­pio como origem dos valores regionais. ``municipio`` permanece
+#    apenas como referÃªncia de compatibilidade.
 #
 # 2. TEMPERATURA REGIONAL
-#    ``temperature`` e ``temperature_mean`` passam a representar a média
-#    das temperaturas dos municípios monitorados quando todos possuem
-#    observação válida.
+#    ``temperature`` e ``temperature_mean`` passam a representar a mÃ©dia
+#    das temperaturas dos municÃ­pios monitorados quando todos possuem
+#    observaÃ§Ã£o vÃ¡lida.
 #
-# 3. PRECIPITAÇÃO REGIONAL
-#    ``precipitation_1h_mm`` e ``precipitation_24h_mm`` são agregados
-#    explicitamente no contexto regional. O acumulado de 24h mantém a
-#    semântica oficial já adotada pelo projeto: média dos municípios.
+# 3. PRECIPITAÃ‡ÃƒO REGIONAL
+#    ``precipitation_1h_mm`` e ``precipitation_24h_mm`` sÃ£o agregados
+#    explicitamente no contexto regional. O acumulado de 24h mantÃ©m a
+#    semÃ¢ntica oficial jÃ¡ adotada pelo projeto: mÃ©dia dos municÃ­pios.
 #
-# 4. AUSÊNCIA DE DADOS
-#    Uma média regional não é produzida a partir de subconjunto semântico-
-#    mente incompleto. Quando faltar dado obrigatório em qualquer município,
-#    a média correspondente permanece None.
+# 4. AUSÃŠNCIA DE DADOS
+#    Uma mÃ©dia regional nÃ£o Ã© produzida a partir de subconjunto semÃ¢ntico-
+#    mente incompleto. Quando faltar dado obrigatÃ³rio em qualquer municÃ­pio,
+#    a mÃ©dia correspondente permanece None.
 #
 # 5. CHUVA AGORA
-#    ``rain_now`` só é materializado no contexto regional quando todos os
-#    estados municipais estão disponíveis. A ocorrência territorial é True
-#    quando pelo menos um município registra chuva.
+#    ``rain_now`` sÃ³ Ã© materializado no contexto regional quando todos os
+#    estados municipais estÃ£o disponÃ­veis. A ocorrÃªncia territorial Ã© True
+#    quando pelo menos um municÃ­pio registra chuva.
 #
-# 6. IDENTIDADE DO MUNICÍPIO PRINCIPAL
-#    ``primary_municipio`` torna explícita a finalidade de transporte do
-#    município de referência, evitando que sua posição na ordenação seja
-#    confundida com uma definição regional.
+# 6. IDENTIDADE DO MUNICÃPIO PRINCIPAL
+#    ``primary_municipio`` torna explÃ­cita a finalidade de transporte do
+#    municÃ­pio de referÃªncia, evitando que sua posiÃ§Ã£o na ordenaÃ§Ã£o seja
+#    confundida com uma definiÃ§Ã£o regional.
 #
 # 7. ALERTAS
-#    A implementação corrente consolida os alertas municipais já produzidos
-#    pela Inteligência para o painel global. Esta operação não executa regra,
-#    não recalcula score, não altera severidade e não converte score em FRI.
+#    A implementaÃ§Ã£o corrente consolida os alertas municipais jÃ¡ produzidos
+#    pela InteligÃªncia para o painel global. Esta operaÃ§Ã£o nÃ£o executa regra,
+#    nÃ£o recalcula score, nÃ£o altera severidade e nÃ£o converte score em FRI.
 #
 # 8. FRI
 #    O FRI continua sendo obtido exclusivamente de ``intelligence["frost"]``
 #    dentro de ``_attach_frost_intelligence``. O Ranking deve consumir esse
-#    valor materializado e não recalculá-lo.
+#    valor materializado e nÃ£o recalculÃ¡-lo.
 #
 # 9. INTELLIGENCE MUNICIPAL
-#    Cada município recebe uma avaliação isolada por ciclo. Os resultados
-#    são mantidos no respectivo map_point.
+#    Cada municÃ­pio recebe uma avaliaÃ§Ã£o isolada por ciclo. Os resultados
+#    sÃ£o mantidos no respectivo map_point.
 #
 # 10. FRONTEND
-#     Nenhum cálculo de indicador, FRI, severidade ou classificação é
-#     introduzido neste serviço para consumo pelo frontend.
+#     Nenhum cÃ¡lculo de indicador, FRI, severidade ou classificaÃ§Ã£o Ã©
+#     introduzido neste serviÃ§o para consumo pelo frontend.
 #
 # ============================================================================
-# CRITÉRIO DE ACEITE — DASHBOARD SERVICE V3.10
+# CRITÃ‰RIO DE ACEITE â€” DASHBOARD SERVICE V3.10
 # ============================================================================
 #
-# A versão somente deve ser considerada aceita quando todos os itens abaixo
+# A versÃ£o somente deve ser considerada aceita quando todos os itens abaixo
 # forem comprovados no projeto:
 #
 # [A] FUNCIONAL
 #     - Django inicia sem erro.
 #     - Dashboard principal responde normalmente.
-#     - Os seis municípios monitorados continuam presentes.
+#     - Os seis municÃ­pios monitorados continuam presentes.
 #
-# [B] CONTEXTO METEOROLÓGICO
-#     - temperature == média dos seis municípios quando todos disponíveis.
-#     - precipitation_24h_mm == média dos seis municípios.
-#     - precipitation_1h_mm == média dos seis municípios.
-#     - nenhum valor None é convertido em zero.
-#     - municipality_count == 6 no cenário operacional completo.
+# [B] CONTEXTO METEOROLÃ“GICO
+#     - temperature == mÃ©dia dos seis municÃ­pios quando todos disponÃ­veis.
+#     - precipitation_24h_mm == mÃ©dia dos seis municÃ­pios.
+#     - precipitation_1h_mm == mÃ©dia dos seis municÃ­pios.
+#     - nenhum valor None Ã© convertido em zero.
+#     - municipality_count == 6 no cenÃ¡rio operacional completo.
 #
 # [C] MUNICIPAL
-#     - cada map_point mantém sua própria temperatura.
-#     - cada map_point mantém sua própria precipitation_1h_mm.
-#     - cada map_point mantém sua própria precipitation_24h_mm.
-#     - popup não recebe a média regional como temperatura municipal.
+#     - cada map_point mantÃ©m sua prÃ³pria temperatura.
+#     - cada map_point mantÃ©m sua prÃ³pria precipitation_1h_mm.
+#     - cada map_point mantÃ©m sua prÃ³pria precipitation_24h_mm.
+#     - popup nÃ£o recebe a mÃ©dia regional como temperatura municipal.
 #
-# [D] INTELIGÊNCIA
-#     - uma avaliação por município por ciclo.
+# [D] INTELIGÃŠNCIA
+#     - uma avaliaÃ§Ã£o por municÃ­pio por ciclo.
 #     - FRI vem somente de FrostRule/intelligence["frost"].
-#     - score meteorológico permanece score.
-#     - severidade permanece a produzida pela Inteligência.
+#     - score meteorolÃ³gico permanece score.
+#     - severidade permanece a produzida pela InteligÃªncia.
 #
 # [E] ALERTAS
-#     - alertas mantêm municipio_id e municipio_nome.
-#     - alertas de municípios distintos não são fundidos indevidamente.
-#     - a coleção global contém os alertas efetivamente materializados.
-#     - o painel global não recria regras.
+#     - alertas mantÃªm municipio_id e municipio_nome.
+#     - alertas de municÃ­pios distintos nÃ£o sÃ£o fundidos indevidamente.
+#     - a coleÃ§Ã£o global contÃ©m os alertas efetivamente materializados.
+#     - o painel global nÃ£o recria regras.
 #
-# [F] REGRESSÃO
+# [F] REGRESSÃƒO
 #     - testes existentes de clima permanecem aprovados.
 #     - testes existentes de dashboard permanecem aprovados.
-#     - testes de ranking não demonstram nova execução de FrostRiskService.
-#     - nenhum contrato frontend existente perde campo canônico.
+#     - testes de ranking nÃ£o demonstram nova execuÃ§Ã£o de FrostRiskService.
+#     - nenhum contrato frontend existente perde campo canÃ´nico.
 #
 # [G] AUDITORIA ESTRUTURAL
-#     - arquivo novo deve manter todas as responsabilidades legítimas da
-#       versão-base.
-#     - nenhuma função pública existente é removida.
-#     - nenhuma dependência necessária é removida sem migração equivalente.
-#     - a nova versão deve possuir número de linhas igual ou superior ao
+#     - arquivo novo deve manter todas as responsabilidades legÃ­timas da
+#       versÃ£o-base.
+#     - nenhuma funÃ§Ã£o pÃºblica existente Ã© removida.
+#     - nenhuma dependÃªncia necessÃ¡ria Ã© removida sem migraÃ§Ã£o equivalente.
+#     - a nova versÃ£o deve possuir nÃºmero de linhas igual ou superior ao
 #       arquivo-base auditado.
 #
-# REJEIÇÃO AUTOMÁTICA:
-#     - temperatura regional voltar a depender do primeiro município;
-#     - precipitation_24h_mm deixar de ser média regional no contexto KPI;
-#     - dado ausente virar zero sem regra explícita;
+# REJEIÃ‡ÃƒO AUTOMÃTICA:
+#     - temperatura regional voltar a depender do primeiro municÃ­pio;
+#     - precipitation_24h_mm deixar de ser mÃ©dia regional no contexto KPI;
+#     - dado ausente virar zero sem regra explÃ­cita;
 #     - FRI ser recalculado em outro consumidor;
-#     - score meteorológico ser apresentado como FRI;
-#     - município A receber inteligência do município B;
-#     - regressão em qualquer teste crítico.
+#     - score meteorolÃ³gico ser apresentado como FRI;
+#     - municÃ­pio A receber inteligÃªncia do municÃ­pio B;
+#     - regressÃ£o em qualquer teste crÃ­tico.
 #
 # ============================================================================
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — VERSÃO 3.12 — INTEGRAÇÃO MP-01.6 — PRESSÃO HÍDRICA REGIONAL
+# REGISTRO DE AUDITORIA â€” VERSÃƒO 3.12 â€” INTEGRAÃ‡ÃƒO MP-01.6 â€” PRESSÃƒO HÃDRICA REGIONAL
 # ============================================================================
 #
 # Base real:
@@ -2252,93 +2264,93 @@ class DashboardService:
 #
 # Problema identificado:
 #     O DashboardService utilizava FrostRiskService.process() diretamente,
-#     enquanto o contrato de teste e a API de acesso específico ao FRI utilizam
+#     enquanto o contrato de teste e a API de acesso especÃ­fico ao FRI utilizam
 #     FrostRiskService.evaluate_frost().
 #
-# Correção:
+# CorreÃ§Ã£o:
 #     1. evaluate_frost_with_result(context) retorna o resultado completo.
-#     2. evaluate_frost(context) permanece compatível e retorna somente FRI.
+#     2. evaluate_frost(context) permanece compatÃ­vel e retorna somente FRI.
 #     3. rule_results, insights, recommendations, alerts e explainability
-#        continuam provenientes da mesma avaliação.
-#     4. O transporte não usa estado compartilhado mutável.
-#     5. Nenhum cálculo de FRI foi introduzido no DashboardService.
+#        continuam provenientes da mesma avaliaÃ§Ã£o.
+#     4. O transporte nÃ£o usa estado compartilhado mutÃ¡vel.
+#     5. Nenhum cÃ¡lculo de FRI foi introduzido no DashboardService.
 #
 # Garantia arquitetural:
 #     contexto municipal
 #         -> FrostRiskService.evaluate_frost_with_result()
-#         -> IntelligenceEngine (uma execução)
-#         -> retorno vinculado à chamada
+#         -> IntelligenceEngine (uma execuÃ§Ã£o)
+#         -> retorno vinculado Ã  chamada
 #         -> FRI + demais resultados
 #         -> map_point
 #
-# Não permitido:
+# NÃ£o permitido:
 #     - chamar process() e evaluate_frost() no mesmo ciclo;
-#     - executar o IntelligenceEngine duas vezes para o mesmo município;
+#     - executar o IntelligenceEngine duas vezes para o mesmo municÃ­pio;
 #     - recalcular FRI no DashboardService;
-#     - usar score de regra meteorológica como FRI;
-#     - misturar inteligência entre municípios.
+#     - usar score de regra meteorolÃ³gica como FRI;
+#     - misturar inteligÃªncia entre municÃ­pios.
 #
-# Critério de aceite:
+# CritÃ©rio de aceite:
 #     python manage.py check
 #     python manage.py test clima dashboard core
 #
 # Resultado esperado:
-#     28 testes OK, sem regressão.
+#     28 testes OK, sem regressÃ£o.
 # ============================================================================
 
 
-# REGISTRO DE AUDITORIA — VERSÃO 3.12 — INTEGRAÇÃO MP-01.6
+# REGISTRO DE AUDITORIA â€” VERSÃƒO 3.12 â€” INTEGRAÃ‡ÃƒO MP-01.6
 #
 # Contrato:
 #     HistoricalClimateIndicatorService
 #         -> historical_indicators
 #         -> contexto municipal
 #         -> FrostRiskService.evaluate_frost()
-#         -> IntelligenceEngine (uma execução)
+#         -> IntelligenceEngine (uma execuÃ§Ã£o)
 #         -> rule_results
 #         -> HYDRIC_PRESSURE_001
 #         -> _compose_hydric_pressure_regional()
 #         -> hydric_pressure_regional
 #
 # Garantias:
-#     - HydricBalanceService continua sendo a origem do balanço.
-#     - HydricPressureRule continua sendo a única autoridade de hydric_state.
-#     - Nenhum estado hídrico é recalculado no DashboardService.
-#     - A síntese regional consome somente rule_results já produzidos.
-#     - Municípios permanecem isolados durante a avaliação.
-#     - FRI, FROST_001 e METEO_ALERT_001 não são alterados.
-#     - A coleção regional não substitui os resultados municipais.
+#     - HydricBalanceService continua sendo a origem do balanÃ§o.
+#     - HydricPressureRule continua sendo a Ãºnica autoridade de hydric_state.
+#     - Nenhum estado hÃ­drico Ã© recalculado no DashboardService.
+#     - A sÃ­ntese regional consome somente rule_results jÃ¡ produzidos.
+#     - MunicÃ­pios permanecem isolados durante a avaliaÃ§Ã£o.
+#     - FRI, FROST_001 e METEO_ALERT_001 nÃ£o sÃ£o alterados.
+#     - A coleÃ§Ã£o regional nÃ£o substitui os resultados municipais.
 #
-# Critério de aceite externo:
+# CritÃ©rio de aceite externo:
 #     python manage.py check
 #     python manage.py test clima dashboard core
 # ============================================================================
 
 
 # ============================================================================
-# REGISTRO DE AUDITORIA — VERSÃO 3.12 — CONTRATO CANÔNICO ETo
+# REGISTRO DE AUDITORIA â€” VERSÃƒO 3.12 â€” CONTRATO CANÃ”NICO ETo
 # ============================================================================
 #
 # Base: dashboard_service.py corrente auditado em 24/09/2026.
 #
-# Correção aplicada:
-#     1. WeatherDTO.eto_mm_day integra o contexto meteorológico canônico.
-#     2. A ETo regional é agregada pela mesma regra estrutural dos demais
-#        indicadores regionais: média dos seis municípios quando todos
-#        possuem valor válido; ausência permanece None.
-#     3. eto_values preserva a evidência municipal utilizada na agregação.
+# CorreÃ§Ã£o aplicada:
+#     1. WeatherDTO.eto_mm_day integra o contexto meteorolÃ³gico canÃ´nico.
+#     2. A ETo regional Ã© agregada pela mesma regra estrutural dos demais
+#        indicadores regionais: mÃ©dia dos seis municÃ­pios quando todos
+#        possuem valor vÃ¡lido; ausÃªncia permanece None.
+#     3. eto_values preserva a evidÃªncia municipal utilizada na agregaÃ§Ã£o.
 #     4. map_point transporta eto_mm_day diretamente do WeatherDTO, sem
-#        cálculo, estimativa ou nova aquisição.
+#        cÃ¡lculo, estimativa ou nova aquisiÃ§Ã£o.
 #
 # Responsabilidades preservadas:
-#     - WeatherService continua responsável pela aquisição;
+#     - WeatherService continua responsÃ¡vel pela aquisiÃ§Ã£o;
 #     - WeatherDTO continua sendo a origem corrente;
-#     - DashboardService somente transporta e agrega o contexto canônico;
-#     - KPIService será o consumidor seguinte do novo campo;
-#     - ChartService permanece sem nova regra de aquisição;
-#     - FRI, Inteligência, ranking, alertas e mapa-base permanecem preservados.
+#     - DashboardService somente transporta e agrega o contexto canÃ´nico;
+#     - KPIService serÃ¡ o consumidor seguinte do novo campo;
+#     - ChartService permanece sem nova regra de aquisiÃ§Ã£o;
+#     - FRI, InteligÃªncia, ranking, alertas e mapa-base permanecem preservados.
 #
-# Regra de ausência:
-#     None permanece None quando qualquer município monitorado não possui
-#     ETo válida. Nenhum valor é inventado ou substituído por zero.
+# Regra de ausÃªncia:
+#     None permanece None quando qualquer municÃ­pio monitorado nÃ£o possui
+#     ETo vÃ¡lida. Nenhum valor Ã© inventado ou substituÃ­do por zero.
 # ============================================================================

@@ -172,6 +172,49 @@ class HailProjectContextContractSanitizationTests(TestCase):
             hail["experimental_evaluation"]["axes"],
         )
 
+    def test_package_c1_projects_municipal_experimental_potential_contract(self):
+        context = self.as_context({
+            "assessment_status": "ASSESSED",
+            "method_version": "MP-01.11.2",
+            "experimental_evaluation": {
+                "evaluation_status": "EXPERIMENTAL_NOT_HOMOLOGATED",
+                "experimental_diagnostic_version": "MP-01.12.3",
+                "axes": {
+                    "instability": {
+                        "status": "AVAILABLE",
+                        "evidence": {"value": 900.0, "unit": "J/kg"},
+                    },
+                    "organization_shear": {
+                        "status": "AVAILABLE",
+                        "evidence": {"value": 12.0, "unit": "m/s"},
+                    },
+                    "thermodynamics": {"status": "UNAVAILABLE"},
+                },
+            },
+        })
+        municipal = context["municipal_result"]
+
+        self.assertIsNone(municipal["potential_level"])
+        self.assertEqual(
+            municipal["classification_status"],
+            "NOT_CLASSIFIED_NO_HOMOLOGATED_THRESHOLDS",
+        )
+        self.assertEqual(municipal["rule_version"], "MP-01.12.3")
+        self.assertEqual(
+            municipal["rule_applied"],
+            "HAIL_POTENTIAL_EXPERIMENTAL_EVALUATOR",
+        )
+        self.assertEqual(
+            municipal["determining_indicators"],
+            ["instability", "organization_shear"],
+        )
+        self.assertIsNone(municipal["threshold_set_version"])
+        self.assertEqual(municipal["threshold_set_status"], "NOT_CONFIGURED")
+        self.assertIsNone(municipal["validation_reference"])
+        self.assertFalse(municipal["operational"])
+        self.assertFalse(municipal["is_factual_event"])
+        self.assertTrue(municipal["limitations"])
+
     def test_missing_experimental_evaluation_is_not_invented(self):
         context = self.as_context({
             "assessment_status": "INSUFFICIENT_DATA",

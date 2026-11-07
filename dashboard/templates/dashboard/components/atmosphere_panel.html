@@ -86,37 +86,37 @@
                                         {% if axes.instability.evidence.value != None %}
                                             <strong>{{ axes.instability.evidence.value|floatformat:2 }}</strong>
                                             <small>{{ axes.instability.evidence.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                     <td data-label="Cisalhamento · 925–500 hPa">
                                         {% if axes.organization_shear.evidence.value != None %}
                                             <strong>{{ axes.organization_shear.evidence.value|floatformat:2 }}</strong>
                                             <small>{{ axes.organization_shear.evidence.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                     <td data-label="Indicador combinado">
                                         {% if axes.combined_cape_shear.evidence.value != None %}
                                             <strong>{{ axes.combined_cape_shear.evidence.value|floatformat:2 }}</strong>
                                             <small>{{ axes.combined_cape_shear.evidence.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                     <td data-label="Umidade relativa · 850 hPa">
                                         {% if axes.thermodynamics.values.relative_humidity_850hPa.value != None %}
                                             <strong>{{ axes.thermodynamics.values.relative_humidity_850hPa.value|floatformat:2 }}</strong>
                                             <small>{{ axes.thermodynamics.values.relative_humidity_850hPa.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                     <td data-label="Temperatura · 850 hPa">
                                         {% if axes.thermodynamics.values.temperature_850hPa.value != None %}
                                             <strong>{{ axes.thermodynamics.values.temperature_850hPa.value|floatformat:2 }}</strong>
                                             <small>{{ axes.thermodynamics.values.temperature_850hPa.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                     <td data-label="Bulbo úmido · 2 m">
                                         {% if axes.thermodynamics.values.wet_bulb_temperature_2m.value != None %}
                                             <strong>{{ axes.thermodynamics.values.wet_bulb_temperature_2m.value|floatformat:2 }}</strong>
                                             <small>{{ axes.thermodynamics.values.wet_bulb_temperature_2m.unit }}</small>
-                                        {% else %}<span class="atmosphere-value-unavailable">—</span>{% endif %}
+                                        {% else %}<span class="atmosphere-value-unavailable">Indisponível</span>{% endif %}
                                     </td>
                                 </tr>
 
@@ -259,7 +259,7 @@
     <footer class="atmosphere-panel-v2__footer">
         <i class="bi bi-shield-check" aria-hidden="true"></i>
         <p>
-            Avaliação meteorológica experimental. Classificação de potencial: não homologada. Evento factual: não.
+            Avaliação meteorológica experimental. Classificação de potencial: não realizada; não há limiares homologados configurados. Ocorrência factual: não confirmada neste contexto.
             Os indicadores são apresentados conforme recebidos do backend; nenhuma regra meteorológica é criada neste painel.
         </p>
     </footer>

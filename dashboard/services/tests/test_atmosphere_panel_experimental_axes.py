@@ -9,7 +9,7 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
             {
                 "hail_assessments": [{
                     "municipio_id": 17,
-                    "municipio_nome": "Município de teste",
+                    "municipio_nome": "MunicÃ­pio de teste",
                     "assessment_status": "ASSESSED",
                     "potential_level": None,
                     "context_type": "meteorological_assessment",
@@ -109,7 +109,8 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
         self.assertIn("Diagnóstico meteorológico completo", html)
         self.assertIn("Instabilidade (CAPE)", html)
         self.assertIn("Cisalhamento vertical (925–500 hPa)", html)
-        self.assertIn("Indicador combinado CAPE", html)
+        self.assertIn("CAPE × cisalhamento", html)
+        self.assertIn("Indicador combinado", html)
         self.assertIn("Condições termodinâmicas complementares", html)
         self.assertIn("90.00", normalized_html)
         self.assertIn("10.00", normalized_html)
@@ -129,7 +130,31 @@ class AtmospherePanelExperimentalAxesTests(SimpleTestCase):
 
         self.assertNotIn("<h4>Indicadores derivados</h4>", html)
         self.assertNotIn("<h4>Variáveis complementares</h4>", html)
-        self.assertIn("Classificação de potencial: não homologada.", html)
+        self.assertIn("Classificação de potencial: não realizada", html)
+        self.assertIn("não há limiares homologados configurados", html)
+        self.assertIn("Ocorrência factual: não confirmada neste contexto", html)
         self.assertNotIn("ALTO", html)
-        self.assertNotIn("CRÍTICO", html)
+        self.assertNotIn("CRÃTICO", html)
         self.assertNotIn("<details", html)
+
+    def test_panel_labels_missing_axis_values_as_unavailable(self):
+        html = render_to_string(
+            "dashboard/components/atmosphere_panel.html",
+            {
+                "hail_assessments": [{
+                    "municipio_id": 18,
+                    "municipio_nome": "Município sem dados",
+                    "assessment_status": "INSUFFICIENT_DATA",
+                    "municipal_result": {
+                        "experimental_evaluation": {
+                            "diagnostics_complete": False,
+                            "axes": {},
+                        },
+                    },
+                }],
+            },
+        )
+
+        self.assertEqual(html.count("Indisponível"), 6)
+        self.assertIn("Classificação de potencial: não realizada", html)
+        self.assertIn("Ocorrência factual: não confirmada", html)
