@@ -653,19 +653,19 @@ class DashboardFacade:
         colors = {
 
             "critical":
-                "#a52f2f",
+                "#C62828",
 
             "high":
-                "#a94c17",
+                "#EF6C00",
 
             "medium":
-                "#9a6a00",
+                "#F9A825",
 
             "low":
-                "#287a40",
+                "#1565C0",
 
             "none":
-                "#666666",
+                "#2E7D32",
         }
 
         if severity is None:
