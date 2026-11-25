@@ -1165,9 +1165,42 @@ class DashboardService:
                 point.get("historical_indicators") or {}
             )
 
-            hail_input = hail_inputs_by_id.get(
-                point.get("municipio_id") or point.get("id")
-            )
+            # HailMeteorologicalInputService indexa a saída pelo id
+            # original de cada map_point. Esse é o identificador primário
+            # do contrato de MapService; municipio_id é apenas alias de
+            # compatibilidade e não deve sombrear a chave canônica.
+            point_id = point.get("id")
+            municipio_id = point.get("municipio_id")
+            hail_input = hail_inputs_by_id.get(point_id)
+            if hail_input is None and municipio_id != point_id:
+                hail_input = hail_inputs_by_id.get(municipio_id)
+
+            # Recuperação isolada: uma resposta em lote incompleta ou inválida
+            # não pode zerar as entradas de todos os municípios. Reconsulta
+            # somente o ponto sem série utilizável; a regra de granizo continua
+            # sendo executada uma única vez pelo IntelligenceEngine.
+            if (
+                not isinstance(hail_input, dict)
+                or not isinstance(hail_input.get("series"), dict)
+                or not hail_input.get("series")
+            ):
+                try:
+                    individual_inputs = HailMeteorologicalInputService().fetch_for_points(
+                        [point]
+                    )
+                    individual_input = individual_inputs.get(point_id)
+                    if individual_input is None and municipio_id != point_id:
+                        individual_input = individual_inputs.get(municipio_id)
+                    if isinstance(individual_input, dict) and individual_input.get("series"):
+                        hail_input = individual_input
+                except Exception:
+                    logger.exception(
+                        "Falha na recuperação meteorológica individual de granizo "
+                        "para município id=%s nome=%s.",
+                        point_id,
+                        point.get("nome") or point.get("municipio_nome"),
+                    )
+
             if not isinstance(hail_input, dict):
                 hail_input = {}
 
@@ -1287,21 +1320,29 @@ class DashboardService:
             #   - divergência entre FRI e demais resultados;
             #   - dependência direta do DashboardService sobre a
             #     estrutura interna do motor.
+            evaluation_succeeded = False
+
             try:
                 frost = self.frost_risk_service.evaluate_frost(
                     context
                 )
+                evaluation_succeeded = True
             except Exception:
                 frost = {}
 
             if not isinstance(frost, dict):
                 frost = {}
 
-            intelligence = getattr(
-                self.frost_risk_service,
-                "last_result",
-                {},
-            )
+            # last_result belongs to this municipality only when evaluation succeeds.
+            # After an exception, it may still contain the previous municipality result.
+            if evaluation_succeeded:
+                intelligence = getattr(
+                    self.frost_risk_service,
+                    "last_result",
+                    {},
+                )
+            else:
+                intelligence = {}
 
             if not isinstance(intelligence, dict):
                 intelligence = {}
@@ -1318,7 +1359,59 @@ class DashboardService:
                 frost = {}
 
             rule_results = intelligence.get("rule_results", [])
+            if not isinstance(rule_results, list):
+                rule_results = []
+
+            # Contrato de granizo: comparar todos os resultados da mesma
+            # execução e escolher o payload com maior completude estrutural.
+            # derived + drivers não bastam se complementary_values se perdeu.
+            # Nenhuma regra é reexecutada e nenhum indicador é recalculado aqui.
             hail = intelligence.get("hail", {})
+            if not isinstance(hail, dict):
+                hail = {}
+
+            hail_candidates = [
+                result for result in rule_results
+                if isinstance(result, dict)
+                and (
+                    result.get("rule_id") == "HAIL_POTENTIAL_001"
+                    or result.get("id") == "HAIL_POTENTIAL_001"
+                )
+            ]
+
+            def _hail_completeness(result):
+                if not isinstance(result, dict):
+                    return (0, 0, 0, 0, 0, 0)
+                derived = result.get("derived")
+                drivers = result.get("drivers")
+                complementary = result.get("complementary_values")
+                if not isinstance(complementary, dict):
+                    complementary = (
+                        (result.get("municipal_result") or {}).get(
+                            "complementary_values"
+                        )
+                        if isinstance(result.get("municipal_result"), dict)
+                        else {}
+                    )
+                provenance = result.get("provenance")
+                data_quality = result.get("data_quality")
+                return (
+                    int(isinstance(derived, dict) and bool(derived)),
+                    int(isinstance(drivers, (list, tuple)) and bool(drivers)),
+                    int(isinstance(complementary, dict) and bool(complementary)),
+                    int(result.get("assessment_status") == "ASSESSED"),
+                    int(isinstance(provenance, dict) and bool(provenance)),
+                    int(isinstance(data_quality, dict) and bool(data_quality)),
+                )
+
+            if hail_candidates:
+                best_candidate = max(
+                    [hail, *hail_candidates],
+                    key=_hail_completeness,
+                )
+                if _hail_completeness(best_candidate) > _hail_completeness(hail):
+                    hail = best_candidate
+
             if not isinstance(hail, dict):
                 hail = {}
             insights = intelligence.get("insights", [])
@@ -1431,11 +1524,63 @@ class DashboardService:
                 intelligence = {}
 
             hail = intelligence.get("hail")
-            if not isinstance(hail, dict):
-                hail = point.get("hail_potential_evaluation")
+            fallback_candidates = [
+                point.get("hail_potential_evaluation"),
+            ]
+            rule_results = point.get("rule_results", [])
+            if isinstance(rule_results, list):
+                fallback_candidates.extend(
+                    result for result in rule_results
+                    if isinstance(result, dict)
+                    and (
+                        result.get("rule_id") == "HAIL_POTENTIAL_001"
+                        or result.get("id") == "HAIL_POTENTIAL_001"
+                    )
+                )
 
-            if not isinstance(hail, dict):
+            # Não aceitar um dicionário vazio/incompleto como autoridade
+            # quando a mesma avaliação já contém o resultado canônico completo.
+            candidates = [
+                candidate
+                for candidate in [hail, *fallback_candidates]
+                if isinstance(candidate, dict)
+                and any(
+                    key in candidate
+                    for key in (
+                        "assessment_status",
+                        "rule_id",
+                        "id",
+                        "derived",
+                        "drivers",
+                    )
+                )
+            ]
+            if not candidates:
                 continue
+
+            def _project_hail_completeness(candidate):
+                derived = candidate.get("derived")
+                drivers = candidate.get("drivers")
+                complementary = candidate.get("complementary_values")
+                if not isinstance(complementary, dict):
+                    municipal_result = candidate.get("municipal_result")
+                    complementary = (
+                        municipal_result.get("complementary_values", {})
+                        if isinstance(municipal_result, dict)
+                        else {}
+                    )
+                provenance = candidate.get("provenance")
+                data_quality = candidate.get("data_quality")
+                return (
+                    int(isinstance(derived, dict) and bool(derived)),
+                    int(isinstance(drivers, (list, tuple)) and bool(drivers)),
+                    int(isinstance(complementary, dict) and bool(complementary)),
+                    int(candidate.get("assessment_status") == "ASSESSED"),
+                    int(isinstance(provenance, dict) and bool(provenance)),
+                    int(isinstance(data_quality, dict) and bool(data_quality)),
+                )
+
+            hail = max(candidates, key=_project_hail_completeness)
 
             assessments.append(
                 HailProjectContextContract.from_municipal_result(
