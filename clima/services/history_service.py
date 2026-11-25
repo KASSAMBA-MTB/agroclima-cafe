@@ -604,7 +604,6 @@ class HistoryService:
                 .values(
                     "observation_time",
                     "temperatura",
-                    "precipitacao",
                     "umidade",
                     "velocidade_vento",
                 )
@@ -634,7 +633,6 @@ class HistoryService:
                     observation_date,
                     {
                         "temperaturas": [],
-                        "precipitacoes": [],
                         "umidades": [],
                         "ventos": [],
                     },
@@ -643,19 +641,12 @@ class HistoryService:
                 temperatura_observada = observation.get(
                     "temperatura",
                 )
-                precipitacao_observada = observation.get(
-                    "precipitacao",
-                )
 
                 if temperatura_observada is not None:
                     entry["temperaturas"].append(
                         float(temperatura_observada)
                     )
 
-                if precipitacao_observada is not None:
-                    entry["precipitacoes"].append(
-                        float(precipitacao_observada)
-                    )
 
                 umidade_observada = observation.get(
                     "umidade",
@@ -696,12 +687,6 @@ class HistoryService:
                         1,
                     )
 
-                precipitacao_fallback = None
-                if values["precipitacoes"]:
-                    precipitacao_fallback = round(
-                        sum(values["precipitacoes"]),
-                        1,
-                    )
 
                 umidade_fallback = None
                 if values["umidades"]:
@@ -725,11 +710,7 @@ class HistoryService:
                         if temperatura_historica is not None
                         else temperatura_fallback
                     ),
-                    "precipitacao": (
-                        precipitacao_historica
-                        if precipitacao_historica is not None
-                        else precipitacao_fallback
-                    ),
+                    "precipitacao": precipitacao_historica,
                     "umidade": umidade_fallback,
                     "vento": vento_fallback,
                     "temperatura_minima": existing.get(
